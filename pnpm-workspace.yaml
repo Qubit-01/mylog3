@@ -1,0 +1,12 @@
+packages:
+  - apps/*
+  - packages/*
+
+catalog:
+  # dependencies
+
+# 这些包有问题，暂时不构建
+ignoredBuiltDependencies:
+  - libpq
+  - better-sqlite3
+onlyBuiltDependencies:
