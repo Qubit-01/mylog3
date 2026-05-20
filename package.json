@@ -1,15 +1,6 @@
 {
   "name": "mylog3",
-  "version": "2026.5.16",
+  "version": "3",
   "description": "多元记",
-  "scripts": {
-  },
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.1.2",
-      "onFail": "download"
-    }
-  },
-  "type": "module"
+  "scripts": {}
 }
