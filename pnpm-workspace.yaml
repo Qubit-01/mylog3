@@ -6,12 +6,25 @@ catalog:
   # dependencies
   vue: ^3.5.34
   # devDependencies
-  '@types/node': ^25.8.0
+  '@types/node': ^25.9.1
   '@vitejs/plugin-vue': ^6.0.7
   '@vue/tsconfig': ^0.9.1
   typescript: ^6.0.3
   vite: ^8.0.13
   vue-tsc: ^3.2.9
-ignoredBuiltDependencies: # 这些包有问题，暂时不构建
 
-onlyBuiltDependencies:
+allowBuilds:
+  '@nestjs/core': true
+  '@parcel/watcher': true
+  '@prisma/engines': true
+  '@swc/core': true
+  better-sqlite3: true
+  bufferutil: true
+  esbuild: true
+  libpq: false # 有问题，暂不构建
+  msgpackr-extract: true
+  prisma: true
+  protobufjs: true
+  sqlite3: true
+  unrs-resolver: true
+  utf-8-validate: true
