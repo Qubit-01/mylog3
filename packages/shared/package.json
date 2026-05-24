@@ -9,9 +9,14 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "catalog:",
+    "@vueuse/core": "catalog:",
+    "dayjs": "catalog:",
     "element-plus": "catalog:",
+    "lodash-unified": "catalog:",
+    "markdown-it": "catalog:",
     "pinia": "catalog:",
-    "vue": "catalog:"
+    "vue": "catalog:",
+    "vue-router": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
