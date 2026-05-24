@@ -17,6 +17,7 @@ catalog:
   '@types/node': ^25.9.1
   '@vitejs/plugin-vue': ^6.0.7
   '@vue/tsconfig': ^0.9.1
+  sass-embedded: ^1.100.0
   typescript: ^6.0.3
   unplugin-auto-import: ^21.0.0
   unplugin-vue-components: ^32.1.0
