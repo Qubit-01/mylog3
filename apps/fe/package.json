@@ -8,6 +8,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "catalog:",
+    "element-plus": "catalog:",
+    "pinia": "catalog:",
     "vue": "catalog:"
   },
   "devDependencies": {
@@ -15,6 +18,8 @@
     "@vitejs/plugin-vue": "catalog:",
     "@vue/tsconfig": "catalog:",
     "typescript": "catalog:",
+    "unplugin-auto-import": "catalog:",
+    "unplugin-vue-components": "catalog:",
     "vite": "catalog:",
     "vue-tsc": "catalog:"
   }
