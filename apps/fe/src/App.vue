@@ -1,5 +1,8 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div class="App">Fe App</div>
+  <div class="App">
+    Fe App
+    <RouterView />
+  </div>
 </template>
