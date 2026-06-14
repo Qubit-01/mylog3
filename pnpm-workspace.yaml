@@ -14,6 +14,7 @@ catalog:
   vue: ^3.5.35
   vue-router: ^4.6.4
   # devDependencies
+  '@types/markdown-it': ^14.1.2
   '@types/node': ^25.9.2
   '@vitejs/plugin-vue': ^6.0.7
   '@vue/tsconfig': ^0.9.1
