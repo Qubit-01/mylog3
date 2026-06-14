@@ -3,6 +3,7 @@
   "version": "2026.5.20",
   "description": "",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
