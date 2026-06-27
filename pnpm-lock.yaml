@@ -191,6 +191,9 @@ importers:
       pinia:
         specifier: 'catalog:'
         version: 3.0.4(typescript@6.0.3)(vue@3.5.38(typescript@6.0.3))
+      shared:
+        specifier: workspace:*
+        version: link:../../packages/shared
       vue:
         specifier: 'catalog:'
         version: 3.5.38(typescript@6.0.3)

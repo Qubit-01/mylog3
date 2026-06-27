@@ -15,6 +15,7 @@
     "lodash-unified": "catalog:",
     "markdown-it": "catalog:",
     "pinia": "catalog:",
+    "shared": "workspace:*",
     "vue": "catalog:",
     "vue-router": "catalog:"
   },
