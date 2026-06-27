@@ -9,10 +9,6 @@
 - getOffsetTopDistance 获取元素距离容器顶部的距离
 - formatCount 格式化数字（万、亿），保留小数点后1位
 
-# Directive
-
-- vEllipsis 超出省略号，传入行数，默认一行，0就啥都不干
-
 # 依赖
 
 - @vueuse/core
