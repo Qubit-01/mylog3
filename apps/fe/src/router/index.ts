@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+import DefaultLayout from '../layouts/DefaultLayout.vue'
 import HomePage from '../pages/HomePage.vue'
 
 export const router = createRouter({
@@ -6,10 +7,15 @@ export const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
-      // redirect: { name: 'account' },
-      component: HomePage,
-      meta: { title: '首页' },
+      component: DefaultLayout,
+      children: [
+        {
+          path: '',
+          name: 'home',
+          component: HomePage,
+          meta: { title: '首页' },
+        },
+      ],
     },
   ],
 })
