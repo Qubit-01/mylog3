@@ -3,6 +3,8 @@
 本仓库协作约定如下。
 
 > 本文档主要写给以后的 agent 看，只记需要被反复提醒、容易踩坑的约束；一次性的配置、显而易见的常识不写。
+>
+> 任何 agent 在协作过程中，如果发现值得提醒后来者的踩坑点、隐性约定或反复确认过的偏好，应主动补进本文档；务必保持简洁，不冗余、不堆砌常识。
 
 ## JavaScript / TypeScript
 
@@ -30,6 +32,7 @@
 
 - 路由直接从 `vue-router/auto-routes` 拿 `routes`，禁止手写 `routes` 数组。
 - 新增页面只在 `src/pages/` 下加文件，遵循官方命名（`index.vue`、`[id].vue` 等），不要建 `layouts/`、不要写 `XxxPage.vue` 这种名字。
+- 多个页面共享布局用路由分组：`(group).vue` 作为布局父，`(group)/*.vue` 作为子页面，URL 不含 `group`；不共享布局的页面直接放 `pages/` 根下。
 - `typed-router.d.ts` 由插件自动生成，禁止手改，但需提交。
 
 ## 后端
@@ -37,6 +40,10 @@
 - 不用 Restful 风格
 - 没有特殊需求的话，尽量都用 POST 接口
 - 数据库表名用全小写
+
+## 工程
+
+- pnpm monorepo + catalog 管理依赖版本：版本只写在 `pnpm-workspace.yaml` 的 `catalog`，子包用 `"xxx": "catalog:"` 引用。
 
 ## 其他
 
