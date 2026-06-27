@@ -1,25 +1,11 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import DefaultLayout from '../layouts/DefaultLayout.vue'
-import HomePage from '../pages/HomePage.vue'
+import { createRouter, createWebHistory } from 'vue-router'
+import { routes, handleHotUpdate } from 'vue-router/auto-routes'
 
+/** 路由实例 */
 export const router = createRouter({
-  history: createWebHashHistory(),
-  routes: [
-    {
-      path: '/',
-      component: DefaultLayout,
-      children: [
-        {
-          path: '',
-          name: 'home',
-          component: HomePage,
-          meta: { title: '首页' },
-        },
-      ],
-    },
-  ],
+  history: createWebHistory(),
+  routes,
 })
 
-router.afterEach((to) => {
-  document.title = to.meta.title ? `${to.meta.title} - 多元记` : '多元记'
-})
+// 路由热更新，无需刷新页面
+if (import.meta.hot) handleHotUpdate(router)
