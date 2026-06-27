@@ -2,6 +2,9 @@
   "name": "shared",
   "private": true,
   "type": "module",
+  "exports": {
+    "./*": "./src/composables/*/index.ts"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
