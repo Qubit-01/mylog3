@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-/** 首页 */
+/** 我的 */
 </script>
 
 <template>
-  <div class="index">
-    Home
+  <div class="mine">
+    我的
   </div>
 </template>
 
 <style lang="scss" scoped>
-.index {
+.mine {
 }
 </style>

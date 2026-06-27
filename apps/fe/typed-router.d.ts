@@ -38,6 +38,27 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/map': RouteRecordInfo<
+      '/map',
+      '/map',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/mine': RouteRecordInfo<
+      '/mine',
+      '/mine',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/profile': RouteRecordInfo<
+      '/profile',
+      '/profile',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
   }
 
   /**
@@ -54,6 +75,30 @@ declare module 'vue-router/auto-routes' {
     'src/pages/index.vue': {
       routes:
         | '/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/map.vue': {
+      routes:
+        | '/map'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/mine.vue': {
+      routes:
+        | '/mine'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/profile.vue': {
+      routes:
+        | '/profile'
       views:
         | never
       pathParamNames:

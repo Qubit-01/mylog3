@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-/** 首页 */
+/** 地图 */
 </script>
 
 <template>
-  <div class="index">
-    Home
+  <div class="map">
+    地图
   </div>
 </template>
 
 <style lang="scss" scoped>
-.index {
+.map {
 }
 </style>
