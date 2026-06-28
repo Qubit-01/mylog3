@@ -3,9 +3,7 @@
 </script>
 
 <template>
-  <div class="index">
-    <div v-for="i in 500">HomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHome</div>
-  </div>
+  <div class="index">Home</div>
 </template>
 
 <style lang="scss" scoped>
