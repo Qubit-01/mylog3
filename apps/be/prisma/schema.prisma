@@ -9,7 +9,7 @@ datasource db {
   provider = "mysql"
 }
 
-/// 认证表，存储用户登录凭证（自有账号 + 第三方平台 unionid）
+/// 认证表，存储登录凭证（自有账号 + 第三方平台 unionid），一组凭证可对应多个用户
 model auth {
   /// 主键 id
   id             Int      @id @default(autoincrement()) @db.UnsignedInt
@@ -27,4 +27,32 @@ model auth {
   updated_at     DateTime @updatedAt
   /// 创建时间
   created_at     DateTime @default(now())
+
+  /// 该凭证下挂载的所有用户账号
+  users user[]
+}
+
+/// 用户表，存储用户的展示信息与偏好设置；同一组 auth 凭证下可有多个 user
+model user {
+  /// 主键 id
+  id         Int      @id @default(autoincrement()) @db.UnsignedInt
+  /// 所属认证 id
+  auth_id    Int      @db.UnsignedInt
+  /// 用户名，唯一不可重
+  name       String   @unique @db.VarChar(50)
+  /// 头像 URL
+  avatar     String?  @db.VarChar(500)
+  /// 用户数据（性别、生日、地区、个签等自定义资料），JSON 对象
+  data       Json     @default(dbgenerated("(JSON_OBJECT())"))
+  /// 用户设置（主题、语言、通知等偏好），JSON 对象
+  settings   Json     @default(dbgenerated("(JSON_OBJECT())"))
+  /// 更新时间
+  updated_at DateTime @updatedAt
+  /// 创建时间
+  created_at DateTime @default(now())
+
+  /// 所属认证凭证
+  auth auth @relation(fields: [auth_id], references: [id], onDelete: Cascade)
+
+  @@index([auth_id])
 }
