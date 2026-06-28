@@ -16,6 +16,7 @@
     "markdown-it": "catalog:",
     "pinia": "catalog:",
     "shared": "workspace:*",
+    "swiper": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:"
   },

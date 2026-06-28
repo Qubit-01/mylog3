@@ -45,6 +45,9 @@ catalogs:
     sass-embedded:
       specifier: ^1.100.0
       version: 1.100.0
+    swiper:
+      specifier: ^14.0.0
+      version: 14.0.0
     typescript:
       specifier: ^6.0.3
       version: 6.0.3
@@ -197,6 +200,9 @@ importers:
       shared:
         specifier: workspace:*
         version: link:../../packages/shared
+      swiper:
+        specifier: 'catalog:'
+        version: 14.0.0
       vue:
         specifier: 'catalog:'
         version: 3.5.39(typescript@6.0.3)
@@ -3989,6 +3995,10 @@ packages:
   supports-color@8.1.1:
     resolution: {integrity: sha512-MpUEN2OodtUzxvKQl72cUF7RQ5EiHsGvSsVG0ia9c5RbWGL2CI4C7EpPS8UTBIplnlzZiNuV56w+FuNxy3ty2Q==}
     engines: {node: '>=10'}
+
+  swiper@14.0.0:
+    resolution: {integrity: sha512-F6DXjC+GKt8WGvutu+35FIZO9iZkde+XxDwFqfw0tlFijDwfG7DikHYUiFQKqIYEp25q8TQSqI3Nh2+bHxs2uA==}
+    engines: {node: '>= 4.7.0'}
 
   symbol-observable@4.0.0:
     resolution: {integrity: sha512-b19dMThMV4HVFynSAM1++gBHAbk2Tc/osgLIBZMKsyqh34jb2e8Os7T6ZW/Bt3pJFdBTd2JwAnAAEQV7rSNvcQ==}
@@ -8513,6 +8523,8 @@ snapshots:
   supports-color@8.1.1:
     dependencies:
       has-flag: 4.0.0
+
+  swiper@14.0.0: {}
 
   symbol-observable@4.0.0: {}
 
