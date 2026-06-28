@@ -11,7 +11,9 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    LiquidGlass: typeof import('./src/components/LiquidGlass.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    TabBar: typeof import('./src/components/TabBar.vue')['default']
   }
 }
