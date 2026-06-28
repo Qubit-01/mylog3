@@ -1,13 +1,7 @@
 <script lang="ts" setup>
 /** 底部悬浮 Tab 导航栏：iOS 26 风格，毛玻璃外观委托给 LiquidGlass */
 import LiquidGlass from 'shared/LiquidGlass'
-
-const tabs = [
-  { to: '/', label: '首页' },
-  { to: '/mine', label: '我的' },
-  { to: '/map', label: '地图' },
-  { to: '/profile', label: '个人' },
-]
+import { tabs } from '../pages/(default)/tabs'
 
 const route = useRoute()
 /** 当前激活 tab 的索引，-1 表示无匹配 */
@@ -34,6 +28,7 @@ const activeIndex = computed(() => tabs.findIndex((t) => t.to === route.path))
   left: 50%;
   bottom: calc(env(safe-area-inset-bottom) + 16px);
   transform: translateX(-50%);
+  z-index: 10;
   display: flex;
   gap: 4px;
   padding: 6px;
