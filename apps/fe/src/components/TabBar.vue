@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 /** 底部悬浮 Tab 导航栏：iOS 26 风格，毛玻璃外观委托给 LiquidGlass */
+import LiquidGlass from 'shared/LiquidGlass'
+
 const tabs = [
   { to: '/', label: '首页' },
   { to: '/mine', label: '我的' },
