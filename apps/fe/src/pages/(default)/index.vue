@@ -4,7 +4,7 @@
 
 <template>
   <div class="index">
-    Home
+    <div v-for="i in 500">HomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHomeHome</div>
   </div>
 </template>
 

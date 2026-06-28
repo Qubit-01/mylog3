@@ -10,5 +10,7 @@
 
 <style lang="scss" scoped>
 .map {
+  border: 1px solid red;
+  height: 100%;
 }
 </style>
