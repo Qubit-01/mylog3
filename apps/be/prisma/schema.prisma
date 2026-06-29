@@ -27,9 +27,7 @@ model auth {
   updated_at     DateTime @updatedAt
   /// 创建时间
   created_at     DateTime @default(now())
-
-  /// 该凭证下挂载的所有用户账号
-  users user[]
+  users          user[]
 }
 
 /// 用户表，存储用户的展示信息与偏好设置；同一组 auth 凭证下可有多个 user
@@ -43,16 +41,14 @@ model user {
   /// 头像 URL
   avatar     String?  @db.VarChar(500)
   /// 用户数据（性别、生日、地区、个签等自定义资料），JSON 对象
-  data       Json     @default(dbgenerated("(JSON_OBJECT())"))
+  data       Json     @default(dbgenerated("(json_object())"))
   /// 用户设置（主题、语言、通知等偏好），JSON 对象
-  settings   Json     @default(dbgenerated("(JSON_OBJECT())"))
+  settings   Json     @default(dbgenerated("(json_object())"))
   /// 更新时间
   updated_at DateTime @updatedAt
   /// 创建时间
   created_at DateTime @default(now())
-
-  /// 所属认证凭证
-  auth auth @relation(fields: [auth_id], references: [id], onDelete: Cascade)
+  auth       auth     @relation(fields: [auth_id], references: [id], onDelete: Cascade)
 
   @@index([auth_id])
 }
