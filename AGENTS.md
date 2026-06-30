@@ -41,6 +41,10 @@
 - 没有特殊需求的话，尽量都用 POST 接口
 - 数据库表名用全小写
 
+### 待跟进 TODO
+
+- **Prisma 7 类型门面**：当前 `apps/be/src/prisma/prisma.service.ts` 没有用「教科书式继承 `PrismaClient`」的官方 Recipe，而是组合 + 手写 `AuthRow` / `UserRow` / `Delegate` 类型门面。原因是 Prisma 7 生成的 `generated/prisma/**` 文件全部带 `@ts-nocheck`，继承会让 `PrismaClient` 退化成 `any`。等 Prisma 移除 `@ts-nocheck`（已知问题，社区跟进中），把 `PrismaService` 改回 `extends PrismaClient`，删掉所有手写门面类型。新增表时记得同步更新门面。
+
 ## 工程
 
 - pnpm monorepo + catalog 管理依赖版本：版本只写在 `pnpm-workspace.yaml` 的 `catalog`，子包用 `"xxx": "catalog:"` 引用。
