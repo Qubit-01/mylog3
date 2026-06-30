@@ -1,5 +1,10 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { CaptchaService } from '../captcha/captcha.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 
@@ -8,15 +13,24 @@ const SALT_ROUNDS = 10;
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly captcha: CaptchaService,
+  ) {}
 
   /**
-   * 注册：事务内创建 auth + 默认 user
+   * 注册：先校验图形验证码，再在事务内创建 auth + 默认 user
    * - 当前仅用 name + 密码，auth 表的 email/phone 留空
    * - name 唯一性由数据库 unique 约束兜底
+   * - 验证码一次性，无论本接口是否成功，captchaId 都已在 verify 时失效
    * @returns 新建用户的公开信息
    */
   async register(dto: RegisterDto) {
+    // 1. 图形验证码先行校验，挡掉机器流量
+    if (!this.captcha.verify(dto.captchaId, dto.captcha)) {
+      throw new BadRequestException('验证码错误或已失效');
+    }
+
     const pswd = await bcrypt.hash(dto.pswd, SALT_ROUNDS);
     try {
       return await this.prisma.$transaction(async (tx) => {
