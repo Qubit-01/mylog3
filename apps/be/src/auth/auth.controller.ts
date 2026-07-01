@@ -1,5 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { PublicUserDto } from '../user/dto/public-user.dto';
@@ -12,8 +12,7 @@ export class AuthController {
   /** 注册账号 */
   @Post('register')
   @ApiBody({ type: RegisterDto })
-  @ApiResponse({
-    status: 201,
+  @ApiCreatedResponse({
     type: PublicUserDto,
     description: '注册成功，返回新用户公开信息',
   })

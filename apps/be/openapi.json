@@ -1,0 +1,172 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/hello": {
+      "get": {
+        "operationId": "AppController_hello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      },
+      "post": {
+        "operationId": "AppController_helloPost",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/captcha/create": {
+      "post": {
+        "operationId": "CaptchaController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "生成一次性图形验证码",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaptchaCreateDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "captcha"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "注册成功，返回新用户公开信息",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicUserDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "mylog3 API",
+    "description": "后端接口文档 — 前端通过 openapi-typescript 生成类型",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "CaptchaCreateDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "验证码 id，提交业务接口时回传",
+            "example": "uuid-xxx"
+          },
+          "svg": {
+            "type": "string",
+            "description": "SVG 文本，前端 v-html 或转 dataURL 直接用"
+          }
+        },
+        "required": [
+          "id",
+          "svg"
+        ]
+      },
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 20,
+            "description": "用户昵称，全局唯一",
+            "example": "alice"
+          },
+          "pswd": {
+            "type": "string",
+            "minLength": 8,
+            "description": "登录密码，明文传入，后端 hash 后入库"
+          },
+          "captchaId": {
+            "type": "string",
+            "description": "图形验证码 id（/captcha/create 返回的 id）"
+          },
+          "captcha": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 4,
+            "description": "图形验证码用户输入"
+          }
+        },
+        "required": [
+          "name",
+          "pswd",
+          "captchaId",
+          "captcha"
+        ]
+      },
+      "PublicUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "用户主键 id",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "用户昵称",
+            "example": "alice"
+          },
+          "avatar": {
+            "type": "string",
+            "nullable": true,
+            "description": "头像 URL，未设置为 null",
+            "example": "https://cdn.example.com/a.png"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "avatar"
+        ]
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import { Controller, Post } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { CaptchaService } from './captcha.service';
 import { CaptchaCreateDto } from './dto/captcha-create.dto';
 
@@ -10,8 +10,7 @@ export class CaptchaController {
 
   /** 生成图形验证码 */
   @Post('create')
-  @ApiResponse({
-    status: 201,
+  @ApiCreatedResponse({
     type: CaptchaCreateDto,
     description: '生成一次性图形验证码',
   })
