@@ -1,9 +1,22 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/all-exceptions.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    // 先把 bootstrap 期间的日志缓存起来，等 pino Logger 就绪后统一 flush
+    bufferLogs: true,
+  });
+
+  // 把 Nest 内建日志（含 bootstrap / 路由映射）也接管到 pino
+  app.useLogger(app.get(Logger));
+  // 让抛出的异常在日志 `err` 字段里保留完整堆栈和错误类，官方推荐
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
+  // 全局异常兜底：把所有 error 转成结构化 JSON 返回给前端
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // 全局参数校验：自动剔除 DTO 之外字段，并把 JSON 转 class 实例
   app.useGlobalPipes(
