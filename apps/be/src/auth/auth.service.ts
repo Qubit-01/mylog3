@@ -6,6 +6,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { CaptchaService } from '../captcha/captcha.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { PublicUserDto } from '../user/dto/public-user.dto';
 import { RegisterDto } from './dto/register.dto';
 
 /** bcrypt salt rounds */
@@ -20,13 +21,11 @@ export class AuthService {
 
   /**
    * 注册：先校验图形验证码，再在事务内创建 auth + 默认 user
-   * - 当前仅用 name + 密码，auth 表的 email/phone 留空
    * - name 唯一性由数据库 unique 约束兜底
    * - 验证码一次性，无论本接口是否成功，captchaId 都已在 verify 时失效
-   * @returns 新建用户的公开信息
+   * @returns 新建用户的公开信息（PublicUserDto）
    */
-  async register(dto: RegisterDto) {
-    // 1. 图形验证码先行校验，挡掉机器流量
+  async register(dto: RegisterDto): Promise<PublicUserDto> {
     if (!this.captcha.verify(dto.captchaId, dto.captcha)) {
       throw new BadRequestException('验证码错误或已失效');
     }
@@ -41,7 +40,6 @@ export class AuthService {
         return { id: user.id, name: user.name, avatar: user.avatar };
       });
     } catch (e) {
-      // Prisma 唯一冲突：P2002（这里只可能是 user.name）
       if ((e as { code?: string }).code === 'P2002') {
         throw new ConflictException('昵称已被占用');
       }
