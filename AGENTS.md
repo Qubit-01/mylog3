@@ -41,6 +41,14 @@
 - 没有特殊需求的话，尽量都用 POST 接口
 - 数据库表名用全小写
 
+### 前后端类型契约（OpenAPI + codegen）
+
+- **单一源**：后端 DTO class 是唯一契约来源，`@ApiProperty` 描述形状、`class-validator` 管运行时校验。
+- **响应 DTO** 必须是 class（interface 无运行时反射），controller 用 `@ApiCreatedResponse({ type: XxxDto })`。
+- **`tsx`/esbuild 不 emit decorator metadata**：`@ApiProperty` 必须显式 `type: String`/`Number`；POST body 必须 `@ApiBody({ type: XxxDto })`。
+- **生成流程**：be 侧 `pnpm gen:openapi`（会连库）→ 产 `apps/be/openapi.json` → fe 侧 `pnpm gen:api` → 产 `apps/fe/src/api/schema.d.ts`。两个文件都提交 git。
+- **fe 请求**：只走 `apps/fe/src/api/index.ts` 的 `api` 实例（openapi-fetch），path 字面量即类型索引，禁止手写 request/response interface。
+
 ### 待跟进 TODO
 
 - **Prisma 7 类型门面**：当前 `apps/be/src/prisma/prisma.service.ts` 没有用「教科书式继承 `PrismaClient`」的官方 Recipe，而是组合 + 手写 `AuthRow` / `UserRow` / `Delegate` 类型门面。原因是 Prisma 7 生成的 `generated/prisma/**` 文件全部带 `@ts-nocheck`，继承会让 `PrismaClient` 退化成 `any`。等 Prisma 移除 `@ts-nocheck`（已知问题，社区跟进中），把 `PrismaService` 改回 `extends PrismaClient`，删掉所有手写门面类型。新增表时记得同步更新门面。
