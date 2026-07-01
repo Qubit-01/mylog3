@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import svgCaptcha from 'svg-captcha';
+import { CaptchaCreateDto } from './dto/captcha-create.dto';
 
 /** 验证码有效期（毫秒） */
 const TTL_MS = 5 * 60 * 1000;
@@ -25,7 +26,7 @@ export class CaptchaService {
   private readonly store = new Map<string, CaptchaRecord>();
 
   /** 生成一张验证码 */
-  generate() {
+  generate(): CaptchaCreateDto {
     const { text, data } = svgCaptcha.create({
       size: 4, // 字符数
       noise: 2, // 干扰线数量
