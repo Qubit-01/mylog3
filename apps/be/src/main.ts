@@ -17,7 +17,7 @@ async function bootstrap() {
   // 开放 CORS 给前端
   app.enableCors({ origin: true, credentials: true });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 20914);
 }
 
 void bootstrap();
