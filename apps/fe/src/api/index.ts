@@ -1,4 +1,4 @@
-import { ElNotification } from 'element-plus'
+import { ElMessage, ElNotification } from 'element-plus'
 import createClient from 'openapi-fetch'
 import type { paths } from './schema'
 
@@ -13,7 +13,7 @@ interface ApiError {
   stack?: string
 }
 
-/** 官方推荐的副作用扩展点：所有非 2xx 响应统一弹 Notification */
+/** 官方推荐的副作用扩展点：所有非 2xx 响应统一提示 */
 api.use({
   async onResponse({ response }) {
     if (response.ok) return
@@ -24,6 +24,11 @@ api.use({
     const msg = Array.isArray(e.message)
       ? e.message.join('\n')
       : (e.message ?? response.statusText)
+    /** 4xx 视为预期业务错误，轻量 ElMessage；5xx / 未知错误才用 Notification 展示详情 */
+    if (response.status >= 400 && response.status < 500) {
+      ElMessage.error(msg)
+      return
+    }
     ElNotification.error({
       title: `${e.statusCode ?? response.status} ${e.name ?? 'Error'}`,
       message: import.meta.env.DEV && e.stack ? `${msg}\n\n${e.stack}` : msg,

@@ -19,6 +19,20 @@ pnpm dev              # nest start --watch
 - `pnpm gen:openapi` — 生成 `openapi.json`，供 fe 侧 `pnpm gen:api` 消费
 - `npx prisma migrate dev` — 生成并应用迁移
 
+## 前后端类型契约（改 DTO 后必跑）
+
+后端 DTO 是唯一契约来源，任何 `@ApiProperty` / `class-validator` 装饰器变动，都要按下面两步重新生成前端类型：
+
+```bash
+# 1) be 侧：DTO → apps/be/openapi.json
+cd apps/be && pnpm gen:openapi
+
+# 2) fe 侧：openapi.json → apps/fe/src/api/schema.d.ts
+cd apps/fe && pnpm gen:api
+```
+
+两个产物（`be/openapi.json`、`fe/src/api/schema.d.ts`）都要提交 git。
+
 ## 模块
 
 - `auth` — 登录 / 注册，`bcrypt` 存密码

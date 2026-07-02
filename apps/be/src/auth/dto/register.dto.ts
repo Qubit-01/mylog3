@@ -35,11 +35,8 @@ export class RegisterDto {
 
   @ApiProperty({
     type: String,
-    minLength: 4,
-    maxLength: 4,
     description: '图形验证码用户输入',
   })
   @IsString()
-  @Length(4, 4, { message: '验证码为 4 位' })
   captcha!: string;
 }

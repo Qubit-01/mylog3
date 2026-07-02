@@ -129,8 +129,6 @@
           },
           "captcha": {
             "type": "string",
-            "minLength": 4,
-            "maxLength": 4,
             "description": "图形验证码用户输入"
           }
         },

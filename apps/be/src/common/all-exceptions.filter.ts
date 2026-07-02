@@ -23,7 +23,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
       exception instanceof Error ? exception : new Error(String(exception));
     const isHttp = exception instanceof HttpException;
     const status = isHttp ? exception.getStatus() : 500;
-    const extra = isHttp ? exception.getResponse() : null;
+    /**
+     * `getResponse()` 官方两种形态：string 或 `{ statusCode, message, error }`；
+     * ValidationPipe 会把字段错误塞在 `message: string[]` 里，需要 join 优先取用，
+     * 否则会被外层 "Bad Request Exception" 覆盖。
+     */
+    const resp = isHttp ? exception.getResponse() : null;
+    const body =
+      typeof resp === 'string'
+        ? { message: resp }
+        : ((resp ?? {}) as Record<string, unknown>);
+    const message = Array.isArray(body.message)
+      ? body.message.join('; ')
+      : ((body.message as string | undefined) ?? err.message);
 
     this.logger[status >= 500 ? 'error' : 'warn'](
       { err: exception },
@@ -34,12 +46,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       .getResponse<Response>()
       .status(status)
       .json({
-        // HttpException 官方 body 里的额外字段（如 ValidationPipe 的 message: string[]）
-        ...(typeof extra === 'object' && extra),
+        ...body,
         statusCode: status,
         name: err.name,
-        message: err.message,
-        stack: err.stack,
+        message,
+        // 4xx 是预期业务错误，不返回 stack；5xx 才附带堆栈方便前端排查
+        ...(status >= 500 && { stack: err.stack }),
       });
   }
 }

@@ -9,14 +9,16 @@ const router = useRouter()
 const isRegister = computed(() => route.query.mode === 'register')
 
 const form = reactive({ name: '', pswd: '', captcha: '' })
-/** 当前一次性验证码；`svg` 包成 dataURL 用 <img> 渲染，避免 v-html */
+/** 二次确认密码，仅用于前端校验，不参与提交 */
+const pswdConfirm = ref('')
+
+/** 当前一次性验证码；svg 包成 dataURL 用 <img> 渲染，避免 v-html */
 const captcha = ref<{ id: string; svg: string }>()
 const captchaSrc = computed(() =>
   captcha.value
     ? `data:image/svg+xml;utf8,${encodeURIComponent(captcha.value.svg)}`
     : '',
 )
-
 const refreshCaptcha = async () => (captcha.value = await createCaptcha())
 
 /** 进入或切到 register 时自动拉验证码 */
@@ -27,14 +29,14 @@ const toggleMode = () =>
 
 const onSubmit = async () => {
   if (!isRegister.value) return ElMessage.info('登录接口尚未实现')
+  if (form.pswd !== pswdConfirm.value) return ElMessage.error('两次密码不一致')
   try {
     await register({ ...form, captchaId: captcha.value!.id })
     ElMessage.success('注册成功')
-    form.pswd = ''
-    form.captcha = ''
+    Object.assign(form, { pswd: '', captcha: '' })
+    pswdConfirm.value = ''
     router.replace({ query: {} })
-  } catch (e) {
-    ElMessage.error((e as Error).message)
+  } catch {
     refreshCaptcha()
   }
 }
@@ -42,31 +44,50 @@ const onSubmit = async () => {
 
 <template>
   <div class="login">
-    <div class="card">
+    <form class="card" @submit.prevent="onSubmit">
       <h1>{{ isRegister ? '注册' : '登录' }}</h1>
-      <ElInput v-model="form.name" placeholder="用户名" />
+      <ElInput
+        v-model="form.name"
+        placeholder="用户名"
+        autocomplete="username"
+      />
       <ElInput
         v-model="form.pswd"
         type="password"
         placeholder="密码"
         show-password
+        :autocomplete="isRegister ? 'new-password' : 'current-password'"
       />
-      <div v-if="isRegister" class="captcha-row">
-        <ElInput v-model="form.captcha" placeholder="验证码" maxlength="4" />
-        <img
-          class="captcha-img"
-          :src="captchaSrc"
-          alt="验证码"
-          @click="refreshCaptcha"
+      <template v-if="isRegister">
+        <ElInput
+          v-model="pswdConfirm"
+          type="password"
+          placeholder="确认密码"
+          show-password
+          autocomplete="new-password"
         />
-      </div>
-      <ElButton type="primary" @click="onSubmit">
+        <div class="captcha-row">
+          <ElInput
+            v-model="form.captcha"
+            placeholder="验证码"
+            maxlength="4"
+            autocomplete="one-time-code"
+          />
+          <img
+            class="captcha-img"
+            :src="captchaSrc"
+            alt="验证码"
+            @click="refreshCaptcha"
+          />
+        </div>
+      </template>
+      <ElButton type="primary" native-type="submit">
         {{ isRegister ? '注册' : '登录' }}
       </ElButton>
       <a class="switch" @click="toggleMode">
         {{ isRegister ? '已有账号，去登录' : '没有账号，去注册' }}
       </a>
-    </div>
+    </form>
   </div>
 </template>
 
