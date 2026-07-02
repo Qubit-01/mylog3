@@ -7,28 +7,28 @@ import { PrismaClient as RawPrismaClient } from '../../generated/prisma/client.j
  * - 数据库模型扩展或新增 delegate 时，补到 PrismaFacade 上
  */
 
-/** auth 表行类型 */
+/** Auth 行类型 */
 export interface AuthRow {
   id: number;
   pswd: string;
   email: string | null;
   phone: string | null;
-  unionid_qq: string | null;
-  unionid_weixin: string | null;
-  updated_at: Date;
-  created_at: Date;
+  unionidQq: string | null;
+  unionidWeixin: string | null;
+  updatedAt: Date;
+  createdAt: Date;
 }
 
-/** user 表行类型 */
+/** User 行类型 */
 export interface UserRow {
   id: number;
-  auth_id: number;
+  authId: number;
   name: string;
   avatar: string | null;
   data: unknown;
   settings: unknown;
-  updated_at: Date;
-  created_at: Date;
+  updatedAt: Date;
+  createdAt: Date;
 }
 
 /** 通用 delegate 类型（参数与返回类型尽量宽松，避免 Prisma 内部类型噪音） */
@@ -40,11 +40,11 @@ interface Delegate<TRow> {
   }): Promise<TRow | null>;
   findFirst(args: unknown): Promise<(TRow & Record<string, unknown>) | null>;
   create(args: {
-    data: unknown;
+    data: Partial<TRow>;
     select?: unknown;
     include?: unknown;
   }): Promise<TRow>;
-  update(args: { where: Partial<TRow>; data: unknown }): Promise<TRow>;
+  update(args: { where: Partial<TRow>; data: Partial<TRow> }): Promise<TRow>;
   delete(args: { where: Partial<TRow> }): Promise<TRow>;
 }
 
