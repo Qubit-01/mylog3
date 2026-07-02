@@ -217,9 +217,14 @@
             "description": "用户主键 id",
             "example": 1
           },
+          "authId": {
+            "type": "number",
+            "description": "所属认证 id",
+            "example": 1
+          },
           "name": {
             "type": "string",
-            "description": "用户昵称",
+            "description": "用户昵称，全局唯一",
             "example": "alice"
           },
           "avatar": {
@@ -227,12 +232,37 @@
             "nullable": true,
             "description": "头像 URL，未设置为 null",
             "example": "https://cdn.example.com/a.png"
+          },
+          "data": {
+            "type": "object",
+            "description": "用户资料（性别、生日、地区、个签等），JSON 对象",
+            "example": {}
+          },
+          "settings": {
+            "type": "object",
+            "description": "用户偏好设置（主题、语言、通知等），JSON 对象",
+            "example": {}
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新时间"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间"
           }
         },
         "required": [
           "id",
+          "authId",
           "name",
-          "avatar"
+          "avatar",
+          "data",
+          "settings",
+          "updatedAt",
+          "createdAt"
         ]
       }
     }

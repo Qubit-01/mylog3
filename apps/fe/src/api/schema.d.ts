@@ -142,7 +142,12 @@ export interface components {
              */
             id: number;
             /**
-             * @description 用户昵称
+             * @description 所属认证 id
+             * @example 1
+             */
+            authId: number;
+            /**
+             * @description 用户昵称，全局唯一
              * @example alice
              */
             name: string;
@@ -151,6 +156,26 @@ export interface components {
              * @example https://cdn.example.com/a.png
              */
             avatar: string | null;
+            /**
+             * @description 用户资料（性别、生日、地区、个签等），JSON 对象
+             * @example {}
+             */
+            data: Record<string, never>;
+            /**
+             * @description 用户偏好设置（主题、语言、通知等），JSON 对象
+             * @example {}
+             */
+            settings: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description 更新时间
+             */
+            updatedAt: string;
+            /**
+             * Format: date-time
+             * @description 创建时间
+             */
+            createdAt: string;
         };
     };
     responses: never;

@@ -13,10 +13,11 @@ interface ApiError {
   stack?: string
 }
 
-/** 官方推荐的副作用扩展点：所有非 2xx 响应统一提示 */
+/** 官方推荐的副作用扩展点：所有非 2xx 响应统一提示；带 `X-Silent` 头的请求跳过 */
 api.use({
-  async onResponse({ response }) {
+  async onResponse({ request, response }) {
     if (response.ok) return
+    if (request.headers.get('X-Silent')) return
     const e = (await response
       .clone()
       .json()
@@ -54,9 +55,22 @@ const unwrap = async <T>(
 
 /* ─── auth ─────────────────────────────────────────── */
 
-/** 注册账号，成功返回新用户公开信息 */
+/** 注册账号，注册即登录（token 已写入 httpOnly cookie） */
 export const register = (payload: Body<'/auth/register'>) =>
   unwrap(api.POST('/auth/register', { body: payload }))
+
+/** 登录，token 写入 httpOnly cookie */
+export const login = (payload: Body<'/auth/login'>) =>
+  unwrap(api.POST('/auth/login', { body: payload }))
+
+/** 登出，清除认证 cookie */
+export const logout = () => unwrap(api.POST('/auth/logout', {}))
+
+/* ─── user ─────────────────────────────────────────── */
+
+/** 拉当前登录用户；未登录返 401，静默处理不弹全局错误 */
+export const getMe = () =>
+  unwrap(api.GET('/user/me', { headers: { 'X-Silent': '1' } }))
 
 /* ─── captcha ──────────────────────────────────────── */
 
