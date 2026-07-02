@@ -72,13 +72,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   private readonly client: PrismaFacade;
 
   constructor() {
-    const adapter = new PrismaMariaDb({
-      host: process.env.DATABASE_HOST,
-      user: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
-      connectionLimit: 5,
-    });
+    const adapter = new PrismaMariaDb(process.env.DATABASE_URL!);
     // 生成的 PrismaClient 因 @ts-nocheck 退化为 any 构造，这里断言为 PrismaFacade
     const Ctor = RawPrismaClient as unknown as new (
       options?: ConstructorParameters<typeof RawPrismaClient>[0],
