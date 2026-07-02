@@ -40,10 +40,10 @@ model User {
   name      String   @unique @db.VarChar(50)
   /// 头像 URL
   avatar    String?  @db.VarChar(500)
-  /// 用户数据（性别、生日、地区、个签等自定义资料），JSON 对象
-  data      Json     @default(dbgenerated("(json_object())"))
-  /// 用户设置（主题、语言、通知等偏好），JSON 对象
-  settings  Json     @default(dbgenerated("(json_object())"))
+  /// 用户数据（性别、生日、地区、个签等自定义资料），JSON 对象；业务层创建时默认给 `{}`
+  data      Json
+  /// 用户设置（主题、语言、通知等偏好），JSON 对象；业务层创建时默认给 `{}`
+  settings  Json
   /// 更新时间
   updatedAt DateTime @updatedAt
   /// 创建时间
