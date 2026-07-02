@@ -4,13 +4,43 @@ mylog3 后端：NestJS 11 + Prisma 7（MySQL/MariaDB）。默认端口 **20914**
 
 ## 启动
 
+前置：Node ≥ 22、pnpm ≥ 10、一个可连的 MySQL/MariaDB。
+
 ```bash
-pnpm install
-npx prisma generate   # 首次 / 切分支 / schema 变更后必跑，否则报找不到 generated/prisma/client.js
-pnpm dev              # nest start --watch
+cd apps/be
+
+# 1) 生成 Prisma Client（必跑，产物 generated/** 不入 git）
+npx prisma generate
+
+# 2) 启动
+pnpm dev              # nest start --watch，端口 20914
 ```
 
-需要在 `apps/be/.env` 里配好 `DATABASE_URL`。
+探活：`GET http://localhost:20914/hello`。
+
+> 切分支 / schema 变更后必须重跑 `npx prisma generate`，否则启动直接报找不到 `generated/prisma/client.js`。
+
+## 环境变量
+
+`apps/be/.env` 不入 git，需手动创建：
+
+```dotenv
+# 数据库
+DATABASE_URL=mysql://<user>:<pswd>@<host>:<port>/<db>
+
+# JWT
+SecretKey=<jwt 签名密钥>
+
+# 腾讯云 COS（上传相关，不用可留空）
+CosSecretId=
+CosSecretKey=
+CosBucket=
+CosRegion=
+CosDurationSeconds=
+
+# DeepSeek（不用可留空）
+DeepseekApiKey=
+```
 
 ## 脚本
 
@@ -51,7 +81,7 @@ cd apps/fe && pnpm gen:api
   - resp: `204`
   - 幂等清 cookie，未登录调用也不报错
 
-Token payload：`{ sub: user.id }`，`.env.SecretKey` 签发，`.env.JwtExpiresIn` 默认 60d。
+Token payload：`{ sub: user.id }`，`.env.SecretKey` 签发，默认 60d。
 Cookie 配置：`httpOnly + sameSite=lax + path=/`，生产带 `secure`，`maxAge` 60d。
 
 ### `user` — 用户数据
