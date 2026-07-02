@@ -1,5 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
 import { AppModule } from './app.module';
@@ -17,6 +18,9 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
   // 全局异常兜底：把所有 error 转成结构化 JSON 返回给前端
   app.useGlobalFilters(new AllExceptionsFilter());
+
+  // 解析 Cookie（认证 token 走 httpOnly cookie）
+  app.use(cookieParser());
 
   // 全局参数校验：自动剔除 DTO 之外字段，并把 JSON 转 class 实例
   app.useGlobalPipes(
