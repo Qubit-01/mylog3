@@ -63,8 +63,60 @@
           }
         },
         "responses": {
-          "201": {
-            "description": "注册成功，返回新用户公开信息",
+          "204": {
+            "description": "注册成功，token 已写入 httpOnly cookie"
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "登录成功，token 已写入 httpOnly cookie"
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "登出，清除认证 cookie"
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/user/me": {
+      "get": {
+        "operationId": "UserController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "当前登录用户公开信息",
             "content": {
               "application/json": {
                 "schema": {
@@ -75,7 +127,7 @@
           }
         },
         "tags": [
-          "auth"
+          "user"
         ]
       }
     }
@@ -137,6 +189,24 @@
           "pswd",
           "captchaId",
           "captcha"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "用户昵称",
+            "example": "alice"
+          },
+          "pswd": {
+            "type": "string",
+            "description": "登录密码，明文传入"
+          }
+        },
+        "required": [
+          "name",
+          "pswd"
         ]
       },
       "PublicUserDto": {

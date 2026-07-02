@@ -33,16 +33,56 @@ cd apps/fe && pnpm gen:api
 
 两个产物（`be/openapi.json`、`fe/src/api/schema.d.ts`）都要提交 git。
 
-## 模块
+## 模块 & 接口
 
-- `auth` — 登录 / 注册，`bcrypt` 存密码
-- `captcha` — `svg-captcha` 图形验证码
-- `user` — 用户信息
-- `prisma` — 全局 `PrismaService`，`@prisma/adapter-mariadb` 作为驱动
+所有路由**默认公开**，需要登录的接口打 `@Auth()`（方法或类均可）。响应/错误结构统一由 `AllExceptionsFilter` 兜底：`{ statusCode, name, message, stack? }`。
+
+### `auth` — 登录态管理
+
+- `POST /auth/register`
+  - body: `RegisterDto { name, pswd, captchaId, captcha }`
+  - resp: `204`
+  - 校验验证码 → 事务创建 `Auth + User` → Set-Cookie(`token`)
+- `POST /auth/login`
+  - body: `LoginDto { name, pswd }`
+  - resp: `204`
+  - bcrypt 比对 → Set-Cookie(`token`)
+- `POST /auth/logout`
+  - resp: `204`
+  - 幂等清 cookie，未登录调用也不报错
+
+Token payload：`{ sub: user.id }`，`.env.SecretKey` 签发，`.env.JwtExpiresIn` 默认 60d。
+Cookie 配置：`httpOnly + sameSite=lax + path=/`，生产带 `secure`，`maxAge` 60d。
+
+### `user` — 用户数据
+
+- `GET /user/me` — `@Auth`
+  - resp: `PublicUserDto`
+  - 前端启动 / 刷新时探测登录态，未登录返回 401
+
+### `captcha` — 图形验证码
+
+- `POST /captcha/create`
+  - resp: `CaptchaCreateDto { id, svg }`
+  - 生成一次性 SVG 验证码，5 分钟过期，一次校验后失效
+
+### 通用 DTO
+
+- `PublicUserDto` — `{ id: number, name: string, avatar: string | null }`
+- `RegisterDto` — `{ name (2-20), pswd (>=8), captchaId, captcha }`
+- `LoginDto` — `{ name, pswd }`，只 `@IsString()`，错误统一"账号或密码错误"
+- `CaptchaCreateDto` — `{ id: string, svg: string }`
+
+### 健康检查（`AppController`，非模块）
+
+- `GET /hello` — 打印 body 并回显，用于快速探活
+- `POST /hello` — 同上 POST 版本
 
 ## 约定
 
 - 全局 `ValidationPipe`：`whitelist + transform`，DTO 未声明字段自动剔除
+- 全局 `AuthGuard`（`APP_GUARD`）：默认公开，`@Auth()` 声明需要登录
+- 基础设施模块无 HTTP 接口：`prisma`（全局 `PrismaService`，`@prisma/adapter-mariadb`）、`logger`（`nestjs-pino`）、`common`（`AllExceptionsFilter`）
 - 全部走 POST，非 RESTful，见根 `AGENTS.md`
 - 前后端类型契约单源：DTO class + `@ApiProperty` → `openapi.json` → fe 的 `schema.d.ts`
 - `generated/**` 是 Prisma 产物，不入 git
