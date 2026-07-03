@@ -25,15 +25,26 @@ watch(index, (i) => swiper.value?.slideTo(i))
       @slide-change="(s) => router.replace(tabs[s.activeIndex].to)"
     >
       <SwiperSlide v-for="t in tabs" :key="t.to" class="page">
-        <component :is="t.component" />
+        <div class="slot">
+          <component :is="t.component" />
+        </div>
       </SwiperSlide>
     </Swiper>
     <RouterView v-else class="main page" />
+    <!-- 全局侧边栏：布局级单例，独立于各 tab 页面 -->
+    <aside class="aside">Aside</aside>
     <TabBar />
   </div>
 </template>
 
 <style lang="scss" scoped>
+/** slot（内容主区）最大宽度 */
+$slot-max-width: 768px;
+/** Aside 栏宽度 */
+$aside-width: 120px;
+/** Aside 与 slot 之间、以及 Aside 距视口左边的间距 */
+$aside-gap: 16px;
+
 .default {
   height: 100dvh;
   overflow: hidden;
@@ -43,7 +54,39 @@ watch(index, (i) => swiper.value?.slideTo(i))
   }
 
   .page {
+    display: flex;
+    justify-content: center;
     overflow-y: auto;
+  }
+
+  // 内容宽度限制层：默认铺满，大屏（断点内）限宽居中
+  .slot {
+    width: 100%;
+    max-width: 100%; // 显式初值以便断点切换时能 transition（max-width: none 无法插值）
+    height: 100%;
+    transition: max-width 0.3s;
+    background: #0005;
+  }
+
+  // 全局 Aside：固定视口，左边紧贴 slot 居中后左侧外缘
+  > .aside {
+    position: fixed;
+    top: 0;
+    height: 100%;
+    left: calc(50% - #{$slot-max-width * 0.5 + $aside-width + $aside-gap});
+    width: $aside-width;
+    display: none;
+    background: #0005;
+  }
+
+  // 视口能同时容下 slot 及两侧 aside+gap 时才限宽并显示 Aside
+  @media (min-width: #{$slot-max-width + 2 * ($aside-width + $aside-gap)}) {
+    .slot {
+      max-width: $slot-max-width;
+    }
+    > .aside {
+      display: block;
+    }
   }
 }
 </style>

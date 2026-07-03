@@ -16,7 +16,7 @@ export const useUserStore = defineStore('user', () => {
   const logged = computed(() => !!user.value)
 
   /** 首次探测 Promise 缓存，做并发去重 */
-  let pending: Promise<void> | undefined
+  let pending: Promise<void>
   /** 拉取当前用户，幂等：多次调用共享同一次请求；401 静默清空 */
   const fetchMe = () =>
     (pending ??= getMe()
