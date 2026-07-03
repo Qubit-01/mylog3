@@ -48,18 +48,10 @@ model User {
   updatedAt DateTime @updatedAt
   /// 创建时间
   createdAt DateTime @default(now())
-  auth      Auth     @relation(fields: [authId], references: [id], onDelete: Cascade)
   logs      Log[]
+  auth      Auth     @relation(fields: [authId], references: [id], onDelete: Cascade)
 
   @@index([authId])
-}
-
-/// Log 可见范围
-enum LogScope {
-  /// 仅自己可见
-  PRIVATE
-  /// 完全公开
-  PUBLIC
 }
 
 /// 用户记录表（Log），朋友圈 / 小红书式的文本 + 多媒体附件；发送时间直接用 createdAt
@@ -100,4 +92,12 @@ model Log {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+/// Log 可见范围
+enum LogScope {
+  /// 仅自己可见
+  PRIVATE
+  /// 完全公开
+  PUBLIC
 }
