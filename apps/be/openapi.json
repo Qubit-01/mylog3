@@ -162,9 +162,9 @@
         ]
       }
     },
-    "/log/list": {
+    "/log/list-public": {
       "post": {
-        "operationId": "LogController_list",
+        "operationId": "LogController_listPublic",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -178,11 +178,48 @@
         },
         "responses": {
           "200": {
-            "description": "Log 分页列表",
+            "description": "公开 Log 列表",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LogListResultDto"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LogDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "log"
+        ]
+      }
+    },
+    "/log/list-mine": {
+      "post": {
+        "operationId": "LogController_listMine",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogListDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "我的 Log 列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LogDto"
+                  }
                 }
               }
             }
@@ -601,44 +638,18 @@
       "LogListDto": {
         "type": "object",
         "properties": {
-          "userId": {
+          "skip": {
             "type": "number",
-            "description": "按作者筛选，缺省为当前登录用户"
+            "minimum": 0,
+            "description": "跳过的条数，缺省 0"
           },
-          "page": {
-            "type": "number",
-            "minimum": 1,
-            "default": 1,
-            "description": "页码，从 1 开始"
-          },
-          "pageSize": {
+          "take": {
             "type": "number",
             "minimum": 1,
             "maximum": 100,
-            "default": 20,
-            "description": "每页条数，默认 20，最大 100"
+            "description": "取的条数，缺省 20，最大 100"
           }
         }
-      },
-      "LogListResultDto": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "description": "Log 列表",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LogDto"
-            }
-          },
-          "total": {
-            "type": "number",
-            "description": "总数"
-          }
-        },
-        "required": [
-          "items",
-          "total"
-        ]
       },
       "LogIdDto": {
         "type": "object",

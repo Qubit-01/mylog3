@@ -6,8 +6,7 @@ export class LogListDto {
   @ApiPropertyOptional({
     type: Number,
     minimum: 0,
-    default: 0,
-    description: '跳过的条数，默认 0',
+    description: '跳过的条数，缺省 0',
   })
   @IsOptional()
   @IsInt()
@@ -18,8 +17,7 @@ export class LogListDto {
     type: Number,
     minimum: 1,
     maximum: 100,
-    default: 20,
-    description: '取的条数，默认 20，最大 100',
+    description: '取的条数，缺省 20，最大 100',
   })
   @IsOptional()
   @IsInt()

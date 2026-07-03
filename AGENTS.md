@@ -59,6 +59,7 @@
 - **单一源**：后端 DTO class 是唯一契约来源，`@ApiProperty` 描述形状、`class-validator` 管运行时校验。
 - **响应 DTO** 必须是 class（interface 无运行时反射），controller 用 `@ApiCreatedResponse({ type: XxxDto })`。
 - **`tsx`/esbuild 不 emit decorator metadata**：`@ApiProperty` 必须显式 `type: String`/`Number`；POST body 必须 `@ApiBody({ type: XxxDto })`。
+- **`@ApiPropertyOptional` 禁止写 `default`**：`default` 是服务端实现细节，不属于契约。写了会让 `openapi-typescript`（默认 `--default-non-nullable true`）把可选字段生成为必填。默认值只放在 service 层 `?? 兜底` 里。
 - **生成流程**：be 侧 `pnpm gen:openapi`（会连库）→ 产 `apps/be/openapi.json` → fe 侧 `pnpm gen:api` → 产 `apps/fe/src/api/schema.d.ts`。两个文件都提交 git。
 - **fe 请求**：只走 `apps/fe/src/api/index.ts` 的 `api` 实例（openapi-fetch），path 字面量即类型索引，禁止手写 request/response interface。
 - **副作用挂 middleware**：Notification、请求日志、token 注入、loading 等一律走 `api.use({ onRequest / onResponse })`，业务函数只 `unwrap`，不允许在业务代码里散落弹窗或错误处理。

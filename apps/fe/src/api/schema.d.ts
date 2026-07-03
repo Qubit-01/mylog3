@@ -116,7 +116,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/log/list": {
+    "/log/list-public": {
         parameters: {
             query?: never;
             header?: never;
@@ -125,7 +125,23 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["LogController_list"];
+        post: operations["LogController_listPublic"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/log/list-mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LogController_listMine"];
         delete?: never;
         options?: never;
         head?: never;
@@ -360,24 +376,10 @@ export interface components {
             createdAt: string;
         };
         LogListDto: {
-            /** @description 按作者筛选，缺省为当前登录用户 */
-            userId?: number;
-            /**
-             * @description 页码，从 1 开始
-             * @default 1
-             */
-            page: number;
-            /**
-             * @description 每页条数，默认 20，最大 100
-             * @default 20
-             */
-            pageSize: number;
-        };
-        LogListResultDto: {
-            /** @description Log 列表 */
-            items: components["schemas"]["LogDto"][];
-            /** @description 总数 */
-            total: number;
+            /** @description 跳过的条数，缺省 0 */
+            skip?: number;
+            /** @description 取的条数，缺省 20，最大 100 */
+            take?: number;
         };
         LogIdDto: {
             /** @description 目标 Log id */
@@ -583,7 +585,7 @@ export interface operations {
             };
         };
     };
-    LogController_list: {
+    LogController_listPublic: {
         parameters: {
             query?: never;
             header?: never;
@@ -596,13 +598,37 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Log 分页列表 */
+            /** @description 公开 Log 列表 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LogListResultDto"];
+                    "application/json": components["schemas"]["LogDto"][];
+                };
+            };
+        };
+    };
+    LogController_listMine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogListDto"];
+            };
+        };
+        responses: {
+            /** @description 我的 Log 列表 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogDto"][];
                 };
             };
         };
