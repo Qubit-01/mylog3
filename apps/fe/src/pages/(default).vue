@@ -63,20 +63,20 @@ $aside-gap: 16px;
   .slot {
     width: 100%;
     max-width: 100%; // 显式初值以便断点切换时能 transition（max-width: none 无法插值）
-    height: 100%;
+    min-height: 100%; // 内容短时铺满视口，内容长时被撑开
     transition: max-width 0.3s;
-    background: #0005;
+    background: #0002;
   }
 
   // 全局 Aside：固定视口，左边紧贴 slot 居中后左侧外缘
   > .aside {
     position: fixed;
+    z-index: 1;
     top: 0;
-    height: 100%;
     left: calc(50% - #{$slot-max-width * 0.5 + $aside-width + $aside-gap});
     width: $aside-width;
     display: none;
-    background: #0005;
+    background: #0002;
   }
 
   // 视口能同时容下 slot 及两侧 aside+gap 时才限宽并显示 Aside

@@ -76,3 +76,9 @@ export const getMe = () =>
 
 /** 拉取一张一次性图形验证码 */
 export const createCaptcha = () => unwrap(api.POST('/captcha/create', {}))
+
+/* ─── log ──────────────────────────────────────────── */
+
+/** 公开 Log 列表（无需登录），按 createdAt 倒序，skip/take 分页 */
+export const listPublicLogs = (payload: Body<'/log/list-public'> = {}) =>
+  unwrap(api.POST('/log/list-public', { body: payload }))
