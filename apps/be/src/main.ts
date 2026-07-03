@@ -1,5 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
@@ -33,6 +34,15 @@ async function bootstrap() {
 
   // 开放 CORS 给前端
   app.enableCors({ origin: true, credentials: true });
+
+  // Swagger UI：/docs 提供在线接口面板，/docs-json 直出 spec
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('mylog3 API')
+    .setDescription('后端接口文档 — 前端通过 openapi-typescript 生成类型')
+    .setVersion('1.0')
+    .build();
+  const swaggerFactory = () => SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('docs', app, swaggerFactory);
 
   await app.listen(process.env.PORT ?? 20914);
 }
