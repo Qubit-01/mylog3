@@ -23,3 +23,12 @@ router.beforeEach(async (to) => {
 
 // 路由热更新，无需刷新页面
 if (import.meta.hot) handleHotUpdate(router)
+
+/**
+ * 切换标签页标题：`meta.title` 存在时拼成 `XX - 多元记`，否则只显示应用名。
+ * meta 由各页面通过 `definePage({ meta: { title: 'XX' } })` 声明。
+ */
+router.afterEach((to) => {
+  const title = to.meta.title
+  document.title = title ? `${title} - 多元记` : '多元记'
+})

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 /** 我的 */
-definePage({ meta: { auth: true } })
+definePage({ meta: { auth: true, title: '我的' } })
 </script>
 
 <template>

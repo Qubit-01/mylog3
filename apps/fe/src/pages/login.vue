@@ -3,6 +3,8 @@
 import { createCaptcha, login, logout, register } from '../api'
 import { useUserStore } from '../stores/user'
 
+definePage({ meta: { title: '登录' } })
+
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
