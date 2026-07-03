@@ -6,6 +6,8 @@ import { CaptchaModule } from './captcha/captcha.module';
 import { AppLoggerModule } from './logger/logger.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UserModule } from './user/user.module';
+import { LogModule } from './log/log.module';
+
 @Module({
   imports: [
     AppLoggerModule,
@@ -13,6 +15,7 @@ import { UserModule } from './user/user.module';
     CaptchaModule,
     AuthModule,
     UserModule,
+    LogModule,
   ],
   controllers: [AppController],
 })

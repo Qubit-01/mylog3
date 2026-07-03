@@ -100,6 +100,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/log/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LogController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/log/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LogController_list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/log/get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LogController_get"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/log/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LogController_update"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/log/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LogController_delete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -176,6 +256,163 @@ export interface components {
              * @description 创建时间
              */
             createdAt: string;
+        };
+        CreateLogDto: {
+            /**
+             * @description 可见范围，默认 PRIVATE
+             * @example PRIVATE
+             * @enum {string}
+             */
+            scope?: "PRIVATE" | "PUBLIC";
+            /**
+             * Format: date-time
+             * @description 记录时间（ISO 字符串），内容对应的真实发生时间
+             */
+            logAt: string;
+            /** @description 正文文本 */
+            text?: string;
+            /** @description 图片 + 视频列表 */
+            medias?: Record<string, never>[];
+            /** @description 音频列表 */
+            audios?: Record<string, never>[];
+            /** @description 文件列表 */
+            files?: Record<string, never>[];
+            /** @description 标签列表 */
+            tags?: string[];
+            /** @description 位置坐标列表 */
+            location?: Record<string, never>[];
+            /** @description 关联人员列表 */
+            people?: Record<string, never>[];
+            /** @description 附加信息 */
+            extra?: Record<string, never>;
+        };
+        LogDto: {
+            /**
+             * @description Log 主键 id
+             * @example 1
+             */
+            id: number;
+            /**
+             * @description 所属用户 id
+             * @example 1
+             */
+            userId: number;
+            /**
+             * @description 可见范围：PRIVATE 仅自己 / PUBLIC 完全公开
+             * @example PRIVATE
+             * @enum {string}
+             */
+            scope: "PRIVATE" | "PUBLIC";
+            /**
+             * Format: date-time
+             * @description 记录时间，内容对应的真实发生时间
+             */
+            logAt: string;
+            /**
+             * @description 正文文本
+             * @example
+             */
+            text: string;
+            /**
+             * @description 图片 + 视频列表，元素 `{ type, url, ... }`
+             * @example []
+             */
+            medias: Record<string, never>[];
+            /**
+             * @description 音频列表，元素 `{ url, duration?, title? }`
+             * @example []
+             */
+            audios: Record<string, never>[];
+            /**
+             * @description 文件列表，元素 `{ url, name, size?, mime? }`
+             * @example []
+             */
+            files: Record<string, never>[];
+            /**
+             * @description 标签列表
+             * @example []
+             */
+            tags: string[];
+            /**
+             * @description 位置坐标列表，元素 `{ lng, lat, name?, address?, time? }`
+             * @example []
+             */
+            location: Record<string, never>[];
+            /**
+             * @description 关联人员列表，元素 `{ userId?, name?, avatar? }`
+             * @example []
+             */
+            people: Record<string, never>[];
+            /**
+             * @description 附加信息，JSON 对象
+             * @example {}
+             */
+            extra: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description 更新时间
+             */
+            updatedAt: string;
+            /**
+             * Format: date-time
+             * @description 创建时间，同时作为对外发送时间
+             */
+            createdAt: string;
+        };
+        LogListDto: {
+            /** @description 按作者筛选，缺省为当前登录用户 */
+            userId?: number;
+            /**
+             * @description 页码，从 1 开始
+             * @default 1
+             */
+            page: number;
+            /**
+             * @description 每页条数，默认 20，最大 100
+             * @default 20
+             */
+            pageSize: number;
+        };
+        LogListResultDto: {
+            /** @description Log 列表 */
+            items: components["schemas"]["LogDto"][];
+            /** @description 总数 */
+            total: number;
+        };
+        LogIdDto: {
+            /** @description 目标 Log id */
+            id: number;
+        };
+        UpdateLogDto: {
+            /**
+             * @description 可见范围，默认 PRIVATE
+             * @example PRIVATE
+             * @enum {string}
+             */
+            scope?: "PRIVATE" | "PUBLIC";
+            /**
+             * Format: date-time
+             * @description 记录时间（ISO 字符串），内容对应的真实发生时间
+             */
+            logAt?: string;
+            /** @description 正文文本 */
+            text?: string;
+            /** @description 图片 + 视频列表 */
+            medias?: Record<string, never>[];
+            /** @description 音频列表 */
+            audios?: Record<string, never>[];
+            /** @description 文件列表 */
+            files?: Record<string, never>[];
+            /** @description 标签列表 */
+            tags?: string[];
+            /** @description 位置坐标列表 */
+            location?: Record<string, never>[];
+            /** @description 关联人员列表 */
+            people?: Record<string, never>[];
+            /** @description 附加信息 */
+            extra?: Record<string, never>;
+            /** @description 要更新的 Log id */
+            id: number;
         };
     };
     responses: never;
@@ -319,6 +556,124 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PublicUserDto"];
                 };
+            };
+        };
+    };
+    LogController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateLogDto"];
+            };
+        };
+        responses: {
+            /** @description 创建成功，返回新记录 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogDto"];
+                };
+            };
+        };
+    };
+    LogController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogListDto"];
+            };
+        };
+        responses: {
+            /** @description Log 分页列表 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogListResultDto"];
+                };
+            };
+        };
+    };
+    LogController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogIdDto"];
+            };
+        };
+        responses: {
+            /** @description Log 详情 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogDto"];
+                };
+            };
+        };
+    };
+    LogController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateLogDto"];
+            };
+        };
+        responses: {
+            /** @description 更新后的 Log */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogDto"];
+                };
+            };
+        };
+    };
+    LogController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogIdDto"];
+            };
+        };
+        responses: {
+            /** @description 删除成功 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

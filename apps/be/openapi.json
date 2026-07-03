@@ -130,6 +130,154 @@
           "user"
         ]
       }
+    },
+    "/log/create": {
+      "post": {
+        "operationId": "LogController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLogDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "创建成功，返回新记录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "log"
+        ]
+      }
+    },
+    "/log/list": {
+      "post": {
+        "operationId": "LogController_list",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogListDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Log 分页列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogListResultDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "log"
+        ]
+      }
+    },
+    "/log/get": {
+      "post": {
+        "operationId": "LogController_get",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogIdDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Log 详情",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "log"
+        ]
+      }
+    },
+    "/log/update": {
+      "post": {
+        "operationId": "LogController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLogDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "更新后的 Log",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "log"
+        ]
+      }
+    },
+    "/log/delete": {
+      "post": {
+        "operationId": "LogController_delete",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogIdDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "删除成功"
+          }
+        },
+        "tags": [
+          "log"
+        ]
+      }
     }
   },
   "info": {
@@ -263,6 +411,321 @@
           "settings",
           "updatedAt",
           "createdAt"
+        ]
+      },
+      "CreateLogDto": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": [
+              "PRIVATE",
+              "PUBLIC"
+            ],
+            "description": "可见范围，默认 PRIVATE",
+            "example": "PRIVATE"
+          },
+          "logAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "记录时间（ISO 字符串），内容对应的真实发生时间"
+          },
+          "text": {
+            "type": "string",
+            "description": "正文文本"
+          },
+          "medias": {
+            "description": "图片 + 视频列表",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "audios": {
+            "description": "音频列表",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "files": {
+            "description": "文件列表",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "tags": {
+            "description": "标签列表",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "location": {
+            "description": "位置坐标列表",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "people": {
+            "description": "关联人员列表",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "extra": {
+            "type": "object",
+            "description": "附加信息"
+          }
+        },
+        "required": [
+          "logAt"
+        ]
+      },
+      "LogDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Log 主键 id",
+            "example": 1
+          },
+          "userId": {
+            "type": "number",
+            "description": "所属用户 id",
+            "example": 1
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "PRIVATE",
+              "PUBLIC"
+            ],
+            "description": "可见范围：PRIVATE 仅自己 / PUBLIC 完全公开",
+            "example": "PRIVATE"
+          },
+          "logAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "记录时间，内容对应的真实发生时间"
+          },
+          "text": {
+            "type": "string",
+            "description": "正文文本",
+            "example": ""
+          },
+          "medias": {
+            "description": "图片 + 视频列表，元素 `{ type, url, ... }`",
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "audios": {
+            "description": "音频列表，元素 `{ url, duration?, title? }`",
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "files": {
+            "description": "文件列表，元素 `{ url, name, size?, mime? }`",
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "tags": {
+            "description": "标签列表",
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "location": {
+            "description": "位置坐标列表，元素 `{ lng, lat, name?, address?, time? }`",
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "people": {
+            "description": "关联人员列表，元素 `{ userId?, name?, avatar? }`",
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "extra": {
+            "type": "object",
+            "description": "附加信息，JSON 对象",
+            "example": {}
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新时间"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间，同时作为对外发送时间"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "scope",
+          "logAt",
+          "text",
+          "medias",
+          "audios",
+          "files",
+          "tags",
+          "location",
+          "people",
+          "extra",
+          "updatedAt",
+          "createdAt"
+        ]
+      },
+      "LogListDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "description": "按作者筛选，缺省为当前登录用户"
+          },
+          "page": {
+            "type": "number",
+            "minimum": 1,
+            "default": 1,
+            "description": "页码，从 1 开始"
+          },
+          "pageSize": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20,
+            "description": "每页条数，默认 20，最大 100"
+          }
+        }
+      },
+      "LogListResultDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Log 列表",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "description": "总数"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ]
+      },
+      "LogIdDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "目标 Log id"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "UpdateLogDto": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": [
+              "PRIVATE",
+              "PUBLIC"
+            ],
+            "description": "可见范围，默认 PRIVATE",
+            "example": "PRIVATE"
+          },
+          "logAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "记录时间（ISO 字符串），内容对应的真实发生时间"
+          },
+          "text": {
+            "type": "string",
+            "description": "正文文本"
+          },
+          "medias": {
+            "description": "图片 + 视频列表",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "audios": {
+            "description": "音频列表",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "files": {
+            "description": "文件列表",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "tags": {
+            "description": "标签列表",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "location": {
+            "description": "位置坐标列表",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "people": {
+            "description": "关联人员列表",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "extra": {
+            "type": "object",
+            "description": "附加信息"
+          },
+          "id": {
+            "type": "number",
+            "description": "要更新的 Log id"
+          }
+        },
+        "required": [
+          "id"
         ]
       }
     }

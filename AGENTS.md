@@ -44,6 +44,7 @@
 
 - 不用 Restful 风格
 - 没有特殊需求的话，尽量都用 POST 接口
+- 接口路径全部小写 + `kebab-case`（如 `/log/list-public`），禁止 camelCase / snake_case，避免代理归一化陷阱
 - 数据库表名与列名保持和 Prisma schema 一致（PascalCase model → PascalCase 表；camelCase field → camelCase 列），不用 `@@map` / `@map`
 - JSON 列不加 `@default(dbgenerated(...))`（MySQL 上 Prisma 不生成 SQL 默认值），业务层 `create` 时显式传 `{}`
 

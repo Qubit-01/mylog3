@@ -31,27 +31,58 @@ export interface UserRow {
   createdAt: Date;
 }
 
+/** Log 行类型 */
+export interface LogRow {
+  id: number;
+  userId: number;
+  scope: 'PRIVATE' | 'PUBLIC';
+  logAt: Date;
+  text: string;
+  medias: unknown;
+  audios: unknown;
+  files: unknown;
+  tags: unknown;
+  location: unknown;
+  people: unknown;
+  extra: unknown;
+  updatedAt: Date;
+  createdAt: Date;
+}
+
 /** 通用 delegate 类型（参数与返回类型尽量宽松，避免 Prisma 内部类型噪音） */
 interface Delegate<TRow> {
   findUnique(args: {
-    where: Partial<TRow>;
+    where: Partial<TRow> | Record<string, unknown>;
     select?: unknown;
     include?: unknown;
   }): Promise<TRow | null>;
   findFirst(args: unknown): Promise<(TRow & Record<string, unknown>) | null>;
+  findMany(args?: unknown): Promise<TRow[]>;
+  count(args?: unknown): Promise<number>;
   create(args: {
     data: Partial<TRow>;
     select?: unknown;
     include?: unknown;
   }): Promise<TRow>;
-  update(args: { where: Partial<TRow>; data: Partial<TRow> }): Promise<TRow>;
-  delete(args: { where: Partial<TRow> }): Promise<TRow>;
+  update(args: {
+    where: Partial<TRow> | Record<string, unknown>;
+    data: Partial<TRow>;
+  }): Promise<TRow>;
+  delete(args: {
+    where: Partial<TRow> | Record<string, unknown>;
+  }): Promise<TRow>;
+  updateMany(args: {
+    where: Partial<TRow>;
+    data: Partial<TRow>;
+  }): Promise<{ count: number }>;
+  deleteMany(args: { where: Partial<TRow> }): Promise<{ count: number }>;
 }
 
 /** 事务客户端 / 普通客户端共用的 delegate 门面 */
 export interface PrismaTx {
   auth: Delegate<AuthRow>;
   user: Delegate<UserRow>;
+  log: Delegate<LogRow>;
 }
 
 /** PrismaService 对外暴露的形态 */
@@ -88,6 +119,11 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   /** user delegate */
   get user() {
     return this.client.user;
+  }
+
+  /** log delegate */
+  get log() {
+    return this.client.log;
   }
 
   /** 事务包裹器 */
