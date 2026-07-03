@@ -65,7 +65,7 @@ model Log {
   /// 记录时间：内容对应的真实发生时间（用户可自定义，与创建时间分离）
   logAt     DateTime
   /// 正文文本
-  text      String   @db.Text
+  text      String   @db.LongText
   /// 图片 + 视频列表，按用户排序存储用于横滑轮播；业务层创建时默认给 `[]`
   /// - image: `{ type: 'image', url, w?, h?, thumb?, alt?, location?: { lng, lat, time? } }`
   /// - video: `{ type: 'video', url, cover?, duration?, w?, h? }`

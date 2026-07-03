@@ -357,7 +357,7 @@
           },
           "pswd": {
             "type": "string",
-            "minLength": 8,
+            "minLength": 6,
             "description": "登录密码，明文传入，后端 hash 后入库"
           },
           "captchaId": {

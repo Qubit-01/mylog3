@@ -19,11 +19,11 @@ export class RegisterDto {
 
   @ApiProperty({
     type: String,
-    minLength: 8,
+    minLength: 6,
     description: '登录密码，明文传入，后端 hash 后入库',
   })
   @IsString()
-  @MinLength(8, { message: '密码至少 8 位' })
+  @MinLength(6, { message: '密码至少 6 位' })
   pswd!: string;
 
   @ApiProperty({

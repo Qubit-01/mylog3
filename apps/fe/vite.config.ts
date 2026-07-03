@@ -1,3 +1,4 @@
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import VueRouter from 'vue-router/vite'
 import vue from '@vitejs/plugin-vue'
@@ -19,6 +20,11 @@ export default defineConfig({
       resolvers: [ElementPlusResolver()],
     }),
   ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   server: {
     proxy: {
       '/api': {
