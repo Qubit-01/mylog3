@@ -33,16 +33,13 @@ watch(
 const toggleMode = () =>
   router.replace({ query: isRegister.value ? {} : { mode: 'register' } })
 
-/** 登录/注册成功后整页刷新，让所有依赖登录态的组件重新初始化 */
-const reload = () => location.reload()
-
 const onSubmit = async () => {
   if (isRegister.value) {
     if (form.pswd !== pswdConfirm.value)
       return ElMessage.error('两次密码不一致')
     try {
       await register({ ...form, captchaId: captcha.value!.id })
-      reload()
+      location.href = '/'
     } catch {
       refreshCaptcha()
     }
@@ -50,7 +47,7 @@ const onSubmit = async () => {
   }
   try {
     await login({ name: form.name, pswd: form.pswd })
-    reload()
+    location.href = '/'
   } catch {
     /* 错误提示由 api middleware 兜底 */
   }
@@ -58,16 +55,17 @@ const onSubmit = async () => {
 
 const onLogout = async () => {
   await logout()
-  reload()
+  location.reload()
 }
 </script>
 
 <template>
   <div class="login">
-    <!-- 已登录：展示用户 + 退出 -->
+    <!-- 已登录：展示用户 + 操作 -->
     <div v-if="userStore.isLoggedIn" class="card">
-      <h1>{{ userStore.user!.name }}</h1>
       <ElAvatar :src="userStore.user!.avatar ?? undefined" :size="72" />
+      <h1>{{ userStore.user!.name }}</h1>
+      <ElButton type="primary" @click="router.push('/')">进入首页</ElButton>
       <ElButton type="danger" @click="onLogout">退出登录</ElButton>
     </div>
 
@@ -94,19 +92,14 @@ const onLogout = async () => {
           show-password
           autocomplete="new-password"
         />
-        <div class="captcha-row">
+        <div class="captcha">
           <ElInput
             v-model="form.captcha"
             placeholder="验证码"
             maxlength="4"
             autocomplete="one-time-code"
           />
-          <img
-            class="captcha-img"
-            :src="captchaSrc"
-            alt="验证码"
-            @click="refreshCaptcha"
-          />
+          <img :src="captchaSrc" alt="验证码" @click="refreshCaptcha" />
         </div>
       </template>
       <ElButton type="primary" native-type="submit">
@@ -128,24 +121,30 @@ const onLogout = async () => {
   > .card {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     gap: 12px;
     width: 320px;
     padding: 24px;
     border: 1px solid #eee;
     border-radius: 8px;
-    > .el-input,
-    > .el-button {
-      width: 100%;
+    > h1 {
+      margin: 0;
+      text-align: center;
     }
-    > .captcha-row {
+    > .el-avatar {
+      align-self: center;
+    }
+    // 覆盖 Element Plus 相邻按钮默认 margin-left，保持列内对齐
+    > .el-button + .el-button {
+      margin-left: 0;
+    }
+    > .captcha {
       display: flex;
       gap: 8px;
-      width: 100%;
       > .el-input {
         flex: 1;
       }
-      > .captcha-img {
+      > img {
         flex: 0 0 100px;
         height: 32px;
         border: 1px solid #ddd;
