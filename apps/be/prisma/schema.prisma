@@ -54,14 +54,22 @@ model User {
   @@index([authId])
 }
 
+/// Log 可见范围
+enum LogScope {
+  /// 仅自己可见
+  PRIVATE
+  /// 完全公开
+  PUBLIC
+}
+
 /// 用户记录表（Log），朋友圈 / 小红书式的文本 + 多媒体附件；发送时间直接用 createdAt
 model Log {
   /// 主键 id
   id        Int      @id @default(autoincrement()) @db.UnsignedInt
   /// 所属用户 id
   userId    Int      @db.UnsignedInt
-  /// 是否公开：true 公开可被他人查看，false 仅自己可见
-  isPublic  Boolean  @default(false)
+  /// 可见范围：PRIVATE 仅自己 / PUBLIC 完全公开
+  scope     LogScope @default(PRIVATE)
   /// 记录时间：内容对应的真实发生时间（用户可自定义，与创建时间分离）
   logAt     DateTime
   /// 正文文本
