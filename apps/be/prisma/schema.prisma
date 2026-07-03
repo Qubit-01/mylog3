@@ -9,15 +9,15 @@ datasource db {
   provider = "mysql"
 }
 
-/// 认证表，存储登录凭证（自有账号 + 第三方平台 unionid），一组凭证可对应多个用户
+/// 认证凭证：自有账号（密码）+ 第三方平台 unionid；一组凭证可对应多个 User
 model Auth {
-  /// 主键 id
+  /// 主键
   id            Int      @id @default(autoincrement()) @db.UnsignedInt
-  /// 登录密码，hash
+  /// 密码 hash（bcrypt）
   pswd          String   @db.VarChar(255)
-  /// 邮箱
+  /// 邮箱，登录 / 找回密码用
   email         String?  @unique @db.VarChar(100)
-  /// 手机号
+  /// 手机号，登录 / 找回密码用
   phone         String?  @unique @db.VarChar(20)
   /// QQ 平台 unionid
   unionidQq     String?  @unique @db.VarChar(255)
@@ -30,19 +30,19 @@ model Auth {
   users         User[]
 }
 
-/// 用户表，存储用户的展示信息与偏好设置；同一组 auth 凭证下可有多个 user
+/// 用户档案：展示信息与偏好；同一组 Auth 下可有多个 User（如小号）
 model User {
-  /// 主键 id
+  /// 主键
   id        Int      @id @default(autoincrement()) @db.UnsignedInt
-  /// 所属认证 id
+  /// 所属 Auth 的 id
   authId    Int      @db.UnsignedInt
-  /// 用户名，唯一不可重
+  /// 用户名，全局唯一
   name      String   @unique @db.VarChar(50)
   /// 头像 URL
   avatar    String?  @db.VarChar(500)
-  /// 用户数据（性别、生日、地区、个签等自定义资料），JSON 对象；业务层创建时默认给 `{}`
+  /// 用户资料（性别、生日、地区、个签等自定义字段），业务层缺省给 `{}`
   data      Json
-  /// 用户设置（主题、语言、通知等偏好），JSON 对象；业务层创建时默认给 `{}`
+  /// 用户偏好（主题、语言、通知等），业务层缺省给 `{}`
   settings  Json
   /// 更新时间
   updatedAt DateTime @updatedAt
@@ -54,39 +54,38 @@ model User {
   @@index([authId])
 }
 
-/// 用户记录表（Log），朋友圈 / 小红书式的文本 + 多媒体附件；发送时间直接用 createdAt
+/// 用户记录（朋友圈 / 小红书式的图文），JSON 附件的元素形态见字段注释
 model Log {
-  /// 主键 id
+  /// 主键
   id        Int      @id @default(autoincrement()) @db.UnsignedInt
-  /// 所属用户 id
+  /// 所属 User 的 id
   userId    Int      @db.UnsignedInt
   /// 可见范围：PRIVATE 仅自己 / PUBLIC 完全公开
   scope     LogScope @default(PRIVATE)
-  /// 记录时间：内容对应的真实发生时间（用户可自定义，与创建时间分离）
+  /// 记录时间：内容对应的真实发生时间，允许与 createdAt 分离（补记场景）
   logAt     DateTime
-  /// 正文文本
+  /// 正文文本，`LongText` 支持长内容
   text      String   @db.LongText
-  /// 图片 + 视频列表，按用户排序存储用于横滑轮播；业务层创建时默认给 `[]`
-  /// - image: `{ type: 'image', url, w?, h?, thumb?, alt?, location?: { lng, lat, time? } }`
-  /// - video: `{ type: 'video', url, cover?, duration?, w?, h? }`
+  /// 图片 + 视频列表，按顺序展示用于横滑轮播，缺省 `[]`
+  /// - image: `{ type: 'image', url, location?: { lng, lat } }`
+  /// - video: `{ type: 'video', url }`
   medias    Json
-  /// 音频列表，JSON 对象数组，元素形如 `{ url, duration?, title? }`；业务层创建时默认给 `[]`
+  /// 音频列表，元素 `{ url }`，缺省 `[]`
   audios    Json
-  /// 文件列表，JSON 对象数组，元素形如 `{ url, name, size?, mime? }`；业务层创建时默认给 `[]`
+  /// 文件列表，元素 `{ url, name }`，缺省 `[]`
   files     Json
-  /// 标签列表，JSON 字符串数组，如 `["生活","随笔"]`；业务层创建时默认给 `[]`
+  /// 标签，元素为 string，如 `["生活", "随笔"]`，缺省 `[]`
   tags      Json
-  /// 位置坐标列表，JSON 对象数组，用于地图打点 / 旅行轨迹；业务层创建时默认给 `[]`
-  /// 元素形如 `{ lng, lat, name?, address?, time? }`
-  /// 图片自带的 EXIF 坐标存于 `medias[].location`，与本字段互不重复
+  /// 位置列表（地图打点 / 旅行轨迹），元素 `{ lng, lat, name?, address? }`，缺省 `[]`
+  /// 图片 EXIF 坐标另存于 `medias[].location`，两者互不重复
   location  Json
-  /// 关联人员列表，JSON 数组，元素为 `{ userId?, name?, avatar? }`；业务层创建时默认给 `[]`
+  /// 关联人员列表，元素 `{ userId?, name?, avatar? }`，缺省 `[]`
   people    Json
-  /// 附加信息，任意扩展字段，JSON 对象；业务层创建时默认给 `{}`
+  /// 附加信息，任意扩展字段，缺省 `{}`
   extra     Json
   /// 更新时间
   updatedAt DateTime @updatedAt
-  /// 创建时间，同时作为对外发送时间
+  /// 创建时间，同时作为对外的发布时间
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
