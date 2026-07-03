@@ -5,9 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
+    "start": "nest start",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\"",
-    "start": "nest start",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "gen:openapi": "tsx scripts/gen-openapi.ts",

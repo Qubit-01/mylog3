@@ -10,7 +10,7 @@ mylog3 后端：NestJS 11 + Prisma 7（MySQL/MariaDB）。默认端口 **20914**
 cd apps/be
 
 # 1) 生成 Prisma Client（必跑，产物 generated/** 不入 git）
-npx prisma generate
+npx prisma db pull && npx prisma generate
 
 # 2) 启动
 pnpm dev              # nest start --watch，端口 20914
@@ -24,7 +24,7 @@ pnpm dev              # nest start --watch，端口 20914
 
 `apps/be/.env` 不入 git，需手动创建：
 
-```dotenv
+```bash
 # 数据库
 DATABASE_URL=mysql://<user>:<pswd>@<host>:<port>/<db>
 
