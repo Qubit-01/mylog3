@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 /** 个人 */
+definePage({ meta: { auth: true } })
 </script>
 
 <template>

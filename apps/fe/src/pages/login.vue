@@ -25,7 +25,7 @@ const refreshCaptcha = async () => (captcha.value = await createCaptcha())
 
 /** 切到 register 时自动拉验证码（未登录才有意义） */
 watch(
-  [() => userStore.isLoggedIn, isRegister],
+  [() => userStore.logged, isRegister],
   ([logged, reg]) => !logged && reg && refreshCaptcha(),
   { immediate: true },
 )
@@ -33,13 +33,18 @@ watch(
 const toggleMode = () =>
   router.replace({ query: isRegister.value ? {} : { mode: 'register' } })
 
+/** 登录/注册成功后回跳目标页（默认首页），整页刷新确保依赖登录态的组件重新初始化 */
+const redirect = () => {
+  location.href = (route.query.redirect as string) || '/'
+}
+
 const onSubmit = async () => {
   if (isRegister.value) {
     if (form.pswd !== pswdConfirm.value)
       return ElMessage.error('两次密码不一致')
     try {
       await register({ ...form, captchaId: captcha.value!.id })
-      location.href = '/'
+      redirect()
     } catch {
       refreshCaptcha()
     }
@@ -47,7 +52,7 @@ const onSubmit = async () => {
   }
   try {
     await login({ name: form.name, pswd: form.pswd })
-    location.href = '/'
+    redirect()
   } catch {
     /* 错误提示由 api middleware 兜底 */
   }
@@ -62,7 +67,7 @@ const onLogout = async () => {
 <template>
   <div class="login">
     <!-- 已登录：展示用户 + 操作 -->
-    <div v-if="userStore.isLoggedIn" class="card">
+    <div v-if="userStore.logged" class="card">
       <ElAvatar :src="userStore.user!.avatar ?? undefined" :size="72" />
       <h1>{{ userStore.user!.name }}</h1>
       <ElButton type="primary" @click="router.push('/')">进入首页</ElButton>

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 /** 地图 */
+definePage({ meta: { auth: true } })
 </script>
 
 <template>
