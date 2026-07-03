@@ -49,6 +49,47 @@ model User {
   /// 创建时间
   createdAt DateTime @default(now())
   auth      Auth     @relation(fields: [authId], references: [id], onDelete: Cascade)
+  logs      Log[]
 
   @@index([authId])
+}
+
+/// 用户记录表（Log），朋友圈 / 小红书式的文本 + 多媒体附件；发送时间直接用 createdAt
+model Log {
+  /// 主键 id
+  id        Int      @id @default(autoincrement()) @db.UnsignedInt
+  /// 所属用户 id
+  userId    Int      @db.UnsignedInt
+  /// 是否公开：true 公开可被他人查看，false 仅自己可见
+  isPublic  Boolean  @default(false)
+  /// 记录时间：内容对应的真实发生时间（用户可自定义，与创建时间分离）
+  logAt     DateTime
+  /// 正文文本
+  text      String   @db.Text
+  /// 图片 + 视频列表，按用户排序存储用于横滑轮播；业务层创建时默认给 `[]`
+  /// - image: `{ type: 'image', url, w?, h?, thumb?, alt?, location?: { lng, lat, time? } }`
+  /// - video: `{ type: 'video', url, cover?, duration?, w?, h? }`
+  medias    Json
+  /// 音频列表，JSON 对象数组，元素形如 `{ url, duration?, title? }`；业务层创建时默认给 `[]`
+  audios    Json
+  /// 文件列表，JSON 对象数组，元素形如 `{ url, name, size?, mime? }`；业务层创建时默认给 `[]`
+  files     Json
+  /// 标签列表，JSON 字符串数组，如 `["生活","随笔"]`；业务层创建时默认给 `[]`
+  tags      Json
+  /// 位置坐标列表，JSON 对象数组，用于地图打点 / 旅行轨迹；业务层创建时默认给 `[]`
+  /// 元素形如 `{ lng, lat, name?, address?, time? }`
+  /// 图片自带的 EXIF 坐标存于 `medias[].location`，与本字段互不重复
+  location  Json
+  /// 关联人员列表，JSON 数组，元素为 `{ userId?, name?, avatar? }`；业务层创建时默认给 `[]`
+  people    Json
+  /// 附加信息，任意扩展字段，JSON 对象；业务层创建时默认给 `{}`
+  extra     Json
+  /// 更新时间
+  updatedAt DateTime @updatedAt
+  /// 创建时间，同时作为对外发送时间
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
 }
