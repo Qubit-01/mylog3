@@ -3,6 +3,7 @@
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
 import { tabs } from './(default)/tabs'
+import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,6 +14,9 @@ const index = computed(() => tabs.findIndex((t) => t.to === route.path))
 /** swiper 实例 ref，用于响应路由变化命令式切页 */
 const swiper = shallowRef<{ slideTo: (i: number) => void }>()
 watch(index, (i) => swiper.value?.slideTo(i))
+
+/** 当前登录用户，用于 Aside 展示 */
+const { user } = storeToRefs(useUserStore())
 </script>
 
 <template>
@@ -32,7 +36,19 @@ watch(index, (i) => swiper.value?.slideTo(i))
     </Swiper>
     <RouterView v-else class="main page" />
     <!-- 全局侧边栏：布局级单例，独立于各 tab 页面 -->
-    <aside class="aside">Aside</aside>
+    <aside class="aside">
+      <div v-if="user" class="user-card">
+        <ElAvatar :src="user.avatar ?? undefined" :size="56">
+          {{ user.name.slice(0, 1) }}
+        </ElAvatar>
+        <div class="name" @click="router.push('/profile')">
+          {{ user.name }}
+        </div>
+        <ElButton type="primary" round @click="router.push('/mine')">
+          去写一篇
+        </ElButton>
+      </div>
+    </aside>
     <TabBar />
   </div>
 </template>
@@ -42,8 +58,8 @@ watch(index, (i) => swiper.value?.slideTo(i))
 $slot-max-width: 768px;
 /** Aside 栏宽度 */
 $aside-width: 120px;
-/** Aside 与 slot 之间、以及 Aside 距视口左边的间距 */
-$aside-gap: 16px;
+/** Aside 与 slot 之间的间距，同时也是 slot 内容 padding 与 aside 顶端对齐值 */
+$aside-gap: 12px;
 
 .default {
   height: 100dvh;
@@ -69,14 +85,36 @@ $aside-gap: 16px;
   }
 
   // 全局 Aside：固定视口，左边紧贴 slot 居中后左侧外缘
+  // top 与页面 padding 保持一致，让 aside 首个模块与 slot 首条 log 视觉对齐
   > .aside {
     position: fixed;
     z-index: 1;
-    top: 0;
+    top: $aside-gap;
     left: calc(50% - #{$slot-max-width * 0.5 + $aside-width + $aside-gap});
     width: $aside-width;
     display: none;
-    background: #0002;
+
+    .user-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      background: var(--el-bg-color-overlay);
+      border: 1px solid var(--el-border-color-lighter);
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+      > .name {
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:hover {
+          color: var(--el-color-primary);
+        }
+      }
+    }
   }
 
   // 视口能同时容下 slot 及两侧 aside+gap 时才限宽并显示 Aside
