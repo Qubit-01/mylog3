@@ -7,7 +7,7 @@ module.exports = {
   apps: [
     {
       name: 'mylog-be',
-      script: 'dist/main.js',
+      script: 'dist/src/main.js',
       cwd: '/opt/mylog3/apps/be',
       max_memory_restart: '512M', // 内存超限自动重启，防泄漏
       time: true, // 日志加时间戳

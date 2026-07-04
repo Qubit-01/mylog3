@@ -63,6 +63,22 @@ cd apps/fe && pnpm gen:api
 
 两个产物（`be/openapi.json`、`fe/src/api/schema.d.ts`）都要提交 git。
 
+## 部署
+
+服务器仓库放 `/opt/mylog3`，进程用 pm2 托管，nginx 反代 `/api/` → `127.0.0.1:20914`。
+
+```bash
+cd /opt/mylog3
+git pull
+pnpm install --frozen-lockfile
+cd apps/be
+npx prisma generate
+pnpm build
+pm2 reload ecosystem.config.cjs   # 首次用 start，之后一律 reload 做零宕机
+```
+
+`.env` 只在服务器上，`chmod 600`，不入 git。开机自启：`pm2 save && pm2 startup`。
+
 ## 模块 & 接口
 
 所有路由**默认公开**，需要登录的接口打 `@Auth()`（方法或类均可）。响应/错误结构统一由 `AllExceptionsFilter` 兜底：`{ statusCode, name, message, stack? }`。

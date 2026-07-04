@@ -28,11 +28,8 @@ cd apps/fe && pnpm gen:api       # openapi.json → schema.d.ts
 
 ## 部署
 
-`index.html` → 服务器 nginx（`/var/www/mylog/fe/`），静态资源 → 腾讯云 COS + CDN（`cos.mylog.ink`）。
+如果不走 CDN 加载静态资源，可以不传CDN，把 vite.config 里面的 base 配置注释掉
 
-```bash
-pnpm build
-```
-
-1. `dist/assets/` 传 COS 的 `/assets/`，Header 加 `Cache-Control: public, max-age=31536000, immutable`
-2. `dist/index.html` 传服务器：`scp dist/index.html <user>@mylog.ink:/var/www/mylog/fe/`
+1. `pnpm build` 先打包
+2. `assets/` 及静态资源传 COS(`cos.mylog.ink`) 的 `/assets/`，Header 加 `Cache-Control: public, max-age=31536000, immutable`
+3. `index.html` 传服务器 nginx（`/var/www/mylog/fe/`）：`scp dist/index.html <user>@mylog.ink:/var/www/mylog/fe/`
