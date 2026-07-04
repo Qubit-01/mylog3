@@ -1,6 +1,6 @@
 import { ElMessage, ElNotification } from 'element-plus'
 import createClient from 'openapi-fetch'
-import type { paths } from './schema'
+import type { components, paths } from './schema'
 
 /** OpenAPI 类型化 client，走 vite 代理 /api → be */
 const api = createClient<paths>({ baseUrl: '/api' })
@@ -68,6 +68,9 @@ export const logout = () => unwrap(api.POST('/auth/logout', {}))
 
 /* ─── user ─────────────────────────────────────────── */
 
+/** 当前登录用户类型，从后端 OpenAPI schema 派生 */
+export type User = components['schemas']['PublicUserDto']
+
 /** 拉当前登录用户；未登录返 401，静默处理不弹全局错误 */
 export const getMe = () =>
   unwrap(api.GET('/user/me', { headers: { 'X-Silent': '1' } }))
@@ -78,6 +81,9 @@ export const getMe = () =>
 export const createCaptcha = () => unwrap(api.POST('/captcha/create', {}))
 
 /* ─── log ──────────────────────────────────────────── */
+
+/** 单条 Log 的完整类型，从后端 OpenAPI schema 派生，全项目统一使用这个 */
+export type Log = components['schemas']['LogDto']
 
 /** 公开 Log 列表（无需登录），按 createdAt 倒序，skip/take 分页 */
 export const listPublicLogs = (payload: Body<'/log/list-public'> = {}) =>

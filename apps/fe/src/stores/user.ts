@@ -1,8 +1,5 @@
 import { defineStore } from 'pinia'
-import { getMe } from '../api'
-import type { components } from '../api/schema'
-
-type User = components['schemas']['PublicUserDto']
+import { getMe, type User } from '../api'
 
 /**
  * 当前登录用户状态
