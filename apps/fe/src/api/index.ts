@@ -88,3 +88,7 @@ export type Log = components['schemas']['LogDto']
 /** 公开 Log 列表（无需登录），按 createdAt 倒序，skip/take 分页 */
 export const listPublicLogs = (payload: Body<'/log/list-public'> = {}) =>
   unwrap(api.POST('/log/list-public', { body: payload }))
+
+/** 我的 Log 列表（需登录），按 createdAt 倒序，skip/take 分页 */
+export const listMineLogs = (payload: Body<'/log/list-mine'> = {}) =>
+  unwrap(api.POST('/log/list-mine', { body: payload }))
