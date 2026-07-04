@@ -15,6 +15,13 @@ const index = computed(() => tabs.findIndex((t) => t.to === route.path))
 const swiper = shallowRef<{ slideTo: (i: number) => void }>()
 watch(index, (i) => swiper.value?.slideTo(i))
 
+/**
+ * 已挂载过的 tab 索引集合，实现按需懒挂载：未访问的 slide 保持空壳，
+ * 避免未登录时 `mine` 等受保护页面被提前挂载并触发接口
+ */
+const mounted = reactive(new Set<number>())
+watch(index, (i) => i >= 0 && mounted.add(i), { immediate: true })
+
 /** 当前登录用户，用于 Aside 展示 */
 const { user } = storeToRefs(useUserStore())
 </script>
@@ -28,9 +35,9 @@ const { user } = storeToRefs(useUserStore())
       @swiper="(s) => (swiper = s)"
       @slide-change="(s) => router.replace(tabs[s.activeIndex].to)"
     >
-      <SwiperSlide v-for="t in tabs" :key="t.to" class="page">
+      <SwiperSlide v-for="(t, i) in tabs" :key="t.to" class="page">
         <div class="slot">
-          <component :is="t.component" />
+          <component :is="t.component" v-if="mounted.has(i)" />
         </div>
       </SwiperSlide>
     </Swiper>
