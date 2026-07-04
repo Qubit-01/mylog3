@@ -30,6 +30,8 @@ const { logs, footerText, loadMore } = useLogList('public', (skip, take) =>
     flex-direction: column;
     gap: 12px;
     padding: 16px;
+    // 底部悬浮 TabBar 占位，避免最后一条 log 被挡住
+    padding-bottom: calc(env(safe-area-inset-bottom) + 100px);
   }
 
   .footer {

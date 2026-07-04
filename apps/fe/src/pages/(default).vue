@@ -65,7 +65,7 @@ $aside-gap: 16px;
     max-width: 100%; // 显式初值以便断点切换时能 transition（max-width: none 无法插值）
     min-height: 100%; // 内容短时铺满视口，内容长时被撑开
     transition: max-width 0.3s;
-    background: #0002;
+    // background: #0002;
   }
 
   // 全局 Aside：固定视口，左边紧贴 slot 居中后左侧外缘
