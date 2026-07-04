@@ -25,3 +25,14 @@ cd apps/fe && pnpm gen:api       # openapi.json → schema.d.ts
 ```
 
 两个产物都要提交 git。请求统一走 `src/api/index.ts` 的 `api` 实例（openapi-fetch），路径字面量即类型索引，禁止手写 interface。
+
+## 部署
+
+`index.html` → 服务器 nginx（`/var/www/mylog/fe/`），静态资源 → 腾讯云 COS + CDN（`cos.mylog.ink`）。
+
+```bash
+pnpm build
+```
+
+1. `dist/assets/` 传 COS 的 `/assets/`，Header 加 `Cache-Control: public, max-age=31536000, immutable`
+2. `dist/index.html` 传服务器：`scp dist/index.html <user>@mylog.ink:/var/www/mylog/fe/`

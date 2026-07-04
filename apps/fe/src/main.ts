@@ -25,3 +25,11 @@ for (const [k, c] of Object.entries(ElementIcons)) {
 }
 
 app.mount('#app')
+
+/**
+ * 新版本发布后，CDN 上旧 chunk 可能被清理，导致老用户懒加载失败
+ * Vite 官方推荐：捕获 vite:preloadError，刷新页面拿最新 index.html
+ */
+window.addEventListener('vite:preloadError', () => {
+  window.location.reload()
+})
