@@ -36,9 +36,7 @@ const { user } = storeToRefs(useUserStore())
       @slide-change="(s) => router.replace(tabs[s.activeIndex].to)"
     >
       <SwiperSlide v-for="(t, i) in tabs" :key="t.to" class="page">
-        <div class="slot">
-          <component :is="t.component" v-if="mounted.has(i)" />
-        </div>
+        <component :is="t.component" v-if="mounted.has(i)" />
       </SwiperSlide>
     </Swiper>
     <RouterView v-else class="main page" />
@@ -61,14 +59,16 @@ const { user } = storeToRefs(useUserStore())
 </template>
 
 <style lang="scss" scoped>
-/** slot（内容主区）最大宽度 */
-$slot-max-width: 768px;
+/** 内容主区最大宽度 */
+$content-max-width: 768px;
 /** Aside 栏宽度 */
 $aside-width: 120px;
-/** Aside 与 slot 之间的间距，同时也是 slot 内容 padding 与 aside 顶端对齐值 */
+/** Aside 与内容主区之间的间距，同时也是内容 padding 与 aside 顶端对齐值 */
 $aside-gap: 12px;
 
 .default {
+  --content-max-width: 100%;
+
   height: 100dvh;
   overflow: hidden;
 
@@ -77,27 +77,16 @@ $aside-gap: 12px;
   }
 
   .page {
-    display: flex;
-    justify-content: center;
-    overflow-y: auto;
+    overflow: hidden;
   }
 
-  // 内容宽度限制层：默认铺满，大屏（断点内）限宽居中
-  .slot {
-    width: 100%;
-    max-width: 100%; // 显式初值以便断点切换时能 transition（max-width: none 无法插值）
-    min-height: 100%; // 内容短时铺满视口，内容长时被撑开
-    transition: max-width 0.3s;
-    // background: #0002;
-  }
-
-  // 全局 Aside：固定视口，左边紧贴 slot 居中后左侧外缘
-  // top 与页面 padding 保持一致，让 aside 首个模块与 slot 首条 log 视觉对齐
+  // 全局 Aside：固定视口，左边紧贴内容主区居中后左侧外缘
+  // top 与页面 padding 保持一致，让 aside 首个模块与首条 log 视觉对齐
   > .aside {
     position: fixed;
     z-index: 1;
     top: $aside-gap;
-    left: calc(50% - #{$slot-max-width * 0.5 + $aside-width + $aside-gap});
+    left: calc(50% - #{$content-max-width * 0.5 + $aside-width + $aside-gap});
     width: $aside-width;
     display: none;
 
@@ -124,11 +113,10 @@ $aside-gap: 12px;
     }
   }
 
-  // 视口能同时容下 slot 及两侧 aside+gap 时才限宽并显示 Aside
-  @media (min-width: #{$slot-max-width + 2 * ($aside-width + $aside-gap)}) {
-    .slot {
-      max-width: $slot-max-width;
-    }
+  // 视口能同时容下内容主区及两侧 aside+gap 时才限宽并显示 Aside
+  @media (min-width: #{$content-max-width + 2 * ($aside-width + $aside-gap)}) {
+    --content-max-width: #{$content-max-width};
+
     > .aside {
       display: block;
     }
