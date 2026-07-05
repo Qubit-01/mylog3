@@ -3,7 +3,6 @@
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
 import { tabs } from './(default)/tabs'
-import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,9 +20,6 @@ watch(index, (i) => swiper.value?.slideTo(i))
  */
 const mounted = reactive(new Set<number>())
 watch(index, (i) => i >= 0 && mounted.add(i), { immediate: true })
-
-/** 当前登录用户，用于 Aside 展示 */
-const { user } = storeToRefs(useUserStore())
 </script>
 
 <template>
@@ -42,17 +38,7 @@ const { user } = storeToRefs(useUserStore())
     <RouterView v-else class="main page" />
     <!-- 全局侧边栏：布局级单例，独立于各 tab 页面 -->
     <aside class="aside">
-      <div v-if="user" class="user-card">
-        <ElAvatar :src="user.avatar ?? undefined" :size="56">
-          {{ user.name.slice(0, 1) }}
-        </ElAvatar>
-        <div class="name" @click="router.push('/profile')">
-          {{ user.name }}
-        </div>
-        <ElButton type="primary" round @click="router.push('/mine')">
-          去写一篇
-        </ElButton>
-      </div>
+      <AsideUserCard />
     </aside>
     <TabBar />
   </div>
@@ -89,28 +75,6 @@ $aside-gap: 12px;
     left: calc(50% - #{$content-max-width * 0.5 + $aside-width + $aside-gap});
     width: $aside-width;
     display: none;
-
-    .user-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 12px;
-      background: var(--el-bg-color-overlay);
-      border: 1px solid var(--el-border-color-lighter);
-      border-radius: 8px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-
-      > .name {
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-
-        &:hover {
-          color: var(--el-color-primary);
-        }
-      }
-    }
   }
 
   // 视口能同时容下内容主区及两侧 aside+gap 时才限宽并显示 Aside
