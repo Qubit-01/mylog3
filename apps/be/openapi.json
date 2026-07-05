@@ -450,6 +450,55 @@
           "createdAt"
         ]
       },
+      "LogMediaLocationDto": {
+        "type": "object",
+        "properties": {
+          "lng": {
+            "type": "number",
+            "description": "经度",
+            "example": 116.397128
+          },
+          "lat": {
+            "type": "number",
+            "description": "纬度",
+            "example": 39.916527
+          }
+        },
+        "required": [
+          "lng",
+          "lat"
+        ]
+      },
+      "LogMediaDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "video"
+            ],
+            "description": "媒体类型：image 图片 / video 视频，MIME 类型前缀",
+            "example": "image"
+          },
+          "url": {
+            "type": "string",
+            "description": "媒体文件地址或文件名"
+          },
+          "location": {
+            "description": "图片 EXIF 位置坐标",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LogMediaLocationDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "url"
+        ]
+      },
       "CreateLogDto": {
         "type": "object",
         "properties": {
@@ -475,7 +524,7 @@
             "description": "图片 + 视频列表",
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/LogMediaDto"
             }
           },
           "audios": {
@@ -555,11 +604,11 @@
             "example": ""
           },
           "medias": {
-            "description": "图片 + 视频列表，元素 `{ type, url, ... }`",
+            "description": "图片 + 视频列表",
             "example": [],
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/LogMediaDto"
             }
           },
           "audios": {
@@ -688,7 +737,7 @@
             "description": "图片 + 视频列表",
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/LogMediaDto"
             }
           },
           "audios": {

@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsDateString,
@@ -6,8 +7,10 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
 import { LogScope } from '../../../generated/prisma/enums.js';
+import { LogMediaDto } from './log-media.dto';
 
 /**
  * 创建 Log 请求体
@@ -37,13 +40,14 @@ export class CreateLogDto {
   text?: string;
 
   @ApiPropertyOptional({
-    type: Object,
-    isArray: true,
+    type: [LogMediaDto],
     description: '图片 + 视频列表',
   })
   @IsOptional()
   @IsArray()
-  medias?: unknown[];
+  @ValidateNested({ each: true })
+  @Type(() => LogMediaDto)
+  medias?: LogMediaDto[];
 
   @ApiPropertyOptional({ type: Object, isArray: true, description: '音频列表' })
   @IsOptional()

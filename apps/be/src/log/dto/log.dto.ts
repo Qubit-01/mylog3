@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { LogScope } from '../../../generated/prisma/enums.js';
+import { LogMediaDto } from './log-media.dto';
 
 /**
  * Log 响应 DTO —— 覆盖 Log 表全字段
@@ -30,12 +31,11 @@ export class LogDto {
   text!: string;
 
   @ApiProperty({
-    type: Object,
-    isArray: true,
-    description: '图片 + 视频列表，元素 `{ type, url, ... }`',
+    type: [LogMediaDto],
+    description: '图片 + 视频列表',
     example: [],
   })
-  medias!: unknown[];
+  medias!: LogMediaDto[];
 
   @ApiProperty({
     type: Object,

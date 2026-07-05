@@ -273,6 +273,30 @@ export interface components {
              */
             createdAt: string;
         };
+        LogMediaLocationDto: {
+            /**
+             * @description 经度
+             * @example 116.397128
+             */
+            lng: number;
+            /**
+             * @description 纬度
+             * @example 39.916527
+             */
+            lat: number;
+        };
+        LogMediaDto: {
+            /**
+             * @description 媒体类型：image 图片 / video 视频，MIME 类型前缀
+             * @example image
+             * @enum {string}
+             */
+            type: "image" | "video";
+            /** @description 媒体文件地址或文件名 */
+            url: string;
+            /** @description 图片 EXIF 位置坐标 */
+            location?: components["schemas"]["LogMediaLocationDto"];
+        };
         CreateLogDto: {
             /**
              * @description 可见范围，默认 PRIVATE
@@ -288,7 +312,7 @@ export interface components {
             /** @description 正文文本 */
             text?: string;
             /** @description 图片 + 视频列表 */
-            medias?: Record<string, never>[];
+            medias?: components["schemas"]["LogMediaDto"][];
             /** @description 音频列表 */
             audios?: Record<string, never>[];
             /** @description 文件列表 */
@@ -330,10 +354,10 @@ export interface components {
              */
             text: string;
             /**
-             * @description 图片 + 视频列表，元素 `{ type, url, ... }`
+             * @description 图片 + 视频列表
              * @example []
              */
-            medias: Record<string, never>[];
+            medias: components["schemas"]["LogMediaDto"][];
             /**
              * @description 音频列表，元素 `{ url, duration?, title? }`
              * @example []
@@ -400,7 +424,7 @@ export interface components {
             /** @description 正文文本 */
             text?: string;
             /** @description 图片 + 视频列表 */
-            medias?: Record<string, never>[];
+            medias?: components["schemas"]["LogMediaDto"][];
             /** @description 音频列表 */
             audios?: Record<string, never>[];
             /** @description 文件列表 */
