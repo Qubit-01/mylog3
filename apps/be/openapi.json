@@ -474,16 +474,16 @@
         "properties": {
           "type": {
             "type": "string",
+            "description": "媒体类型：image 图片 / video 视频",
             "enum": [
               "image",
               "video"
             ],
-            "description": "媒体类型：image 图片 / video 视频，MIME 类型前缀",
             "example": "image"
           },
           "url": {
             "type": "string",
-            "description": "媒体文件地址或文件名"
+            "description": "资源地址或文件名"
           },
           "location": {
             "description": "图片 EXIF 位置坐标",
@@ -492,6 +492,48 @@
                 "$ref": "#/components/schemas/LogMediaLocationDto"
               }
             ]
+          }
+        },
+        "required": [
+          "type",
+          "url"
+        ]
+      },
+      "LogAudioDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "音频类型",
+            "enum": [
+              "audio"
+            ],
+            "example": "audio"
+          },
+          "url": {
+            "type": "string",
+            "description": "资源地址或文件名"
+          }
+        },
+        "required": [
+          "type",
+          "url"
+        ]
+      },
+      "LogFileDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "文件类型",
+            "enum": [
+              "file"
+            ],
+            "example": "file"
+          },
+          "url": {
+            "type": "string",
+            "description": "资源地址或文件名"
           }
         },
         "required": [
@@ -531,14 +573,14 @@
             "description": "音频列表",
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/LogAudioDto"
             }
           },
           "files": {
             "description": "文件列表",
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/LogFileDto"
             }
           },
           "tags": {
@@ -612,19 +654,19 @@
             }
           },
           "audios": {
-            "description": "音频列表，元素 `{ url, duration?, title? }`",
+            "description": "音频列表，元素 `{ url }`",
             "example": [],
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/LogAudioDto"
             }
           },
           "files": {
-            "description": "文件列表，元素 `{ url, name, size?, mime? }`",
+            "description": "文件列表，元素 `{ url, name }`",
             "example": [],
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/LogFileDto"
             }
           },
           "tags": {
@@ -744,14 +786,14 @@
             "description": "音频列表",
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/LogAudioDto"
             }
           },
           "files": {
             "description": "文件列表",
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/LogFileDto"
             }
           },
           "tags": {

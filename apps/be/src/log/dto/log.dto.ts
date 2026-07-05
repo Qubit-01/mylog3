@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { LogScope } from '../../../generated/prisma/enums.js';
+import { LogAudioDto } from './log-audio.dto';
+import { LogFileDto } from './log-file.dto';
 import { LogMediaDto } from './log-media.dto';
 
 /**
@@ -38,20 +40,18 @@ export class LogDto {
   medias!: LogMediaDto[];
 
   @ApiProperty({
-    type: Object,
-    isArray: true,
-    description: '音频列表，元素 `{ url, duration?, title? }`',
+    type: [LogAudioDto],
+    description: '音频列表，元素 `{ url }`',
     example: [],
   })
-  audios!: unknown[];
+  audios!: LogAudioDto[];
 
   @ApiProperty({
-    type: Object,
-    isArray: true,
-    description: '文件列表，元素 `{ url, name, size?, mime? }`',
+    type: [LogFileDto],
+    description: '文件列表，元素 `{ url, name }`',
     example: [],
   })
-  files!: unknown[];
+  files!: LogFileDto[];
 
   @ApiProperty({
     type: String,

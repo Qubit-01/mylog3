@@ -1,12 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsIn,
-  IsNumber,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { IsIn, IsNumber, IsOptional, ValidateNested } from 'class-validator';
+import { LogResourceDto } from './log-resource.dto';
 
 /** 媒体内嵌位置坐标 DTO */
 export class LogMediaLocationDto {
@@ -20,19 +15,15 @@ export class LogMediaLocationDto {
 }
 
 /** Log 图片 / 视频媒体 DTO */
-export class LogMediaDto {
+export class LogMediaDto extends LogResourceDto {
   @ApiProperty({
     type: String,
     enum: ['image', 'video'],
-    description: '媒体类型：image 图片 / video 视频，MIME 类型前缀',
+    description: '媒体类型：image 图片 / video 视频',
     example: 'image',
   })
   @IsIn(['image', 'video'])
-  type!: 'image' | 'video';
-
-  @ApiProperty({ type: String, description: '媒体文件地址或文件名' })
-  @IsString()
-  url!: string;
+  declare type: 'image' | 'video';
 
   @ApiPropertyOptional({
     type: LogMediaLocationDto,

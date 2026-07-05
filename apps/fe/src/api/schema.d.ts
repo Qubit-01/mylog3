@@ -287,15 +287,35 @@ export interface components {
         };
         LogMediaDto: {
             /**
-             * @description 媒体类型：image 图片 / video 视频，MIME 类型前缀
+             * @description 媒体类型：image 图片 / video 视频
              * @example image
              * @enum {string}
              */
             type: "image" | "video";
-            /** @description 媒体文件地址或文件名 */
+            /** @description 资源地址或文件名 */
             url: string;
             /** @description 图片 EXIF 位置坐标 */
             location?: components["schemas"]["LogMediaLocationDto"];
+        };
+        LogAudioDto: {
+            /**
+             * @description 音频类型
+             * @example audio
+             * @enum {string}
+             */
+            type: "audio";
+            /** @description 资源地址或文件名 */
+            url: string;
+        };
+        LogFileDto: {
+            /**
+             * @description 文件类型
+             * @example file
+             * @enum {string}
+             */
+            type: "file";
+            /** @description 资源地址或文件名 */
+            url: string;
         };
         CreateLogDto: {
             /**
@@ -314,9 +334,9 @@ export interface components {
             /** @description 图片 + 视频列表 */
             medias?: components["schemas"]["LogMediaDto"][];
             /** @description 音频列表 */
-            audios?: Record<string, never>[];
+            audios?: components["schemas"]["LogAudioDto"][];
             /** @description 文件列表 */
-            files?: Record<string, never>[];
+            files?: components["schemas"]["LogFileDto"][];
             /** @description 标签列表 */
             tags?: string[];
             /** @description 位置坐标列表 */
@@ -359,15 +379,15 @@ export interface components {
              */
             medias: components["schemas"]["LogMediaDto"][];
             /**
-             * @description 音频列表，元素 `{ url, duration?, title? }`
+             * @description 音频列表，元素 `{ url }`
              * @example []
              */
-            audios: Record<string, never>[];
+            audios: components["schemas"]["LogAudioDto"][];
             /**
-             * @description 文件列表，元素 `{ url, name, size?, mime? }`
+             * @description 文件列表，元素 `{ url, name }`
              * @example []
              */
-            files: Record<string, never>[];
+            files: components["schemas"]["LogFileDto"][];
             /**
              * @description 标签列表
              * @example []
@@ -426,9 +446,9 @@ export interface components {
             /** @description 图片 + 视频列表 */
             medias?: components["schemas"]["LogMediaDto"][];
             /** @description 音频列表 */
-            audios?: Record<string, never>[];
+            audios?: components["schemas"]["LogAudioDto"][];
             /** @description 文件列表 */
-            files?: Record<string, never>[];
+            files?: components["schemas"]["LogFileDto"][];
             /** @description 标签列表 */
             tags?: string[];
             /** @description 位置坐标列表 */

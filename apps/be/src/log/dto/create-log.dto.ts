@@ -10,6 +10,8 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { LogScope } from '../../../generated/prisma/enums.js';
+import { LogAudioDto } from './log-audio.dto';
+import { LogFileDto } from './log-file.dto';
 import { LogMediaDto } from './log-media.dto';
 
 /**
@@ -49,15 +51,19 @@ export class CreateLogDto {
   @Type(() => LogMediaDto)
   medias?: LogMediaDto[];
 
-  @ApiPropertyOptional({ type: Object, isArray: true, description: '音频列表' })
+  @ApiPropertyOptional({ type: [LogAudioDto], description: '音频列表' })
   @IsOptional()
   @IsArray()
-  audios?: unknown[];
+  @ValidateNested({ each: true })
+  @Type(() => LogAudioDto)
+  audios?: LogAudioDto[];
 
-  @ApiPropertyOptional({ type: Object, isArray: true, description: '文件列表' })
+  @ApiPropertyOptional({ type: [LogFileDto], description: '文件列表' })
   @IsOptional()
   @IsArray()
-  files?: unknown[];
+  @ValidateNested({ each: true })
+  @Type(() => LogFileDto)
+  files?: LogFileDto[];
 
   @ApiPropertyOptional({ type: String, isArray: true, description: '标签列表' })
   @IsOptional()
