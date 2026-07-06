@@ -33,8 +33,7 @@
     "unplugin-auto-import": "catalog:",
     "unplugin-vue-components": "catalog:",
     "vite": "catalog:",
+    "vite-imagetools": "catalog:",
     "vue-tsc": "catalog:"
-  },
-  "peerDependencies": {},
-  "optionalDependencies": {}
+  }
 }
