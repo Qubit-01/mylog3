@@ -107,6 +107,7 @@ useEventListener('keyup', (event: KeyboardEvent) => {
             v-for="(media, i) in medias"
             :key="`${media.type}:${media.url}:${i}`"
             class="slide"
+            @click.self="current = undefined"
           >
             <img
               v-if="media.type === 'image' && shouldLoad(i)"
@@ -166,6 +167,8 @@ useEventListener('keyup', (event: KeyboardEvent) => {
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 100%;
+      height: 100%;
       color: #fffe;
       font-size: 28px;
       background: #0003;
