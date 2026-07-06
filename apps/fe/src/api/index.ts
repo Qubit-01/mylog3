@@ -85,6 +85,15 @@ export const createCaptcha = () => unwrap(api.POST('/captcha/create', {}))
 /** 单条 Log 的完整类型，从后端 OpenAPI schema 派生，全项目统一使用这个 */
 export type Log = components['schemas']['LogDto']
 
+/** Log 媒体类型，从后端 OpenAPI schema 派生 */
+export type LogMedia = components['schemas']['LogMediaDto']
+
+/** Log 音频类型，从后端 OpenAPI schema 派生 */
+export type LogAudio = components['schemas']['LogAudioDto']
+
+/** Log 文件类型，从后端 OpenAPI schema 派生 */
+export type LogFile = components['schemas']['LogFileDto']
+
 /** 公开 Log 列表（无需登录），按 createdAt 倒序，skip/take 分页 */
 export const listPublicLogs = (payload: Body<'/log/list-public'> = {}) =>
   unwrap(api.POST('/log/list-public', { body: payload }))

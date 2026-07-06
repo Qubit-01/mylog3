@@ -13,6 +13,7 @@ defineProps<{ log: Log }>()
       <span>{{ dayjs(log.logAt).format('YYYY-MM-DD HH:mm') }}</span>
     </div>
     <p class="text">{{ log.text }}</p>
+    <LogCardMedias :medias="log.medias" :user-id="log.userId" />
     <div v-if="log.tags.length" class="tags">
       <span v-for="t in log.tags" :key="t">#{{ t }}</span>
     </div>
