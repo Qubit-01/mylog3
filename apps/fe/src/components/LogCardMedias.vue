@@ -5,6 +5,7 @@ import { Close, VideoPlay } from '@element-plus/icons-vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Keyboard, Navigation, Pagination } from 'swiper/modules'
 import type { Swiper as SwiperInstance } from 'swiper/types'
+import PictureImg from 'shared/PictureImg'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
@@ -66,15 +67,15 @@ useEventListener('keyup', (event: KeyboardEvent) => {
       type="button"
       @click="current = i"
     >
-      <img
+      <PictureImg
         v-if="media.type === 'image'"
         :src="media.url.replace('/imgs/', '/compress-imgs/')"
-        loading="lazy"
+        lazy
       />
       <template v-else>
-        <img
+        <PictureImg
           :src="`${media.url}?ci-process=snapshot&time=0&format=jpg`"
-          loading="lazy"
+          lazy
         />
         <ElIcon class="play"><VideoPlay /></ElIcon>
       </template>
@@ -146,11 +147,17 @@ useEventListener('keyup', (event: KeyboardEvent) => {
     border-radius: 6px;
     cursor: pointer;
 
-    > img,
+    > .PictureImg,
     > video {
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+
+    > .PictureImg {
+      :deep(img) {
+        object-fit: cover;
+      }
     }
 
     > .play {
