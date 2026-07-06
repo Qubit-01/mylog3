@@ -1,12 +1,8 @@
-# PictureImg 多端最佳兼容图片，多功能图片组件
+# PictureImg 多格式图片组件
 
-用于配合图片压缩插件，展示多种图片格式的 Picture 组件。  
-**_0.1.0 版本可以传入图片链接了，并且支持懒加载、错误重试等机制！_**  
-若有 bug 直接找 @liaoshiqiang
+配合 `vite-imagetools` 输出 `<picture>` 需要的多格式、多尺寸图片，并兼容网络图片的懒加载、错误重试。
 
-> 前身：[@kwai-explore/picture.vue](https://npm.corp.kuaishou.com/-/web/detail/@kwai-explore/picture.vue/)，由于有很多坑，而且不能随意改，所以我搬到 pet 上面来了
-
-> 为什么不直接命名叫 Picture ？因为 picture 是 html 标签名，vue 组件名要避嫌, VScode里类型解析会有点问题，自动补全也会出问题。
+> 为什么不直接命名叫 Picture？因为 `picture` 是 HTML 标签名，Vue 组件名避开它可以减少类型解析和自动补全的歧义。
 
 ---
 
@@ -15,11 +11,12 @@
 ### 安装配置插件
 
 1. 必须配合 [vite-imagetools](https://github.com/JonasKruckenberg/imagetools) 使用
+
    `pnpm add -D vite-imagetools`
 
 2. 配置插件：修改 `vite.config.ts`
 
-> gundam 项目内置，无需这一步。但是 gundam 用的可能是不是 vite-imagetools 插件，返回另一种格式对象，组件也有做兼容
+使用官方 `as=picture` 作为入口，只给它补默认 `w` 和 `format`。用户在 import 里显式传入的 `w` / `format` 会覆盖这里的默认值。
 
 ```ts
 import { imagetools } from 'vite-imagetools'
@@ -29,12 +26,10 @@ export default defineConfig({
     // ...
     imagetools({
       defaultDirectives: (url) => {
-        if (url.searchParams.get('preset') === 'modern') {
+        if (url.searchParams.get('as') === 'picture') {
           return new URLSearchParams({
-            format:
-              'avif;webp;' +
-              url.pathname.substring(url.pathname.lastIndexOf('.') + 1),
-            as: 'picture',
+            w: '640;1280;1920',
+            format: `avif;webp;${url.pathname.split('.').pop()}`,
           })
         }
         return new URLSearchParams()
@@ -46,14 +41,16 @@ export default defineConfig({
 
 3. 根据上面的配置添加全局类型： `vite-env.d.ts`
 
-这里的类型就是图片转换插件的输出类型，Picture组件已经定义好了  
-这一步是避免ts报错
+这一步是避免 TS 把 `?as=picture` 当成普通图片 URL。
 
 ```ts
-declare module '*?preset=modern' {
-  const src: import('vite-imagetools').Picture // 或者 import('@pet/quantum.PictureImg').Picture
+type Picture = import('vite-imagetools').Picture
+
+declare module '*as=picture' {
+  const src: Picture
   export default src
 }
+
 ```
 
 ---
@@ -64,16 +61,34 @@ declare module '*?preset=modern' {
 
 ```html
 <script setup lang="ts">
-  import PictureImg from '@pet/quantum.PictureImg'
-  import examplePic from './components/example.jpg?preset=modern'
+  import PictureImg from 'shared/PictureImg'
+  import examplePic from './components/example.jpg?as=picture'
 </script>
 
 <template>
-  <PictureImg :src="examplePic" />
+  <PictureImg :src="examplePic" lazy />
 </template>
 ```
 
-Picture 组件 `src` 接收一个对象，如：
+默认会生成三档宽度和三种格式：
+
+```txt
+w=640;1280;1920
+format=avif;webp;原格式
+as=picture
+```
+
+如果当前图片本身小于某个宽度档位，`vite-imagetools` 默认不会放大，会自动把超过原图宽度的档位夹到原图宽度并去重。
+
+项目约定：`as=picture` 固定写在 query 最后一个参数。  
+如果某张图需要单独控制尺寸或格式，直接在后面追加官方参数覆盖默认值：
+
+```ts
+import bannerPic from './banner.jpg?w=768;1440;1920&as=picture'
+import jpgOnlyPic from './cover.jpg?format=webp;jpg&as=picture'
+```
+
+PictureImg 的 `src` 接收一个对象，如：
 
 ```js
 { // vite-imagetools 生成的图片对象
@@ -82,25 +97,23 @@ Picture 组件 `src` 接收一个对象，如：
 }
 ```
 
-根据上面配置好 `vite-imagetools` 后，import 图片时后面加一个query：`?preset=modern`，产出的数据就是这样的。
-
 ### 2. 网络图片这样用
 
 ```html
 <script setup lang="ts">
-  import PictureImg from '@pet/quantum.PictureImg'
+  import PictureImg from 'shared/PictureImg'
 </script>
 
 <template>
   <!-- 最简用法，无懒加载，无重试 -->
-  <PictureImg src="//kuaishou.com/1.png" />
+  <PictureImg src="https://example.com/1.png" />
 
   <!-- 
      懒加载用法1：lazy 传入 boolean 值 (推荐用属性简写形式，更优雅)，用的 img.loading 原生懒加载
      若不支持原生懒加载，则自动切换使用 IntersectionObserver (见下一种用法)
      详情见：https://developer.mozilla.org/zh-CN/docs/Web/API/HTMLImageElement/loading
     -->
-  <PictureImg src="//kuaishou.com/1.png" lazy />
+  <PictureImg src="https://example.com/1.png" lazy />
 
   <!-- 
      懒加载用法2：传入对象，对象的值就是 IntersectionObserver 的第二个参数
@@ -108,12 +121,12 @@ Picture 组件 `src` 接收一个对象，如：
      详情见 https://developer.mozilla.org/zh-CN/docs/Web/API/IntersectionObserver/IntersectionObserver
     -->
   <PictureImg
-    src="//kuaishou.com/1.png"
+    src="https://example.com/1.png"
     :lazy="{ rootMargin: '-50px 0px -50px 0px' }"
   />
 
   <!-- 加载出错重试，传入错误重试次数，默认不重试，每次重试间隔 1s -->
-  <PictureImg src="//kuaishou.com/1.png" :retry="3" />
+  <PictureImg src="https://example.com/1.png" :retry="3" />
 </template>
 ```
 
@@ -128,7 +141,7 @@ Picture 组件 `src` 接收一个对象，如：
     'warn',
     {
         element: 'img',
-        message: '尽量使用性能更好的 @pet/quantum.PictureImg 组件哦',
+        message: '尽量使用性能更好的 shared/PictureImg 组件哦',
     },
 ],
 ```

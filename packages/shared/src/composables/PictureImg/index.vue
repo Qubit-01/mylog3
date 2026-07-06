@@ -9,13 +9,11 @@ import {
   type ImgHTMLAttributes,
 } from 'vue'
 import type { Picture } from 'vite-imagetools'
-import type { FallbackPicture } from './utils'
 
 const props = defineProps<{
   /**
    * 图片地址 或 由 vite-imagetools 生成的图像类型
    * @see https://github.com/JonasKruckenberg/imagetools/blob/main/docs/interfaces/core_src.Picture.md
-   * @see https://npm.corp.kuaishou.com/-/web/detail/@kwai-explore/picture.vue
    * ```js
    * { // vite-imagetools 生成的图片对象例子
    *   img: {src: '/@imagetools/19b8f0e7a78', w: 5304, h: 7952}
@@ -23,7 +21,7 @@ const props = defineProps<{
    * }
    * ```
    */
-  src: string | Picture | FallbackPicture
+  src: string | Picture
   /** 图片加载失败时显示的图片 */
   fallbackSrc?: string
   /** 错误重试次数，默认不重试，每次重试间隔 1s */
@@ -46,25 +44,26 @@ const emits = defineEmits<{
 }>()
 
 const $img = ref<HTMLImageElement>()
-/** img 基础功能属性 */
-const baseAttrs = ref<ImgHTMLAttributes>({})
 
-/** 统一不同类型 src 为 Picture 类型 */
-const picture = computed<Picture>(() => {
+type BaseImgAttrs = Pick<ImgHTMLAttributes, 'src' | 'loading'>
+type InnerPicture = Omit<Picture, 'img'> & { img: BaseImgAttrs }
+
+/** img 基础功能属性 */
+const baseAttrs = ref<BaseImgAttrs>({})
+
+/** 统一不同类型 src 为组件内部使用的 Picture 类型 */
+const picture = computed<InnerPicture>(() => {
+  const p = props.src
   try {
-    if (typeof props.src === 'string') {
-      return { img: { src: props.src } } as Picture
-    } else if ('fallback' in props.src) {
-      const fallbackSrc = props.src
-      const sources: any = { ...fallbackSrc.sources }
-      for (const key in sources) sources[key] = sources[key][0].src
-      return { img: fallbackSrc.fallback as Picture['img'], sources } as Picture
+    if (typeof p === 'string') {
+      return { img: { src: p }, sources: {} }
     }
-    return props.src
-  } catch (e) {
+    const { w: width, h: height, ...imgRest } = p.img
+    return { ...p, img: { ...imgRest, width, height } }
+  } catch {
     // badcase: 绕过TS，传入 src = null，导致报错
-    console.log('PictureImg> 解析 src 出错: ', props.src)
-    return { img: { src: '' } } as Picture
+    console.warn('PictureImg> 解析 src 出错: ', p)
+    return { img: { src: '' }, sources: {} }
   }
 })
 
