@@ -1,18 +1,22 @@
-import type { Log } from '@/api'
+import { listMineLogs, listPublicLogs, type Log } from '@/api'
 import { type LogListKey, useLogStore } from '@/stores/log'
 
 /** 每页条数 */
 const TAKE = 20
 
+/** 列表键到接口的映射，调用方只需要关心当前列表语义 */
+const fetchers = {
+  /** 公开 Log 列表接口 */
+  public: listPublicLogs,
+  /** 我的 Log 列表接口 */
+  mine: listMineLogs,
+} satisfies Record<LogListKey, (payload: { skip: number; take: number }) => Promise<Log[]>>
+
 /**
  * 可分页 Log 列表的通用逻辑
  * @param key 列表键，决定写入 store 的哪个列表
- * @param fetcher 实际的接口调用，接收 skip/take，返回 Log 数组
  */
-export const useLogList = (
-  key: LogListKey,
-  fetcher: (skip: number, take: number) => Promise<Log[]>,
-) => {
+export const useLogList = (key: LogListKey) => {
   const store = useLogStore()
 
   /** 当前列表（从 store 派生，编辑单条后自动响应） */
@@ -26,7 +30,7 @@ export const useLogList = (
     if (loading.value || noMore.value) return
     loading.value = true
     try {
-      const rows = await fetcher(logs.value.length, TAKE)
+      const rows = await fetchers[key]({ skip: logs.value.length, take: TAKE })
       store.append(key, rows)
       noMore.value = rows.length < TAKE
     } finally {

@@ -1,12 +1,9 @@
 <script lang="ts" setup>
 /** 首页：公开 Log 竖向列表，滚动到底部自动加载下一页 */
-import { listPublicLogs } from '@/api'
 import { useLogList } from '@/composables/useLogList'
 import LogCard from '@/components/LogCard.vue'
 
-const { logs, footerText, loadMore } = useLogList('public', (skip, take) =>
-  listPublicLogs({ skip, take }),
-)
+const { logs, footerText, loadMore } = useLogList('public')
 </script>
 
 <template>

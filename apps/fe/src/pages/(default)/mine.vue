@@ -1,14 +1,11 @@
 <script lang="ts" setup>
 /** 我的：当前用户 Log 竖向列表，滚动到底部自动加载下一页 */
-import { listMineLogs } from '@/api'
 import { useLogList } from '@/composables/useLogList'
 import LogCard from '@/components/LogCard.vue'
 
 definePage({ meta: { auth: true, title: '我的' } })
 
-const { logs, footerText, loadMore } = useLogList('mine', (skip, take) =>
-  listMineLogs({ skip, take }),
-)
+const { logs, footerText, loadMore } = useLogList('mine')
 </script>
 
 <template>
