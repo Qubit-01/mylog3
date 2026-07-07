@@ -3,7 +3,9 @@
 import type { Log } from '@/api'
 import dayjs from 'dayjs'
 
-defineProps<{ log: Log }>()
+const props = defineProps<{ log: Log }>()
+
+provide('userId', props.log.userId)
 </script>
 
 <template>
@@ -13,7 +15,7 @@ defineProps<{ log: Log }>()
       <span>{{ dayjs(log.logAt).format('YYYY-MM-DD HH:mm') }}</span>
     </div>
     <p class="text">{{ log.text }}</p>
-    <LogCardMedias :medias="log.medias" :user-id="log.userId" />
+    <LogCardMedias :medias="log.medias" />
     <div v-if="log.tags.length" class="tags">
       <span v-for="t in log.tags" :key="t">#{{ t }}</span>
     </div>

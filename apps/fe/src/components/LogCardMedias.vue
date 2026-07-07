@@ -13,9 +13,11 @@ import 'swiper/css/pagination'
 const props = defineProps<{
   /** 图片 + 视频混排列表，元素形态 `{ type, url }` */
   medias: LogMedia[]
-  /** 所属用户 id，用于补全旧式 COS 文件名 */
-  userId: number
 }>()
+
+/** 所属用户 id，由外层 LogCard Provider 提供，用于补全旧式 COS 文件名 */
+const userId = inject<number>('userId')
+if (userId === undefined) throw new Error('LogCardMedias> 没有获取到 userId')
 
 /**
  * 补全媒体地址
@@ -26,7 +28,7 @@ const props = defineProps<{
 const toUrl = (url: string, prefix = '') => {
   if (url.startsWith('http://')) return url.replace('http://', 'https://')
   if (url.startsWith('https://') || url.startsWith('/')) return url
-  return `https://cos.mylog.ink/users/${props.userId}/mylog/${prefix}${url}`
+  return `https://cos.mylog.ink/users/${userId}/mylog/${prefix}${url}`
 }
 
 /** 补全后的可展示媒体，保留后端原始顺序 */
@@ -60,26 +62,28 @@ useEventListener('keyup', (event: KeyboardEvent) => {
 
 <template>
   <div v-if="medias.length" class="LogCardMedias swiper-no-swiping">
-    <button
-      v-for="(media, i) in medias"
-      :key="`${media.type}:${media.url}:${i}`"
-      class="item"
-      type="button"
-      @click="current = i"
-    >
-      <PictureImg
-        v-if="media.type === 'image'"
-        :src="media.url.replace('/imgs/', '/compress-imgs/')"
-        lazy
-      />
-      <template v-else>
+    <ElScrollbar wrap-class="wrap" view-class="medias">
+      <button
+        v-for="(media, i) in medias"
+        :key="`${media.type}:${media.url}:${i}`"
+        class="item"
+        type="button"
+        @click="current = i"
+      >
         <PictureImg
-          :src="`${media.url}?ci-process=snapshot&time=0&format=jpg`"
+          v-if="media.type === 'image'"
+          :src="media.url.replace('/imgs/', '/compress-imgs/')"
           lazy
         />
-        <ElIcon class="play"><VideoPlay /></ElIcon>
-      </template>
-    </button>
+        <template v-else>
+          <PictureImg
+            :src="`${media.url}?ci-process=snapshot&time=0&format=jpg`"
+            lazy
+          />
+          <ElIcon class="play"><VideoPlay /></ElIcon>
+        </template>
+      </button>
+    </ElScrollbar>
 
     <Teleport to="body">
       <div
@@ -131,12 +135,17 @@ useEventListener('keyup', (event: KeyboardEvent) => {
 .LogCardMedias {
   --size: 96px;
 
-  display: flex;
-  gap: 4px;
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
+  :deep(.wrap) {
+    overscroll-behavior-inline: contain;
+  }
 
-  > .item {
+  :deep(.medias) {
+    display: flex;
+    flex-flow: row nowrap;
+    gap: 4px;
+  }
+
+  .item {
     position: relative;
     flex: 0 0 var(--size);
     width: var(--size);
