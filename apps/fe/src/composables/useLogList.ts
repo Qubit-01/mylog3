@@ -1,4 +1,4 @@
-import { listMineLogs, listPublicLogs, type Log } from '@/api'
+import { listMineLogs, listPublicLogs } from '@/api'
 import { type LogListKey, useLogStore } from '@/stores/log'
 
 /** 每页条数 */
@@ -10,7 +10,7 @@ const fetchers = {
   public: listPublicLogs,
   /** 我的 Log 列表接口 */
   mine: listMineLogs,
-} satisfies Record<LogListKey, (payload: { skip: number; take: number }) => Promise<Log[]>>
+}
 
 /**
  * 可分页 Log 列表的通用逻辑

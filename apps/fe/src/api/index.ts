@@ -101,3 +101,7 @@ export const listPublicLogs = (payload: Body<'/log/list-public'> = {}) =>
 /** 我的 Log 列表（需登录），按 createdAt 倒序，skip/take 分页 */
 export const listMineLogs = (payload: Body<'/log/list-mine'> = {}) =>
   unwrap(api.POST('/log/list-mine', { body: payload }))
+
+/** 删除指定 Log（仅本人可删），成功时后端返回 204 无正文 */
+export const deleteLog = (payload: Body<'/log/delete'>) =>
+  unwrap(api.POST('/log/delete', { body: payload }))
