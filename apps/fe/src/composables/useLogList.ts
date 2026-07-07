@@ -26,7 +26,7 @@ export const useLogList = (key: LogListKey) => {
   const noMore = ref(false)
 
   /** 加载下一页；返回条数 < TAKE 视为末页 */
-  const loadMore = async () => {
+  const fetchMore = async () => {
     if (loading.value || noMore.value) return
     loading.value = true
     try {
@@ -45,7 +45,7 @@ export const useLogList = (key: LogListKey) => {
     return logs.value.length ? '没有更多了' : '暂无内容'
   })
 
-  onMounted(loadMore)
+  onMounted(fetchMore)
 
   return {
     /** 当前列表数据，编辑任意 log 后自动同步 */
@@ -54,8 +54,8 @@ export const useLogList = (key: LogListKey) => {
     loading,
     /** 是否已无更多数据 */
     noMore,
-    /** 加载下一页（ElScrollbar `@end-reached` 需自行过滤 direction） */
-    loadMore,
+    /** 拉取下一页（ElScrollbar `@end-reached` 需自行过滤 direction） */
+    fetchMore,
     /** 底部提示语，空串表示不展示 */
     footerText,
   }

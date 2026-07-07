@@ -5,7 +5,7 @@ import LogCard from '@/components/LogCard.vue'
 
 definePage({ meta: { auth: true, title: '我的' } })
 
-const { logs, footerText, loadMore } = useLogList('mine')
+const { logs, footerText, fetchMore } = useLogList('mine')
 </script>
 
 <template>
@@ -14,7 +14,7 @@ const { logs, footerText, loadMore } = useLogList('mine')
     wrap-class="wrap"
     view-class="view"
     :distance="80"
-    @end-reached="(d) => d === 'bottom' && loadMore()"
+    @end-reached="(d) => d === 'bottom' && fetchMore()"
   >
     <LogCard v-for="log in logs" :key="log.id" :log="log" />
     <div v-if="footerText" class="footer">{{ footerText }}</div>

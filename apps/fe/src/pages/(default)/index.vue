@@ -3,7 +3,7 @@
 import { useLogList } from '@/composables/useLogList'
 import LogCard from '@/components/LogCard.vue'
 
-const { logs, footerText, loadMore } = useLogList('public')
+const { logs, footerText, fetchMore } = useLogList('public')
 </script>
 
 <template>
@@ -12,7 +12,7 @@ const { logs, footerText, loadMore } = useLogList('public')
     wrap-class="wrap"
     view-class="view"
     :distance="80"
-    @end-reached="(d) => d === 'bottom' && loadMore()"
+    @end-reached="(d) => d === 'bottom' && fetchMore()"
   >
     <LogCard v-for="log in logs" :key="log.id" :log="log" />
     <div v-if="footerText" class="footer">{{ footerText }}</div>

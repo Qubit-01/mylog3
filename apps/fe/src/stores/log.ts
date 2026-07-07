@@ -32,11 +32,12 @@ export const useLogStore = defineStore('log', () => {
     entities[log.id] = log
   }
 
-  /** 从指定列表移除某条 log；entities 保留避免影响其他列表 */
-  const remove = (key: LogListKey, id: number) => {
-    const ids = lists[key]
-    const i = ids.indexOf(id)
-    if (i !== -1) ids.splice(i, 1)
+  /** 移除指定 log：清理实体及所有列表里的引用 */
+  const remove = (id: number) => {
+    for (const key of Object.keys(lists) as LogListKey[]) {
+      lists[key] = lists[key].filter((item) => item !== id)
+    }
+    delete entities[id]
   }
 
   return {
@@ -50,7 +51,7 @@ export const useLogStore = defineStore('log', () => {
     append,
     /** 更新单条 log，所有列表自动响应 */
     update,
-    /** 从指定列表移除某条 log */
+    /** 移除指定 log，并同步清理所有列表引用 */
     remove,
   }
 })
