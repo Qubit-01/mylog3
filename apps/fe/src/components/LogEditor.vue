@@ -36,8 +36,12 @@ const form = ref<LogEditorValue>({
 })
 const medias = ref<LogEditorMedia[]>([])
 const pending = ref(false)
-const editing = computed(() => !!form.value.id)
 const canSubmit = computed(() => !!form.value.text.trim() && !pending.value)
+/** 可见范围切换项；label 用于界面展示，value 保持后端 DTO 的 scope 枚举值 */
+const scopeOptions: Array<{ label: string; value: Log['scope'] }> = [
+  { label: '私密', value: 'PRIVATE' },
+  { label: '公开', value: 'PUBLIC' },
+]
 
 watch(
   () => props.initialValue,
@@ -90,19 +94,17 @@ const onSubmit = async () => {
     />
     <LogEditorMedias v-model="medias" />
     <div class="actions">
-      <ElRadioGroup v-model="form.scope" size="small" aria-label="可见范围">
-        <ElRadioButton value="PRIVATE">私密</ElRadioButton>
-        <ElRadioButton value="PUBLIC">公开</ElRadioButton>
-      </ElRadioGroup>
+      <div class="tools">
+        <ElSegmented v-model="form.scope" :options="scopeOptions" size="small" />
+      </div>
       <ElButton
         :icon="Promotion"
         :loading="pending"
         :disabled="!canSubmit"
         type="primary"
+        circle
         @click="onSubmit"
-      >
-        {{ editing ? '保存' : '发布' }}
-      </ElButton>
+      />
     </div>
   </section>
 </template>
@@ -120,8 +122,14 @@ const onSubmit = async () => {
   > .actions {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: 8px;
+
+    > .tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
   }
 }
 </style>

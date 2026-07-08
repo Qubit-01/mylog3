@@ -19,6 +19,8 @@ declare module 'vue' {
     ElRadioButton: typeof import('element-plus/es')['ElRadioButton']
     ElRadioGroup: typeof import('element-plus/es')['ElRadioGroup']
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
+    ElSegmented: typeof import('element-plus/es')['ElSegmented']
+    ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ElUpload: typeof import('element-plus/es')['ElUpload']
     LogCard: typeof import('./src/components/LogCard.vue')['default']
     LogCardMedias: typeof import('./src/components/LogCardMedias.vue')['default']
