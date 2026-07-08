@@ -2,6 +2,7 @@
 /** 我的：当前用户 Log 竖向列表，滚动到底部自动加载下一页 */
 import { useLogList } from '@/composables/useLogList'
 import LogCard from '@/components/LogCard.vue'
+import LogEditor from '@/components/LogEditor.vue'
 
 definePage({ meta: { auth: true, title: '我的' } })
 
@@ -16,6 +17,7 @@ const { logs, footerText, fetchMore } = useLogList('mine')
     :distance="80"
     @end-reached="(d) => d === 'bottom' && fetchMore()"
   >
+    <LogEditor />
     <LogCard v-for="log in logs" :key="log.id" :log="log" />
     <div v-if="footerText" class="footer">{{ footerText }}</div>
   </ElScrollbar>

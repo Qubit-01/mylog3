@@ -130,3 +130,15 @@ html {
 ::-webkit-scrollbar-track {
   background-color: transparent;
 }
+
+/* 15. 通用面板 */
+.m-panel {
+  background: #ffffffe0;
+  border: 1px solid #ffffffb3;
+  border-radius: 8px;
+  box-shadow:
+    0 1px 2px #0000000a,
+    0 12px 28px #00000014;
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+}

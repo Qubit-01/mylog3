@@ -10,7 +10,7 @@ const { user } = storeToRefs(useUserStore())
 </script>
 
 <template>
-  <div class="AsideUserCard">
+  <div class="AsideUserCard m-panel">
     <template v-if="user">
       <div class="avatar">
         <ElAvatar :src="user.avatar ?? undefined" :size="56">
@@ -42,10 +42,6 @@ const { user } = storeToRefs(useUserStore())
   align-items: center;
   gap: 8px;
   padding: 12px;
-  background: var(--el-bg-color-overlay);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 
   > .avatar {
     position: relative;

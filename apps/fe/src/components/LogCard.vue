@@ -42,7 +42,7 @@ provide('userId', props.log.userId)
 </script>
 
 <template>
-  <article class="LogCard">
+  <article class="LogCard m-panel">
     <div class="meta">
       <div class="info">
         <span>#{{ log.userId }}</span>
@@ -75,10 +75,6 @@ provide('userId', props.log.userId)
   flex-direction: column;
   gap: 8px;
   padding: 12px;
-  background: var(--el-bg-color-overlay);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
-  box-shadow: 0 1px 2px #0000000a;
 
   > .meta {
     display: flex;
