@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 /** Log 编辑器媒体草稿：只处理浏览器端选图 / 视频、预览和本地资源释放 */
 import type { UploadProps, UploadUserFile } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
 
 /** 浏览器端待提交媒体；raw 是原始 File，url 是本地预览地址 */
 export type LogEditorMedia = UploadUserFile
@@ -9,10 +9,9 @@ export type LogEditorMedia = UploadUserFile
 /** 待提交媒体草稿列表；父级提交流程后续会从这里拿原始 File */
 const medias = defineModel<LogEditorMedia[]>({ required: true })
 
-/** 判断文件是否是当前编辑器支持的媒体类型 */
-const isMedia = (file: LogEditorMedia) =>
-  !!file.raw?.type &&
-  (file.raw.type.startsWith('image/') || file.raw.type.startsWith('video/'))
+/** 判断文件是否是当前编辑器支持的图片或视频 */
+const isSupportedMedia = (file: LogEditorMedia) =>
+  file.raw?.type.startsWith('image/') || file.raw?.type.startsWith('video/')
 
 /** 释放单个本地预览地址，避免反复选文件后残留 blob URL */
 const revokeMediaUrl = (file: LogEditorMedia) => {
@@ -23,7 +22,7 @@ const revokeMediaUrl = (file: LogEditorMedia) => {
 
 /** 选择媒体后生成本地预览；这一阶段只留在浏览器，不上传服务器 */
 const onMediaChange: UploadProps['onChange'] = (file, files) => {
-  if (!isMedia(file)) {
+  if (!isSupportedMedia(file)) {
     revokeMediaUrl(file)
     ElMessage.warning('只能添加图片或视频')
     medias.value = files.filter((item) => item.uid !== file.uid)
@@ -36,6 +35,11 @@ const onMediaChange: UploadProps['onChange'] = (file, files) => {
 /** 删除媒体时同步释放本地预览地址 */
 const onMediaRemove: UploadProps['onRemove'] = (file) => {
   revokeMediaUrl(file)
+}
+
+/** 自定义缩略图删除入口；用于覆盖 Element Plus 默认图片模板后的删除动作 */
+const removeMedia = (file: LogEditorMedia) => {
+  medias.value = medias.value.filter((item) => item.uid !== file.uid)
 }
 
 /** 外部清空媒体列表时，回收已经移除的本地预览地址 */
@@ -62,6 +66,32 @@ onUnmounted(() => {
     :on-remove="onMediaRemove"
   >
     <ElIcon><Plus /></ElIcon>
+    <template #file="{ file }">
+      <img
+        v-if="file.raw?.type.startsWith('image/')"
+        class="el-upload-list__item-thumbnail"
+        :src="file.url"
+        alt=""
+      />
+      <template v-else>
+        <video
+          class="el-upload-list__item-thumbnail"
+          :src="file.url"
+          muted
+          playsinline
+          preload="metadata"
+        />
+        <ElIcon class="play"><VideoPlay /></ElIcon>
+      </template>
+      <span class="el-upload-list__item-actions">
+        <span
+          class="el-upload-list__item-delete"
+          @click.stop="removeMedia(file)"
+        >
+          <ElIcon><Delete /></ElIcon>
+        </span>
+      </span>
+    </template>
   </ElUpload>
 </template>
 
@@ -89,6 +119,19 @@ onUnmounted(() => {
     height: var(--size);
     flex: none;
     margin: 0;
+  }
+
+  :deep(.play) {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: #fffe;
+    font-size: 24px;
+    background: #0003;
   }
 }
 </style>
