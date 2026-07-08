@@ -196,6 +196,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/cos/create-upload-credential": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CosController_createUploadCredential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -459,6 +475,28 @@ export interface components {
             extra?: Record<string, never>;
             /** @description 要更新的 Log id */
             id: number;
+        };
+        CosCredentialDto: {
+            /** @description 临时密钥 SecretId */
+            tmpSecretId: string;
+            /** @description 临时密钥 SecretKey */
+            tmpSecretKey: string;
+            /** @description 临时会话 token，上传时放到 x-cos-security-token */
+            sessionToken: string;
+        };
+        CosUploadCredentialDto: {
+            /** @description 存储桶名称，格式为 BucketName-APPID */
+            bucket: string;
+            /** @description 存储桶地域，如 ap-guangzhou */
+            region: string;
+            /** @description 当前用户的对象目录前缀，如 users/1/ */
+            prefix: string;
+            /** @description 临时密钥开始时间，Unix 秒 */
+            startTime: number;
+            /** @description 临时密钥过期时间，Unix 秒 */
+            expiredTime: number;
+            /** @description 客户端直传使用的临时密钥 */
+            credentials: components["schemas"]["CosCredentialDto"];
         };
     };
     responses: never;
@@ -744,6 +782,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    CosController_createUploadCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 创建成功，返回客户端直传 COS 所需信息 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CosUploadCredentialDto"];
+                };
             };
         };
     };
