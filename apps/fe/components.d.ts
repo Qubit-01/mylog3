@@ -16,6 +16,7 @@ declare module 'vue' {
     ElButton: typeof import('element-plus/es')['ElButton']
     ElIcon: typeof import('element-plus/es')['ElIcon']
     ElInput: typeof import('element-plus/es')['ElInput']
+    ElPopconfirm: typeof import('element-plus/es')['ElPopconfirm']
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     LogCard: typeof import('./src/components/LogCard.vue')['default']
     LogCardMedias: typeof import('./src/components/LogCardMedias.vue')['default']
