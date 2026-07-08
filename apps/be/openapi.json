@@ -504,7 +504,7 @@
           },
           "url": {
             "type": "string",
-            "description": "资源地址或文件名"
+            "description": "资源引用：完整 URL 或 COS object key"
           },
           "location": {
             "description": "图片 EXIF 位置坐标",
@@ -533,7 +533,7 @@
           },
           "url": {
             "type": "string",
-            "description": "资源地址或文件名"
+            "description": "资源引用：完整 URL 或 COS object key"
           }
         },
         "required": [
@@ -554,7 +554,7 @@
           },
           "url": {
             "type": "string",
-            "description": "资源地址或文件名"
+            "description": "资源引用：完整 URL 或 COS object key"
           }
         },
         "required": [

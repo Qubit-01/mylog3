@@ -15,29 +15,20 @@ const props = defineProps<{
   medias: LogMedia[]
 }>()
 
-/** 所属用户 id，由外层 LogCard Provider 提供，用于补全旧式 COS 文件名 */
-const userId = inject<number>('userId')
-if (userId === undefined) throw new Error('LogCardMedias> 没有获取到 userId')
-
 /**
- * 补全媒体地址
- * @param url 完整地址、绝对路径或 COS 文件名
- * @param prefix 裸文件名对应的 COS 目录
- * @returns 可直接用于 src 的地址
+ * 把资源引用转成可访问地址
+ * @param url 完整 URL 或 COS object key
+ * @returns 可直接用于 src 的访问地址
  */
-const toUrl = (url: string, prefix = '') => {
+const toResourceUrl = (url: string) => {
   if (url.startsWith('http://')) return url.replace('http://', 'https://')
-  if (url.startsWith('https://') || url.startsWith('/')) return url
-  return `https://cos.mylog.ink/users/${userId}/mylog/${prefix}${url}`
+  if (url.startsWith('https://')) return url
+  return `https://cos.mylog.ink/${url}`
 }
 
 /** 补全后的可展示媒体，保留后端原始顺序 */
 const medias = computed(() =>
-  props.medias.map((media) => ({
-    ...media,
-    /** 媒体地址 */
-    url: toUrl(media.url, media.type === 'image' ? 'imgs/' : 'videos/'),
-  })),
+  props.medias.map((media) => ({ ...media, url: toResourceUrl(media.url) })),
 )
 
 /** 当前预览下标，undefined 表示关闭预览 */

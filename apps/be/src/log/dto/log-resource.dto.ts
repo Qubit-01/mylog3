@@ -7,7 +7,10 @@ export class LogResourceDto {
   @IsString()
   type!: string;
 
-  @ApiProperty({ type: String, description: '资源地址或文件名' })
+  @ApiProperty({
+    type: String,
+    description: '资源引用：完整 URL 或 COS object key',
+  })
   @IsString()
   url!: string;
 }

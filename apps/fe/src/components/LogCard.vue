@@ -37,8 +37,6 @@ const onDelete = async () => {
     pending.value = false
   }
 }
-
-provide('userId', props.log.userId)
 </script>
 
 <template>

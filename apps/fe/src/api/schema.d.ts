@@ -308,7 +308,7 @@ export interface components {
              * @enum {string}
              */
             type: "image" | "video";
-            /** @description 资源地址或文件名 */
+            /** @description 资源引用：完整 URL 或 COS object key */
             url: string;
             /** @description 图片 EXIF 位置坐标 */
             location?: components["schemas"]["LogMediaLocationDto"];
@@ -320,7 +320,7 @@ export interface components {
              * @enum {string}
              */
             type: "audio";
-            /** @description 资源地址或文件名 */
+            /** @description 资源引用：完整 URL 或 COS object key */
             url: string;
         };
         LogFileDto: {
@@ -330,7 +330,7 @@ export interface components {
              * @enum {string}
              */
             type: "file";
-            /** @description 资源地址或文件名 */
+            /** @description 资源引用：完整 URL 或 COS object key */
             url: string;
         };
         CreateLogDto: {
