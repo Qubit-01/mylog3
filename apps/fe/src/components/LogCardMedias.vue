@@ -62,7 +62,7 @@ useEventListener('keyup', (event: KeyboardEvent) => {
 
 <template>
   <div v-if="medias.length" class="LogCardMedias swiper-no-swiping">
-    <ElScrollbar wrap-class="wrap" view-class="medias">
+    <div class="medias">
       <button
         v-for="(media, i) in medias"
         :key="`${media.type}:${media.url}:${i}`"
@@ -83,7 +83,7 @@ useEventListener('keyup', (event: KeyboardEvent) => {
           <ElIcon class="play"><VideoPlay /></ElIcon>
         </template>
       </button>
-    </ElScrollbar>
+    </div>
 
     <Teleport to="body">
       <div
@@ -135,14 +135,17 @@ useEventListener('keyup', (event: KeyboardEvent) => {
 .LogCardMedias {
   --size: 96px;
 
-  :deep(.wrap) {
-    overscroll-behavior-inline: contain;
-  }
-
-  :deep(.medias) {
+  > .medias {
     display: flex;
     flex-flow: row nowrap;
     gap: 4px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .item {
