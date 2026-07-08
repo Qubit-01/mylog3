@@ -2,6 +2,7 @@
 /** Log 编辑器：新增和编辑共用的正文表单，空值用于新增，已有值用于编辑 */
 import { createLog, type Log, updateLog } from '@/api'
 import { useLogStore } from '@/stores/log'
+import type { LogEditorMedia } from '@/components/LogEditorMedias.vue'
 import { Promotion } from '@element-plus/icons-vue'
 
 /** Log 编辑器表单值；后续媒体、标签等字段在这里扩展 */
@@ -33,6 +34,7 @@ const form = ref<LogEditorValue>({
   text: '',
   ...props.initialValue,
 })
+const medias = ref<LogEditorMedia[]>([])
 const pending = ref(false)
 const editing = computed(() => !!form.value.id)
 const canSubmit = computed(() => !!form.value.text.trim() && !pending.value)
@@ -41,6 +43,7 @@ watch(
   () => props.initialValue,
   (value) => {
     form.value = { scope: 'PRIVATE', text: '', ...value }
+    medias.value = []
   },
 )
 
@@ -64,6 +67,7 @@ const onSubmit = async () => {
       logStore.upsert(log)
       form.value = { scope: 'PRIVATE', text: '' }
     }
+    medias.value = []
     emit('saved', log)
   } finally {
     pending.value = false
@@ -84,6 +88,7 @@ const onSubmit = async () => {
       @keydown.meta.enter.prevent="onSubmit"
       @keydown.ctrl.enter.prevent="onSubmit"
     />
+    <LogEditorMedias v-model="medias" />
     <div class="actions">
       <ElRadioGroup v-model="form.scope" size="small" aria-label="可见范围">
         <ElRadioButton value="PRIVATE">私密</ElRadioButton>
