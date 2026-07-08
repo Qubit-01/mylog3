@@ -27,9 +27,14 @@ export const useLogStore = defineStore('log', () => {
     lists[key].push(...logs.map((l) => l.id))
   }
 
-  /** 更新单条 log（编辑后调用），所有列表自动同步 */
-  const update = (log: Log) => {
+  /** 合并单条 log，并按可见范围同步当前已知列表 */
+  const upsert = (log: Log) => {
     entities[log.id] = log
+    lists.mine = [log.id, ...lists.mine.filter((id) => id !== log.id)]
+    lists.public =
+      log.scope === 'PUBLIC'
+        ? [log.id, ...lists.public.filter((id) => id !== log.id)]
+        : lists.public.filter((id) => id !== log.id)
   }
 
   /** 移除指定 log：清理实体及所有列表里的引用 */
@@ -49,8 +54,8 @@ export const useLogStore = defineStore('log', () => {
     useList,
     /** 追加一页数据到指定列表 */
     append,
-    /** 更新单条 log，所有列表自动响应 */
-    update,
+    /** 合并单条 log，并按可见范围同步当前已知列表 */
+    upsert,
     /** 移除指定 log，并同步清理所有列表引用 */
     remove,
   }

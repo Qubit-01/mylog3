@@ -102,6 +102,14 @@ export const listPublicLogs = (payload: Body<'/log/list-public'> = {}) =>
 export const listMineLogs = (payload: Body<'/log/list-mine'> = {}) =>
   unwrap(api.POST('/log/list-mine', { body: payload }))
 
+/** 创建一条 Log（需登录），当前前端先提交正文与发生时间 */
+export const createLog = (payload: Body<'/log/create'>) =>
+  unwrap(api.POST('/log/create', { body: payload }))
+
+/** 更新一条 Log（仅本人），未来编辑表单复用新增表单时调用 */
+export const updateLog = (payload: Body<'/log/update'>) =>
+  unwrap(api.POST('/log/update', { body: payload }))
+
 /** 删除指定 Log（仅本人可删），成功时后端返回 204 无正文 */
 export const deleteLog = (payload: Body<'/log/delete'>) =>
   unwrap(api.POST('/log/delete', { body: payload }))
