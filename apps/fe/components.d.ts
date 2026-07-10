@@ -25,6 +25,8 @@ declare module 'vue' {
     LogCard: typeof import('./src/components/LogCard.vue')['default']
     LogCardMedias: typeof import('./src/components/LogCardMedias.vue')['default']
     LogEditor: typeof import('./src/components/LogEditor.vue')['default']
+    LogEditorAudios: typeof import('./src/components/LogEditorAudios.vue')['default']
+    LogEditorFiles: typeof import('./src/components/LogEditorFiles.vue')['default']
     LogEditorMedias: typeof import('./src/components/LogEditorMedias.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

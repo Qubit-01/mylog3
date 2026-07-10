@@ -2,6 +2,8 @@
 /** Log 编辑器：新增和编辑共用的正文表单，空值用于新增，已有值用于编辑 */
 import { createLog, type Log, updateLog } from '@/api'
 import { useLogStore } from '@/stores/log'
+import type { LogEditorAudio } from '@/components/LogEditorAudios.vue'
+import type { LogEditorFile } from '@/components/LogEditorFiles.vue'
 import type { LogEditorMedia } from '@/components/LogEditorMedias.vue'
 import { Promotion } from '@element-plus/icons-vue'
 import { cloneDeep } from 'lodash-unified'
@@ -38,6 +40,8 @@ const form = ref<Log>(
   props.initialValue ? cloneDeep(props.initialValue) : createEmptyLog(),
 )
 const medias = ref<LogEditorMedia[]>([])
+const audios = ref<LogEditorAudio[]>([])
+const files = ref<LogEditorFile[]>([])
 const pending = ref(false)
 const canSubmit = computed(() => !!form.value.text.trim() && !pending.value)
 /** 可见范围切换项；label 用于界面展示，value 保持后端 DTO 的 scope 枚举值 */
@@ -64,9 +68,14 @@ const onSubmit = async () => {
       people: form.value.people,
       extra: form.value.extra,
     }
-    const log = id ? await updateLog({ id, ...payload }) : await createLog(payload)
+    const log = id
+      ? await updateLog({ id, ...payload })
+      : await createLog(payload)
     logStore.upsert(log)
     form.value = id ? cloneDeep(log) : createEmptyLog()
+    medias.value = []
+    audios.value = []
+    files.value = []
     emit('saved', log)
   } finally {
     pending.value = false
@@ -87,10 +96,18 @@ const onSubmit = async () => {
       @keydown.meta.enter.prevent="onSubmit"
       @keydown.ctrl.enter.prevent="onSubmit"
     />
-    <LogEditorMedias v-model="medias" />
+    <div class="uploads">
+      <LogEditorMedias v-model="medias" />
+      <LogEditorAudios v-model="audios" />
+      <LogEditorFiles v-model="files" />
+    </div>
     <div class="actions">
       <div class="tools">
-        <ElSegmented v-model="form.scope" :options="scopeOptions" size="small" />
+        <ElSegmented
+          v-model="form.scope"
+          :options="scopeOptions"
+          size="small"
+        />
       </div>
       <ElButton
         :icon="Promotion"
@@ -113,6 +130,12 @@ const onSubmit = async () => {
   flex-direction: column;
   gap: 8px;
   padding: 12px;
+
+  > .uploads {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
 
   > .actions {
     display: flex;
