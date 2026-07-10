@@ -10,7 +10,7 @@ const { user } = storeToRefs(useUserStore())
 </script>
 
 <template>
-  <div class="AsideUserCard m-panel">
+  <div class="AsideUser m-panel">
     <template v-if="user">
       <div class="avatar">
         <ElAvatar :src="user.avatar ?? undefined" :size="56">
@@ -36,7 +36,7 @@ const { user } = storeToRefs(useUserStore())
 </template>
 
 <style lang="scss" scoped>
-.AsideUserCard {
+.AsideUser {
   display: flex;
   flex-direction: column;
   align-items: center;

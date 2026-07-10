@@ -38,7 +38,7 @@ watch(index, (i) => i >= 0 && mounted.add(i), { immediate: true })
     <RouterView v-else class="main page" />
     <!-- 全局侧边栏：布局级单例，独立于各 tab 页面 -->
     <aside class="aside">
-      <AsideUserCard />
+      <AsideUser />
     </aside>
     <TabBar />
   </div>
