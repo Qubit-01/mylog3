@@ -4,36 +4,39 @@ import { createLog, type Log, updateLog } from '@/api'
 import { useLogStore } from '@/stores/log'
 import type { LogEditorMedia } from '@/components/LogEditorMedias.vue'
 import { Promotion } from '@element-plus/icons-vue'
+import { cloneDeep } from 'lodash-unified'
 
-/** Log 编辑器表单值；后续媒体、标签等字段在这里扩展 */
-export interface LogEditorValue {
-  /** 已有 Log id；存在时保存走编辑，否则走新增 */
-  id?: number
-  /** 可见范围；PRIVATE 仅自己可见，PUBLIC 同步展示到公开列表 */
-  scope: Log['scope']
-  /** 正文文本；空白内容不允许提交 */
-  text: string
-}
-
-const props = withDefaults(
-  defineProps<{
-    /** 初始表单值；传 id 时保存走编辑，不传时组件内部使用空 Log 草稿 */
-    initialValue?: Partial<LogEditorValue>
-  }>(),
-  {},
-)
+const props = defineProps<{
+  /** 初始完整 Log；不传时组件内部创建空草稿 */
+  initialValue?: Log
+}>()
 
 const emit = defineEmits<{
   /** 保存成功后抛出最新 Log，页面可按需做额外响应 */
-  saved: [value: Awaited<ReturnType<typeof createLog>>]
+  saved: [value: Log]
 }>()
 
 const logStore = useLogStore()
-const form = ref<LogEditorValue>({
+/** 创建新增用的完整 Log 草稿；占位的系统字段在创建成功后由后端返回值覆盖 */
+const createEmptyLog = (): Log => ({
+  id: 0,
+  userId: 0,
   scope: 'PRIVATE',
+  logAt: new Date().toISOString(),
   text: '',
-  ...props.initialValue,
+  medias: [],
+  audios: [],
+  files: [],
+  tags: [],
+  location: [],
+  people: [],
+  extra: {},
+  updatedAt: '',
+  createdAt: '',
 })
+const form = ref<Log>(
+  props.initialValue ? cloneDeep(props.initialValue) : createEmptyLog(),
+)
 const medias = ref<LogEditorMedia[]>([])
 const pending = ref(false)
 const canSubmit = computed(() => !!form.value.text.trim() && !pending.value)
@@ -43,35 +46,27 @@ const scopeOptions: Array<{ label: string; value: Log['scope'] }> = [
   { label: '公开', value: 'PUBLIC' },
 ]
 
-watch(
-  () => props.initialValue,
-  (value) => {
-    form.value = { scope: 'PRIVATE', text: '', ...value }
-    medias.value = []
-  },
-)
-
 /** 保存当前正文；有 id 时更新已有 Log，无 id 时创建新 Log */
 const onSubmit = async () => {
   if (!canSubmit.value) return
   pending.value = true
   try {
-    const text = form.value.text.trim()
-    const log = form.value.id
-      ? await updateLog({ id: form.value.id, text, scope: form.value.scope })
-      : await createLog({
-          text,
-          scope: form.value.scope,
-          logAt: new Date().toISOString(),
-        })
-    if (form.value.id) {
-      logStore.upsert(log)
-      form.value = { id: log.id, scope: log.scope, text: log.text }
-    } else {
-      logStore.upsert(log)
-      form.value = { scope: 'PRIVATE', text: '' }
+    const { id } = form.value
+    const payload = {
+      scope: form.value.scope,
+      logAt: form.value.logAt,
+      text: form.value.text.trim(),
+      medias: form.value.medias,
+      audios: form.value.audios,
+      files: form.value.files,
+      tags: form.value.tags,
+      location: form.value.location,
+      people: form.value.people,
+      extra: form.value.extra,
     }
-    medias.value = []
+    const log = id ? await updateLog({ id, ...payload }) : await createLog(payload)
+    logStore.upsert(log)
+    form.value = id ? cloneDeep(log) : createEmptyLog()
     emit('saved', log)
   } finally {
     pending.value = false
