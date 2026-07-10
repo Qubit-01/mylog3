@@ -80,6 +80,14 @@ export const getMe = () =>
 /** 拉取一张一次性图形验证码 */
 export const createCaptcha = () => unwrap(api.POST('/captcha/create', {}))
 
+/* ─── cos ─────────────────────────────────────────── */
+
+/** COS 凭证类型，从后端 OpenAPI schema 派生 */
+export type CosCredential = components['schemas']['CosCredentialDto']
+
+/** 获取当前用户目录的 COS 临时凭证 */
+export const createCosCredential = () => unwrap(api.POST('/cos/credential', {}))
+
 /* ─── log ──────────────────────────────────────────── */
 
 /** 单条 Log 的完整类型，从后端 OpenAPI schema 派生，全项目统一使用这个 */

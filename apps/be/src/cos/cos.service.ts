@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as Sts from 'qcloud-cos-sts';
-import { CosUploadCredentialDto } from './dto/cos-upload-credential.dto';
+import { CosCredentialDto } from './dto/cos-credential.dto';
 
 /** COS 基础配置，统一从环境变量读取 */
 interface CosConfig {
@@ -22,10 +22,8 @@ export class CosService {
   private readonly logger = new Logger(CosService.name);
   private config?: CosConfig;
 
-  /** 创建当前用户目录的直传临时凭证，权限仅覆盖 `users/{userId}/` */
-  async createUploadCredential(
-    userId: number,
-  ): Promise<CosUploadCredentialDto> {
+  /** 创建当前用户目录的 COS 临时凭证，权限仅覆盖 `users/{userId}/` */
+  async createCredential(userId: number): Promise<CosCredentialDto> {
     const config = this.getConfig();
     const prefix = `users/${userId}/`;
     const data = await Sts.getCredential({

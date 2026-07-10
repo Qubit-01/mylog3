@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 /** COS 临时密钥 DTO */
-export class CosCredentialDto {
+export class CosTemporaryCredentialDto {
   @ApiProperty({ type: String, description: '临时密钥 SecretId' })
   tmpSecretId!: string;
 
@@ -15,8 +15,8 @@ export class CosCredentialDto {
   sessionToken!: string;
 }
 
-/** COS 上传凭证响应 DTO */
-export class CosUploadCredentialDto {
+/** COS 凭证响应 DTO */
+export class CosCredentialDto {
   @ApiProperty({
     type: String,
     description: '存储桶名称，格式为 BucketName-APPID',
@@ -39,8 +39,8 @@ export class CosUploadCredentialDto {
   expiredTime!: number;
 
   @ApiProperty({
-    type: CosCredentialDto,
+    type: CosTemporaryCredentialDto,
     description: '客户端直传使用的临时密钥',
   })
-  credentials!: CosCredentialDto;
+  credentials!: CosTemporaryCredentialDto;
 }

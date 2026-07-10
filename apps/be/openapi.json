@@ -316,17 +316,17 @@
         ]
       }
     },
-    "/cos/create-upload-credential": {
+    "/cos/credential": {
       "post": {
-        "operationId": "CosController_createUploadCredential",
+        "operationId": "CosController_createCredential",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "创建成功，返回客户端直传 COS 所需信息",
+            "description": "创建成功，返回客户端 COS 所需信息",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CosUploadCredentialDto"
+                  "$ref": "#/components/schemas/CosCredentialDto"
                 }
               }
             }
@@ -851,7 +851,7 @@
           "id"
         ]
       },
-      "CosCredentialDto": {
+      "CosTemporaryCredentialDto": {
         "type": "object",
         "properties": {
           "tmpSecretId": {
@@ -873,7 +873,7 @@
           "sessionToken"
         ]
       },
-      "CosUploadCredentialDto": {
+      "CosCredentialDto": {
         "type": "object",
         "properties": {
           "bucket": {
@@ -900,7 +900,7 @@
             "description": "客户端直传使用的临时密钥",
             "allOf": [
               {
-                "$ref": "#/components/schemas/CosCredentialDto"
+                "$ref": "#/components/schemas/CosTemporaryCredentialDto"
               }
             ]
           }
