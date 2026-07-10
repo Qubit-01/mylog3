@@ -56,7 +56,7 @@ useEventListener('keyup', (event: KeyboardEvent) => {
     <div class="medias">
       <button
         v-for="(media, i) in medias"
-        :key="`${media.type}:${media.url}:${i}`"
+        :key="media.url"
         class="item"
         type="button"
         @click="current = i"
@@ -100,7 +100,7 @@ useEventListener('keyup', (event: KeyboardEvent) => {
         >
           <SwiperSlide
             v-for="(media, i) in medias"
-            :key="`${media.type}:${media.url}:${i}`"
+            :key="media.url"
             class="slide"
             @click.self="current = undefined"
           >
