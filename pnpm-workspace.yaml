@@ -38,6 +38,7 @@ allowBuilds:
   bcrypt: true
   better-sqlite3: true
   bufferutil: true
+  cos-js-sdk-v5: true
   esbuild: true
   libpq: false # 有问题，暂不构建
   msgpackr-extract: true

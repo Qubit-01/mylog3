@@ -12,16 +12,12 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AsideUser: typeof import('./src/components/AsideUser.vue')['default']
-    AsideUserCard: typeof import('./src/components/AsideUserCard.vue')['default']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElIcon: typeof import('element-plus/es')['ElIcon']
     ElInput: typeof import('element-plus/es')['ElInput']
-    ElRadioButton: typeof import('element-plus/es')['ElRadioButton']
-    ElRadioGroup: typeof import('element-plus/es')['ElRadioGroup']
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     ElSegmented: typeof import('element-plus/es')['ElSegmented']
-    ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ElUpload: typeof import('element-plus/es')['ElUpload']
     LogCard: typeof import('./src/components/LogCard.vue')['default']
     LogCardMedias: typeof import('./src/components/LogCardMedias.vue')['default']

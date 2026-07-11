@@ -1,10 +1,18 @@
 <script lang="ts" setup>
 /** Log 编辑器：新增和编辑共用的正文表单，空值用于新增，已有值用于编辑 */
-import { createLog, type Log, updateLog } from '@/api'
+import {
+  createLog,
+  type Log,
+  type LogAudio,
+  type LogFile,
+  type LogMedia,
+  updateLog,
+} from '@/api'
 import { useLogStore } from '@/stores/log'
 import type { LogEditorAudio } from '@/components/LogEditorAudios.vue'
 import type { LogEditorFile } from '@/components/LogEditorFiles.vue'
 import type { LogEditorMedia } from '@/components/LogEditorMedias.vue'
+import { deleteCosFiles, uploadCosFiles } from '@/composables/cos'
 import { Promotion } from '@element-plus/icons-vue'
 import { cloneDeep } from 'lodash-unified'
 
@@ -50,27 +58,108 @@ const scopeOptions: Array<{ label: string; value: Log['scope'] }> = [
   { label: '公开', value: 'PUBLIC' },
 ]
 
+/** 创建当前 Log 附件的 COS 相对路径；UUID 前缀便于保证唯一且支持下载时还原文件名 */
+const createMylogPath = (file: File) =>
+  `mylog/${crypto.randomUUID()}-${file.name}`
+
+/** 上传当前编辑器新选附件，并按 Log DTO 的三类资源分组 */
+const uploadAttachments = async () => {
+  const pendingUploads = [
+    ...medias.value.flatMap((item) => {
+      if (!item.raw) return []
+      return [
+        {
+          Body: item.raw,
+          Key: createMylogPath(item.raw),
+          type: item.raw.type.startsWith('image/')
+            ? ('image' as const)
+            : ('video' as const),
+        },
+      ]
+    }),
+    ...audios.value.flatMap((item) =>
+      item.raw
+        ? [
+            {
+              Body: item.raw,
+              Key: createMylogPath(item.raw),
+              type: 'audio' as const,
+            },
+          ]
+        : [],
+    ),
+    ...files.value.flatMap((item) =>
+      item.raw
+        ? [
+            {
+              Body: item.raw,
+              Key: createMylogPath(item.raw),
+              type: 'file' as const,
+            },
+          ]
+        : [],
+    ),
+  ]
+  const result = await uploadCosFiles({ files: pendingUploads })
+  const attachments = {
+    medias: [] as LogMedia[],
+    audios: [] as LogAudio[],
+    files: [] as LogFile[],
+  }
+  for (const [index, { options }] of result.files.entries()) {
+    const { type } = pendingUploads[index]!
+    const { Key } = options
+    if (type === 'image' || type === 'video') {
+      attachments.medias.push({ type, url: Key })
+      continue
+    }
+    if (type === 'audio') {
+      attachments.audios.push({ type, url: Key })
+      continue
+    }
+    attachments.files.push({ type, url: Key })
+  }
+  return attachments
+}
+
 /** 保存当前正文；有 id 时更新已有 Log，无 id 时创建新 Log */
 const onSubmit = async () => {
   if (!canSubmit.value) return
   pending.value = true
   try {
+    let attachments
+    try {
+      attachments = await uploadAttachments()
+    } catch {
+      ElMessage.error('文件上传失败，请稍后重试')
+      return
+    }
     const { id } = form.value
     const payload = {
       scope: form.value.scope,
       logAt: form.value.logAt,
       text: form.value.text.trim(),
-      medias: form.value.medias,
-      audios: form.value.audios,
-      files: form.value.files,
+      medias: [...form.value.medias, ...attachments.medias],
+      audios: [...form.value.audios, ...attachments.audios],
+      files: [...form.value.files, ...attachments.files],
       tags: form.value.tags,
       location: form.value.location,
       people: form.value.people,
       extra: form.value.extra,
     }
-    const log = id
-      ? await updateLog({ id, ...payload })
-      : await createLog(payload)
+    let log: Log
+    try {
+      log = id ? await updateLog({ id, ...payload }) : await createLog(payload)
+    } catch {
+      void deleteCosFiles({
+        Objects: [
+          ...attachments.medias,
+          ...attachments.audios,
+          ...attachments.files,
+        ].map((item) => ({ Key: item.url })),
+      }).catch(() => undefined)
+      return
+    }
     logStore.upsert(log)
     form.value = id ? cloneDeep(log) : createEmptyLog()
     medias.value = []
