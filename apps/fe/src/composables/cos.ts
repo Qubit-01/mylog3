@@ -4,7 +4,7 @@
 import COS from 'cos-js-sdk-v5'
 import { createCosCredential } from '@/api'
 
-/** 创建附带当前用户凭证信息的 COS 客户端 */
+/** 创建附带当前用户凭证信息的 COS 客户端，仅供当前适配层使用 */
 const createCosClient = async () => {
   const credential = await createCosCredential()
   return Object.assign(
@@ -19,64 +19,60 @@ const createCosClient = async () => {
   )
 }
 
-/** 批量删除对象并返回官方结果；空列表不创建客户端 */
-export const deleteCosFiles = async (
-  params: Partial<COS.DeleteMultipleObjectParams>,
-  options: {
-    /** 已创建的 COS 客户端；不传时自动创建 */
-    client?: Awaited<ReturnType<typeof createCosClient>>
-  } = {},
-) => {
-  if (!params.Objects?.length) return
+/** 批量删除完整 object key；空列表不创建客户端 */
+export const deleteCosFiles = async (keys: string[]) => {
+  if (!keys.length) return
 
-  const client = options.client ?? (await createCosClient())
+  const client = await createCosClient()
   return client.deleteMultipleObject({
     Quiet: true,
     Bucket: client.bucket,
     Region: client.region,
-    Objects: params.Objects,
-    ...params,
+    Objects: keys.map((Key) => ({ Key })),
   })
 }
 
-/** 上传文件并返回官方结果；失败时清理本批对象，空列表不创建客户端 */
-export const uploadCosFiles = async (
-  params: Omit<Partial<COS.UploadFilesParams>, 'files'> & {
-    /** 待上传文件；Key 为当前用户目录下的相对路径 */
-    files?: (Partial<COS.UploadFilesParams['files'][number]> &
-      Pick<COS.UploadFilesParams['files'][number], 'Body' | 'Key'>)[]
-  } = {},
-  options: {
-    /** 已创建的 COS 客户端；不传时自动创建 */
-    client?: Awaited<ReturnType<typeof createCosClient>>
-  } = {},
-) => {
-  const { files, ...uploadOptions } = params
-  if (!files?.length) return { files: [] }
+/** 上传项：Key 是当前用户目录下的相对路径，Body 是浏览器 File 等 SDK 支持的文件体 */
+export type CosUploadFile = Pick<
+  COS.UploadFilesParams['files'][number],
+  'Body' | 'Key'
+>
 
-  const client = options.client ?? (await createCosClient())
+/**
+ * 批量上传文件并返回对应的完整 object key。
+ * 任一文件失败时会尽力删除本批全部对象，避免留下孤儿文件。
+ */
+export const uploadCosFiles = async (files: CosUploadFile[]) => {
+  if (!files.length) return []
 
-  const objects = files.map((item) => ({
+  const client = await createCosClient()
+  const objects = files.map((file) => ({
     Bucket: client.bucket,
     Region: client.region,
-    ...item,
-    Key: `${client.prefix}${item.Key}`,
+    ...file,
+    Key: `${client.prefix}${file.Key}`,
   }))
+  const rollback = () =>
+    client
+      .deleteMultipleObject({
+        Quiet: true,
+        Bucket: client.bucket,
+        Region: client.region,
+        Objects: objects.map(({ Key }) => ({ Key })),
+      })
+      .catch(() => undefined)
+
   const result = await client
-    .uploadFiles({ files: objects, ...uploadOptions })
+    .uploadFiles({ files: objects })
     .catch(async (error) => {
-      await deleteCosFiles({ Objects: objects }, { client }).catch(
-        () => undefined,
-      )
+      await rollback()
       throw error
     })
-  const error = result.files.find((item) => item.error)?.error
+  const error = result.files.find((file) => file.error)?.error
   if (error) {
-    await deleteCosFiles({ Objects: objects }, { client }).catch(
-      () => undefined,
-    )
+    await rollback()
     throw error
   }
 
-  return result
+  return objects.map(({ Key }) => Key)
 }
