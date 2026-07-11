@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 /** Log 卡片：最基础的展示形式，显示时间、正文、标签 */
 import { deleteLog, type Log } from '@/api'
+import { deleteCosFiles } from '@/composables/cos'
 import { useLogStore } from '@/stores/log'
 import { useUserStore } from '@/stores/user'
 import dayjs from 'dayjs'
@@ -17,7 +18,7 @@ const userStore = useUserStore()
 const pending = ref(false)
 const canDelete = computed(() => userStore.user?.id === props.log.userId)
 
-/** 删除当前 Log；仅作者本人可见入口，成功后同步清理所有列表缓存 */
+/** 先删除当前 Log 的 COS 附件，再删除记录并同步清理列表缓存 */
 const onDelete = async () => {
   if (pending.value) return
   pending.value = true
@@ -28,6 +29,16 @@ const onDelete = async () => {
       cancelButtonText: '取消',
       confirmButtonClass: 'el-button--danger',
     })
+    try {
+      await deleteCosFiles(
+        [...props.log.medias, ...props.log.audios, ...props.log.files]
+          .map(({ url }) => url)
+          .filter((url) => !URL.canParse(url)),
+      )
+    } catch {
+      ElMessage.error('附件删除失败，请稍后重试')
+      return
+    }
     await deleteLog({ id: props.log.id })
     logStore.remove(props.log.id)
     ElMessage.success('已删除')

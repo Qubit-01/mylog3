@@ -19,17 +19,23 @@ const createCosClient = async () => {
   )
 }
 
-/** 批量删除完整 object key；空列表不创建客户端 */
+/** 批量删除完整 object key；空列表不创建客户端，任一对象失败时抛出异常 */
 export const deleteCosFiles = async (keys: string[]) => {
   if (!keys.length) return
 
   const client = await createCosClient()
-  return client.deleteMultipleObject({
+  const result = await client.deleteMultipleObject({
     Quiet: true,
     Bucket: client.bucket,
     Region: client.region,
     Objects: keys.map((Key) => ({ Key })),
   })
+  if (result.Error?.length) {
+    throw new Error(
+      `COS 文件删除失败：${result.Error.map(({ Key, Message }) => `${Key} ${Message ?? ''}`.trim()).join('；')}`,
+    )
+  }
+  return result
 }
 
 /** 上传项：Key 是当前用户目录下的相对路径，Body 是浏览器 File 等 SDK 支持的文件体 */
