@@ -1,15 +1,15 @@
 <script lang="ts" setup>
-/** Log 编辑器视图：新增和编辑共用，业务状态与保存事务由 useLogEditor 管理 */
+/** Log 编辑器：新增和编辑共用；每条 Log 使用独立实例，草稿仅在初始化时读取 log */
 import type { Log } from '@/api'
 import { useLogEditor } from '@/composables/useLogEditor'
 import { Promotion } from '@element-plus/icons-vue'
 
 const props = defineProps<{
-  /** 初始完整 Log；每个组件实例只读取一次，不传时创建新 Log */
-  initialValue?: Log
+  /** 当前编辑器对应的 Log；不传时创建新 Log */
+  log?: Log
 }>()
 
-const { draft, fileMap, pending, submit } = useLogEditor(props.initialValue)
+const { draft, fileMap, pending, submit } = useLogEditor(props.log)
 </script>
 
 <template>

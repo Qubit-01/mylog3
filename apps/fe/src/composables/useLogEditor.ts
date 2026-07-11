@@ -1,6 +1,6 @@
 import {
   createLog,
-  type CreateLogInput,
+  type CreateLog,
   type Log,
   type LogAudio,
   type LogFile,
@@ -17,7 +17,7 @@ import type { UploadUserFile } from 'element-plus'
 import { cloneDeep } from 'lodash-unified'
 
 /** 编辑器草稿：只包含用户可编辑、可提交的 Log 字段 */
-export type LogEditorDraft = Required<CreateLogInput>
+export type LogEditorDraft = Required<CreateLog>
 
 /** 已确认带浏览器原始 File 的待上传项 */
 type PreparedUpload = CosUploadFile & { Body: File }
@@ -74,9 +74,9 @@ const prepareUploads = (items: UploadUserFile[]): PreparedUpload[] =>
   )
 
 /** 管理 Log 编辑草稿、附件事务和保存状态，组件本身只负责渲染 */
-export const useLogEditor = (initialValue?: Log) => {
+export const useLogEditor = (log?: Log) => {
   const logStore = useLogStore()
-  const draft = ref(createDraft(initialValue))
+  const draft = ref(createDraft(log))
   const fileMap = reactive({
     medias: [] as UploadUserFile[],
     audios: [] as UploadUserFile[],
@@ -142,7 +142,7 @@ export const useLogEditor = (initialValue?: Log) => {
         return
       }
 
-      const payload: CreateLogInput = {
+      const payload: CreateLog = {
         ...snapshot,
         text: snapshot.text.trim(),
         medias: [...snapshot.medias, ...attachments.medias],
@@ -151,8 +151,8 @@ export const useLogEditor = (initialValue?: Log) => {
       }
       let saved: Log
       try {
-        saved = initialValue
-          ? await updateLog({ id: initialValue.id, ...payload })
+        saved = log
+          ? await updateLog({ id: log.id, ...payload })
           : await createLog(payload)
       } catch {
         await rollbackAttachments(attachments).catch(() => undefined)
@@ -160,7 +160,7 @@ export const useLogEditor = (initialValue?: Log) => {
       }
 
       logStore.upsert(saved)
-      draft.value = initialValue ? createDraft(saved) : createDraft()
+      draft.value = log ? createDraft(saved) : createDraft()
       resetAttachments()
     } finally {
       pending.value = false

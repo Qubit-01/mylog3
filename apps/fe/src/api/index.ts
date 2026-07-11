@@ -94,7 +94,7 @@ export const createCosCredential = () => unwrap(api.POST('/cos/credential', {}))
 export type Log = components['schemas']['LogDto']
 
 /** 创建 Log 的请求体类型，从后端 OpenAPI schema 派生 */
-export type CreateLogInput = components['schemas']['CreateLogDto']
+export type CreateLog = components['schemas']['CreateLogDto']
 
 /** Log 媒体类型，从后端 OpenAPI schema 派生 */
 export type LogMedia = components['schemas']['LogMediaDto']
