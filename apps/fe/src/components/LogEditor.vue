@@ -9,7 +9,7 @@ const props = defineProps<{
   log?: Log
 }>()
 
-const { draft, fileMap, pending, progress, submit } = useLogEditor(props.log)
+const { draft, fileMap, pending, uploadInfo, submit } = useLogEditor(props.log)
 </script>
 
 <template>
@@ -30,7 +30,17 @@ const { draft, fileMap, pending, progress, submit } = useLogEditor(props.log)
       <LogEditorAudios v-model="fileMap.audios" />
       <LogEditorFiles v-model="fileMap.files" />
     </div>
-    <ElProgress v-if="pending" :percentage="progress" :stroke-width="4" />
+    <ElProgress
+      v-if="uploadInfo.percent > -1"
+      :percentage="uploadInfo.percent"
+      :text-inside="true"
+      :stroke-width="20"
+      striped
+      striped-flow
+      :duration="10"
+    >
+      {{ uploadInfo.percent }}% {{ uploadInfo.speed }}MB/s
+    </ElProgress>
     <div class="actions">
       <ElSegmented
         v-model="draft.scope"

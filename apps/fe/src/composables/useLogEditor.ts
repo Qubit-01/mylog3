@@ -83,7 +83,7 @@ export const useLogEditor = (log?: Log) => {
     files: [] as UploadUserFile[],
   })
   const pending = ref(false)
-  const progress = ref(0)
+  const uploadInfo = reactive({ percent: -1, speed: 0 })
 
   /** 上传全部本地附件，并转换为 Log 接口需要的三类资源 */
   const uploadAttachments = async (): Promise<LogAttachments> => {
@@ -92,8 +92,9 @@ export const useLogEditor = (log?: Log) => {
     const fileUploads = prepareUploads(fileMap.files)
     const keys = await uploadCosFiles(
       [...mediaUploads, ...audioUploads, ...fileUploads],
-      ({ percent }) => {
-        progress.value = Math.round(percent * 90)
+      ({ percent, speed }) => {
+        uploadInfo.percent = Math.round(percent * 99)
+        uploadInfo.speed = Number((speed / 1024 / 1024).toFixed(2))
       },
     )
     let offset = 0
@@ -134,13 +135,15 @@ export const useLogEditor = (log?: Log) => {
     if (!draft.value.text.trim() || pending.value) return
     const snapshot = cloneDeep(draft.value)
     pending.value = true
-    progress.value = 0
+    uploadInfo.percent = 0
+    uploadInfo.speed = 0
 
     try {
       let attachments
       try {
         attachments = await uploadAttachments()
-        progress.value = 90
+        uploadInfo.percent = 99
+        uploadInfo.speed = 0
       } catch {
         ElMessage.error('文件上传失败，请稍后重试')
         return
@@ -166,10 +169,11 @@ export const useLogEditor = (log?: Log) => {
       logStore.upsert(saved)
       draft.value = log ? createDraft(saved) : createDraft()
       resetAttachments()
-      progress.value = 100
+      uploadInfo.percent = 100
     } finally {
       pending.value = false
-      progress.value = 0
+      uploadInfo.percent = -1
+      uploadInfo.speed = 0
     }
   }
 
@@ -178,8 +182,8 @@ export const useLogEditor = (log?: Log) => {
     draft,
     /** 是否正在上传或保存 */
     pending,
-    /** 当前提交进度，范围 0-100 */
-    progress,
+    /** 当前上传百分比与速度；percent 为 -1 时不展示进度 */
+    uploadInfo,
     /** 按业务类型分组的本地待提交文件 */
     fileMap,
     /** 提交当前草稿 */
