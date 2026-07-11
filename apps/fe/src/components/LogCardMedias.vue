@@ -166,15 +166,9 @@ useEventListener('keyup', (event: KeyboardEvent) => {
 
     > .play {
       position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 100%;
+      bottom: 8px;
+      left: 8px;
       color: #fffe;
-      font-size: 28px;
-      background: #0003;
     }
   }
 }

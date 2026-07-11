@@ -102,6 +102,11 @@ onUnmounted(() => {
       width: var(--size);
       height: var(--size);
       margin: 0;
+
+      > img,
+      > video {
+        object-fit: cover;
+      }
     }
   }
 
@@ -114,15 +119,9 @@ onUnmounted(() => {
 
   :deep(.play) {
     position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
+    bottom: 8px;
+    left: 8px;
     color: #fffe;
-    font-size: 24px;
-    background: #0003;
   }
 }
 </style>
