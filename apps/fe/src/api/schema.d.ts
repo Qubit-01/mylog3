@@ -310,6 +310,11 @@ export interface components {
             type: "image" | "video";
             /** @description 资源引用：完整 URL 或 COS object key */
             url: string;
+            /**
+             * @description 用于快速展示的轻量媒体 COS object key；没有时省略
+             * @example users/1/mylog/preview/uuid-media.jpg
+             */
+            previewUrl?: string;
             /** @description 图片 EXIF 位置坐标 */
             location?: components["schemas"]["LogMediaLocationDto"];
         };

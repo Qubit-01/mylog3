@@ -10,8 +10,8 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 
-const props = defineProps<{
-  /** 图片 + 视频混排列表，元素形态 `{ type, url }` */
+const { medias } = defineProps<{
+  /** 图片 + 视频混排列表，原始资源使用 url，轻量展示资源使用可选 previewUrl */
   medias: LogMedia[]
 }>()
 
@@ -25,11 +25,6 @@ const toResourceUrl = (url: string) => {
   if (url.startsWith('https://')) return url
   return `https://cos.mylog.ink/${url}`
 }
-
-/** 补全后的可展示媒体，保留后端原始顺序 */
-const medias = computed(() =>
-  props.medias.map((media) => ({ ...media, url: toResourceUrl(media.url) })),
-)
 
 /** 当前预览下标，undefined 表示关闭预览 */
 const current = ref<number>()
@@ -63,12 +58,16 @@ useEventListener('keyup', (event: KeyboardEvent) => {
       >
         <PictureImg
           v-if="media.type === 'image'"
-          :src="media.url.replace('/imgs/', '/compress-imgs/')"
+          :src="toResourceUrl(media.previewUrl ?? media.url)"
           lazy
         />
         <template v-else>
           <PictureImg
-            :src="`${media.url}?ci-process=snapshot&time=0&format=jpg`"
+            :src="
+              media.previewUrl
+                ? toResourceUrl(media.previewUrl)
+                : `${toResourceUrl(media.url)}?ci-process=snapshot&time=0&format=jpg`
+            "
             lazy
           />
           <ElIcon class="play"><VideoPlay /></ElIcon>
@@ -106,12 +105,16 @@ useEventListener('keyup', (event: KeyboardEvent) => {
           >
             <img
               v-if="media.type === 'image' && shouldLoad(i)"
-              :src="media.url"
+              :src="toResourceUrl(media.url)"
             />
             <video
               v-else-if="shouldLoad(i)"
-              :src="media.url"
-              :poster="`${media.url}?ci-process=snapshot&time=0&format=jpg`"
+              :src="toResourceUrl(media.url)"
+              :poster="
+                media.previewUrl
+                  ? toResourceUrl(media.previewUrl)
+                  : `${toResourceUrl(media.url)}?ci-process=snapshot&time=0&format=jpg`
+              "
               controls
               playsinline
             />

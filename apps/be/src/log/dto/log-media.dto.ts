@@ -1,6 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsIn, IsNumber, IsOptional, ValidateNested } from 'class-validator';
+import {
+  IsIn,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { LogResourceDto } from './log-resource.dto';
 
 /** 媒体内嵌位置坐标 DTO */
@@ -24,6 +30,15 @@ export class LogMediaDto extends LogResourceDto {
   })
   @IsIn(['image', 'video'])
   declare type: 'image' | 'video';
+
+  @ApiPropertyOptional({
+    type: String,
+    description: '用于快速展示的轻量媒体 COS object key；没有时省略',
+    example: 'users/1/mylog/preview/uuid-media.jpg',
+  })
+  @IsOptional()
+  @IsString()
+  previewUrl?: string;
 
   @ApiPropertyOptional({
     type: LogMediaLocationDto,
