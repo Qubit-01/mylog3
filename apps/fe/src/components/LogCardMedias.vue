@@ -63,11 +63,7 @@ useEventListener('keyup', (event: KeyboardEvent) => {
         />
         <template v-else>
           <PictureImg
-            :src="
-              media.previewUrl
-                ? toResourceUrl(media.previewUrl)
-                : `${toResourceUrl(media.url)}?ci-process=snapshot&time=0&format=jpg`
-            "
+            :src="`${toResourceUrl(media.previewUrl ?? media.url)}?ci-process=snapshot&time=0&format=jpg`"
             lazy
           />
           <ElIcon class="play"><VideoPlay /></ElIcon>
@@ -110,11 +106,7 @@ useEventListener('keyup', (event: KeyboardEvent) => {
             <video
               v-else-if="shouldLoad(i)"
               :src="toResourceUrl(media.url)"
-              :poster="
-                media.previewUrl
-                  ? toResourceUrl(media.previewUrl)
-                  : `${toResourceUrl(media.url)}?ci-process=snapshot&time=0&format=jpg`
-              "
+              :poster="`${toResourceUrl(media.previewUrl ?? media.url)}?ci-process=snapshot&time=0&format=jpg`"
               controls
               playsinline
             />

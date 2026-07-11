@@ -6,6 +6,7 @@ catalog:
   '@element-plus/icons-vue': ^2.3.2
   '@floating-ui/vue': ^2.0.0
   '@vueuse/core': ^14.3.0
+  browser-image-compression: ^2.0.2
   cos-js-sdk-v5: ^1.10.1
   dayjs: ^1.11.21
   element-plus: ^2.14.2
