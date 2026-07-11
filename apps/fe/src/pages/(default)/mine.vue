@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 /** 我的：当前用户 Log 竖向列表，滚动到底部自动加载下一页 */
-import { useLogList } from '@/composables/useLogList'
 import LogCard from '@/components/LogCard.vue'
 import LogEditor from '@/components/LogEditor.vue'
+import { useLogList } from '@/stores/log'
 
 definePage({ meta: { auth: true, title: '我的' } })
 

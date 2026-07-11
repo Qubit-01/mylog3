@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Log } from '@/api'
+import { listMineLogs, listPublicLogs, type Log } from '@/api'
 
 /** 已注册的列表键；后续新增列表只需在这里加一项 */
 export type LogListKey = 'public' | 'mine'
@@ -60,3 +60,52 @@ export const useLogStore = defineStore('log', () => {
     remove,
   }
 })
+
+/**
+ * 连接页面生命周期与指定 Log 列表的分页状态
+ * @param key 列表键，决定读取和加载的列表
+ */
+export const useLogList = (key: LogListKey) => {
+  const store = useLogStore()
+  const logs = store.useList(key)
+  const loading = ref(false)
+  const noMore = ref(false)
+
+  /** 加载当前列表的下一页；并发加载或已到末页时跳过 */
+  const fetchMore = async () => {
+    if (loading.value || noMore.value) return
+    loading.value = true
+    try {
+      const rows = await (key === 'public' ? listPublicLogs : listMineLogs)({
+        skip: logs.value.length,
+        take: 20,
+      })
+      store.append(key, rows)
+      noMore.value = rows.length < 20
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** 底部提示语；空串表示不展示 */
+  const footerText = computed(() => {
+    if (loading.value) return '加载中…'
+    if (!noMore.value) return ''
+    return logs.value.length ? '没有更多了' : '暂无内容'
+  })
+
+  onMounted(fetchMore)
+
+  return {
+    /** 当前列表数据，编辑任意 log 后自动同步 */
+    logs,
+    /** 是否正在加载 */
+    loading,
+    /** 是否已无更多数据 */
+    noMore,
+    /** 底部提示语，空串表示不展示 */
+    footerText,
+    /** 加载当前列表的下一页 */
+    fetchMore,
+  }
+}

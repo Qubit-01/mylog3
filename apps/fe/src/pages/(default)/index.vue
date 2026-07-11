@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 /** 首页：公开 Log 竖向列表，滚动到底部自动加载下一页 */
-import { useLogList } from '@/composables/useLogList'
 import LogCard from '@/components/LogCard.vue'
+import { useLogList } from '@/stores/log'
 
 const { logs, footerText, fetchMore } = useLogList('public')
 </script>
