@@ -80,17 +80,18 @@ export const useLogEditor = (
 ) => {
   const logStore = useLogStore()
   const draft = ref(createDraft(toValue(initialValue)))
-  const medias = ref<UploadUserFile[]>([])
-  const audios = ref<UploadUserFile[]>([])
-  const files = ref<UploadUserFile[]>([])
+  const fileMap = reactive({
+    medias: [] as UploadUserFile[],
+    audios: [] as UploadUserFile[],
+    files: [] as UploadUserFile[],
+  })
   const pending = ref(false)
-  const canSubmit = computed(() => !!draft.value.text.trim() && !pending.value)
 
   /** 上传全部本地附件，并转换为 Log 接口需要的三类资源 */
   const uploadAttachments = async (): Promise<LogAttachments> => {
-    const mediaUploads = prepareUploads(medias.value)
-    const audioUploads = prepareUploads(audios.value)
-    const fileUploads = prepareUploads(files.value)
+    const mediaUploads = prepareUploads(fileMap.medias)
+    const audioUploads = prepareUploads(fileMap.audios)
+    const fileUploads = prepareUploads(fileMap.files)
     const keys = await uploadCosFiles([
       ...mediaUploads,
       ...audioUploads,
@@ -124,14 +125,14 @@ export const useLogEditor = (
 
   /** 清空全部本地附件草稿 */
   const resetAttachments = () => {
-    medias.value = []
-    audios.value = []
-    files.value = []
+    fileMap.medias = []
+    fileMap.audios = []
+    fileMap.files = []
   }
 
   /** 提交当前草稿；附件与 Log 保存组成一个尽力回滚的事务 */
   const submit = async () => {
-    if (!canSubmit.value) return
+    if (!draft.value.text.trim() || pending.value) return
     const source = toValue(initialValue)
     const snapshot = cloneDeep(draft.value)
     pending.value = true
@@ -183,14 +184,8 @@ export const useLogEditor = (
     draft,
     /** 是否正在上传或保存 */
     pending,
-    /** 当前草稿是否允许提交 */
-    canSubmit,
-    /** 待提交的图片和视频草稿 */
-    medias,
-    /** 待提交的音频草稿 */
-    audios,
-    /** 待提交的普通文件草稿 */
-    files,
+    /** 按业务类型分组的本地待提交文件 */
+    fileMap,
     /** 提交当前草稿 */
     submit,
   }

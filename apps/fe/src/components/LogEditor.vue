@@ -9,8 +9,9 @@ const props = defineProps<{
   initialValue?: Log
 }>()
 
-const { draft, pending, canSubmit, medias, audios, files, submit } =
-  useLogEditor(() => props.initialValue)
+const { draft, fileMap, pending, submit } = useLogEditor(
+  () => props.initialValue,
+)
 </script>
 
 <template>
@@ -27,9 +28,9 @@ const { draft, pending, canSubmit, medias, audios, files, submit } =
       @keydown.ctrl.enter.prevent="submit"
     />
     <div class="uploads">
-      <LogEditorMedias v-model="medias" />
-      <LogEditorAudios v-model="audios" />
-      <LogEditorFiles v-model="files" />
+      <LogEditorMedias v-model="fileMap.medias" />
+      <LogEditorAudios v-model="fileMap.audios" />
+      <LogEditorFiles v-model="fileMap.files" />
     </div>
     <div class="actions">
       <ElSegmented
@@ -43,7 +44,7 @@ const { draft, pending, canSubmit, medias, audios, files, submit } =
       <ElButton
         :icon="Promotion"
         :loading="pending"
-        :disabled="!canSubmit"
+        :disabled="!draft.text.trim() || pending"
         type="primary"
         circle
         @click="submit"
