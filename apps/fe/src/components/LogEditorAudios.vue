@@ -3,14 +3,11 @@
 import type { UploadProps, UploadUserFile } from 'element-plus'
 import { Delete, Plus } from '@element-plus/icons-vue'
 
-/** 浏览器端待提交音频；raw 是原始 File，url 是本地试听地址 */
-export type LogEditorAudio = UploadUserFile
-
 /** 待提交音频草稿列表；父级提交流程后续会从这里拿原始 File */
-const audios = defineModel<LogEditorAudio[]>({ required: true })
+const audios = defineModel<UploadUserFile[]>({ required: true })
 
 /** 释放单个本地试听地址，避免反复选文件后残留 blob URL */
-const revokeAudioUrl = (file: LogEditorAudio) => {
+const revokeAudioUrl = (file: UploadUserFile) => {
   if (!file.url?.startsWith('blob:')) return
   URL.revokeObjectURL(file.url)
   file.url = undefined
@@ -28,7 +25,7 @@ const onAudioChange: UploadProps['onChange'] = (file, files) => {
 }
 
 /** 自定义列表删除入口；用于覆盖 Element Plus 默认文件模板后的删除动作 */
-const removeAudio = (file: LogEditorAudio) => {
+const removeAudio = (file: UploadUserFile) => {
   audios.value = audios.value.filter((item) => item.uid !== file.uid)
 }
 

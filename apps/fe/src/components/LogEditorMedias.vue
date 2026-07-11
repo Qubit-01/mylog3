@@ -3,18 +3,15 @@
 import type { UploadProps, UploadUserFile } from 'element-plus'
 import { Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
 
-/** 浏览器端待提交媒体；raw 是原始 File，url 是本地预览地址 */
-export type LogEditorMedia = UploadUserFile
-
 /** 待提交媒体草稿列表；父级提交流程后续会从这里拿原始 File */
-const medias = defineModel<LogEditorMedia[]>({ required: true })
+const medias = defineModel<UploadUserFile[]>({ required: true })
 
 /** 判断文件是否是当前编辑器支持的图片或视频 */
-const isSupportedMedia = (file: LogEditorMedia) =>
+const isSupportedMedia = (file: UploadUserFile) =>
   file.raw?.type.startsWith('image/') || file.raw?.type.startsWith('video/')
 
 /** 释放单个本地预览地址，避免反复选文件后残留 blob URL */
-const revokeMediaUrl = (file: LogEditorMedia) => {
+const revokeMediaUrl = (file: UploadUserFile) => {
   if (!file.url?.startsWith('blob:')) return
   URL.revokeObjectURL(file.url)
   file.url = undefined
@@ -32,13 +29,8 @@ const onMediaChange: UploadProps['onChange'] = (file, files) => {
   if (!file.url && file.raw) file.url = URL.createObjectURL(file.raw)
 }
 
-/** 删除媒体时同步释放本地预览地址 */
-const onMediaRemove: UploadProps['onRemove'] = (file) => {
-  revokeMediaUrl(file)
-}
-
 /** 自定义缩略图删除入口；用于覆盖 Element Plus 默认图片模板后的删除动作 */
-const removeMedia = (file: LogEditorMedia) => {
+const removeMedia = (file: UploadUserFile) => {
   medias.value = medias.value.filter((item) => item.uid !== file.uid)
 }
 
@@ -63,7 +55,6 @@ onUnmounted(() => {
     multiple
     :auto-upload="false"
     :on-change="onMediaChange"
-    :on-remove="onMediaRemove"
   >
     <ElIcon><Plus /></ElIcon>
     <template #file="{ file }">

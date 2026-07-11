@@ -3,11 +3,8 @@
 import type { UploadUserFile } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 
-/** 浏览器端待提交文件；raw 是原始 File */
-export type LogEditorFile = UploadUserFile
-
 /** 待提交文件草稿列表；父级提交流程后续会从这里拿原始 File */
-const files = defineModel<LogEditorFile[]>({ required: true })
+const files = defineModel<UploadUserFile[]>({ required: true })
 </script>
 
 <template>
