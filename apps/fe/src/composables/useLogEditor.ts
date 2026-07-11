@@ -15,7 +15,6 @@ import {
 import { useLogStore } from '@/stores/log'
 import type { UploadUserFile } from 'element-plus'
 import { cloneDeep } from 'lodash-unified'
-import type { MaybeRefOrGetter } from 'vue'
 
 /** 编辑器草稿：只包含用户可编辑、可提交的 Log 字段 */
 export type LogEditorDraft = Required<CreateLogInput>
@@ -75,11 +74,9 @@ const prepareUploads = (items: UploadUserFile[]): PreparedUpload[] =>
   )
 
 /** 管理 Log 编辑草稿、附件事务和保存状态，组件本身只负责渲染 */
-export const useLogEditor = (
-  initialValue: MaybeRefOrGetter<Log | undefined>,
-) => {
+export const useLogEditor = (initialValue?: Log) => {
   const logStore = useLogStore()
-  const draft = ref(createDraft(toValue(initialValue)))
+  const draft = ref(createDraft(initialValue))
   const fileMap = reactive({
     medias: [] as UploadUserFile[],
     audios: [] as UploadUserFile[],
@@ -133,7 +130,6 @@ export const useLogEditor = (
   /** 提交当前草稿；附件与 Log 保存组成一个尽力回滚的事务 */
   const submit = async () => {
     if (!draft.value.text.trim() || pending.value) return
-    const source = toValue(initialValue)
     const snapshot = cloneDeep(draft.value)
     pending.value = true
 
@@ -155,8 +151,8 @@ export const useLogEditor = (
       }
       let saved: Log
       try {
-        saved = source
-          ? await updateLog({ id: source.id, ...payload })
+        saved = initialValue
+          ? await updateLog({ id: initialValue.id, ...payload })
           : await createLog(payload)
       } catch {
         await rollbackAttachments(attachments).catch(() => undefined)
@@ -164,20 +160,12 @@ export const useLogEditor = (
       }
 
       logStore.upsert(saved)
-      draft.value = source ? createDraft(saved) : createDraft()
+      draft.value = initialValue ? createDraft(saved) : createDraft()
       resetAttachments()
     } finally {
       pending.value = false
     }
   }
-
-  watch(
-    () => toValue(initialValue),
-    (value) => {
-      draft.value = createDraft(value)
-      resetAttachments()
-    },
-  )
 
   return {
     /** 当前可编辑草稿 */

@@ -5,13 +5,11 @@ import { useLogEditor } from '@/composables/useLogEditor'
 import { Promotion } from '@element-plus/icons-vue'
 
 const props = defineProps<{
-  /** 初始完整 Log；不传时创建新 Log，变化后会重置为对应编辑草稿 */
+  /** 初始完整 Log；每个组件实例只读取一次，不传时创建新 Log */
   initialValue?: Log
 }>()
 
-const { draft, fileMap, pending, submit } = useLogEditor(
-  () => props.initialValue,
-)
+const { draft, fileMap, pending, submit } = useLogEditor(props.initialValue)
 </script>
 
 <template>
