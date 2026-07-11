@@ -9,11 +9,11 @@ const props = defineProps<{
   log?: Log
 }>()
 
-const { draft, fileMap, pending, submit } = useLogEditor(props.log)
+const { draft, fileMap, pending, progress, submit } = useLogEditor(props.log)
 </script>
 
 <template>
-  <section class="LogEditor m-panel">
+  <section class="LogEditor m-panel" :inert="pending">
     <ElInput
       v-model="draft.text"
       type="textarea"
@@ -30,6 +30,7 @@ const { draft, fileMap, pending, submit } = useLogEditor(props.log)
       <LogEditorAudios v-model="fileMap.audios" />
       <LogEditorFiles v-model="fileMap.files" />
     </div>
+    <ElProgress v-if="pending" :percentage="progress" :stroke-width="4" />
     <div class="actions">
       <ElSegmented
         v-model="draft.scope"

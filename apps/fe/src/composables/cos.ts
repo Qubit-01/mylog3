@@ -41,8 +41,13 @@ export type CosUploadFile = Pick<
 /**
  * 批量上传文件并返回对应的完整 object key。
  * 任一文件失败时会尽力删除本批全部对象，避免留下孤儿文件。
+ * @param files 待上传文件列表
+ * @param onProgress 全部文件的整体上传进度回调
  */
-export const uploadCosFiles = async (files: CosUploadFile[]) => {
+export const uploadCosFiles = async (
+  files: CosUploadFile[],
+  onProgress?: COS.UploadFilesParams['onProgress'],
+) => {
   if (!files.length) return []
 
   const client = await createCosClient()
@@ -63,7 +68,7 @@ export const uploadCosFiles = async (files: CosUploadFile[]) => {
       .catch(() => undefined)
 
   const result = await client
-    .uploadFiles({ files: objects })
+    .uploadFiles({ files: objects, onProgress })
     .catch(async (error) => {
       await rollback()
       throw error
