@@ -68,13 +68,13 @@ export const useLogStore = defineStore('log', () => {
 export const useLogList = (key: LogListKey) => {
   const store = useLogStore()
   const logs = store.useList(key)
-  const loading = ref(false)
+  const pending = ref(false)
   const noMore = ref(false)
 
   /** 加载当前列表的下一页；并发加载或已到末页时跳过 */
   const fetchMore = async () => {
-    if (loading.value || noMore.value) return
-    loading.value = true
+    if (pending.value || noMore.value) return
+    pending.value = true
     try {
       const rows = await (key === 'public' ? listPublicLogs : listMineLogs)({
         skip: logs.value.length,
@@ -83,13 +83,13 @@ export const useLogList = (key: LogListKey) => {
       store.append(key, rows)
       noMore.value = rows.length < 20
     } finally {
-      loading.value = false
+      pending.value = false
     }
   }
 
   /** 底部提示语；空串表示不展示 */
   const footerText = computed(() => {
-    if (loading.value) return '加载中…'
+    if (pending.value) return '加载中…'
     if (!noMore.value) return ''
     return logs.value.length ? '没有更多了' : '暂无内容'
   })
@@ -99,8 +99,8 @@ export const useLogList = (key: LogListKey) => {
   return {
     /** 当前列表数据，编辑任意 log 后自动同步 */
     logs,
-    /** 是否正在加载 */
-    loading,
+    /** 是否正在请求下一页 */
+    pending,
     /** 是否已无更多数据 */
     noMore,
     /** 底部提示语，空串表示不展示 */
