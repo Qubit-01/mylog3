@@ -26,15 +26,15 @@ declare module 'express' {
 const IS_AUTH_KEY = 'isAuth';
 export const Auth = () => SetMetadata(IS_AUTH_KEY, true);
 
-/** 参数装饰器：拿当前登录用户 id，用法 `fn(@UserId() userId: number)` */
+/** 参数装饰器：读取当前用户 id；公开路由未登录时返回 undefined */
 export const UserId = createParamDecorator(
-  (_: unknown, ctx: ExecutionContext): number =>
-    ctx.switchToHttp().getRequest<Request>().user!.sub,
+  (_: unknown, ctx: ExecutionContext): number | undefined =>
+    ctx.switchToHttp().getRequest<Request>().user?.sub,
 );
 
 /**
  * 全局 JWT 校验守卫（AuthModule 里以 APP_GUARD 注册）
- * - 默认所有路由都是公开的（不打注解就免鉴权）
+ * - 默认所有路由都是公开的，有 token 时仍会解析可选用户身份
  * - 用 `@Auth()` 装饰器（方法或类）声明需要登录
  * - 校验通过后把 payload 挂到 `req.user`
  */
@@ -50,16 +50,18 @@ export class AuthGuard implements CanActivate {
       ctx.getHandler(),
       ctx.getClass(),
     ]);
-    if (!needAuth) return true;
-
     const req = ctx.switchToHttp().getRequest<Request>();
-    try {
-      req.user = await this.jwt.verifyAsync<JwtPayload>(
-        req.cookies?.token as string,
-      );
-      return true;
-    } catch {
+    const token = req.cookies?.token as string | undefined;
+    const user = token
+      ? await this.jwt.verifyAsync<JwtPayload>(token).catch(() => undefined)
+      : undefined;
+
+    if (user && Number.isSafeInteger(user.sub) && user.sub > 0) {
+      req.user = user;
+    } else if (needAuth) {
       throw new UnauthorizedException('未登录或登录已过期');
     }
+
+    return true;
   }
 }

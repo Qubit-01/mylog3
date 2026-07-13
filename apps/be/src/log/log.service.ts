@@ -50,10 +50,16 @@ export class LogService {
     return items as LogDto[];
   }
 
-  /** 获取单条：公开 或 本人可见，鉴权直接写进 where */
-  async get(userId: number, id: number): Promise<LogDto> {
+  /** 获取单条：公开 log 或本人私有 log 可见，鉴权直接写进 where */
+  async get(userId: number | undefined, id: number): Promise<LogDto> {
     const log = await this.prisma.log.findFirst({
-      where: { id, OR: [{ scope: LogScope.PUBLIC }, { userId }] },
+      where: {
+        id,
+        OR: [
+          { scope: LogScope.PUBLIC },
+          ...(userId === undefined ? [] : [{ userId }]),
+        ],
+      },
     });
     if (!log) throw new NotFoundException('Log 不存在');
     return log as LogDto;

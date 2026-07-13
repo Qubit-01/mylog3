@@ -47,12 +47,14 @@ export class LogController {
     return this.logService.listMine(userId, dto);
   }
 
-  /** 获取单条 */
-  @Auth()
+  /** 获取单条：公开 log 无需登录，私有 log 仅本人可见 */
   @Post('get')
   @ApiBody({ type: LogIdDto })
   @ApiOkResponse({ type: LogDto, description: 'Log 详情' })
-  get(@UserId() userId: number, @Body() dto: LogIdDto): Promise<LogDto> {
+  get(
+    @UserId() userId: number | undefined,
+    @Body() dto: LogIdDto,
+  ): Promise<LogDto> {
     return this.logService.get(userId, dto.id);
   }
 
