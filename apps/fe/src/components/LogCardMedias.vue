@@ -2,13 +2,7 @@
 /** Log 媒体画廊：单行平铺，点击后进入图片 / 视频混合预览 */
 import type { LogMedia } from '@/api'
 import { Close, VideoPlay } from '@element-plus/icons-vue'
-import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Keyboard, Navigation, Pagination } from 'swiper/modules'
-import type { Swiper as SwiperInstance } from 'swiper/types'
 import PictureImg from 'shared/PictureImg'
-import 'swiper/css'
-import 'swiper/css/navigation'
-import 'swiper/css/pagination'
 
 const { medias } = defineProps<{
   /** 图片 + 视频混排列表，原始资源使用 url，轻量展示资源使用可选 previewUrl */
@@ -28,18 +22,6 @@ const toResourceUrl = (url: string) => {
 
 /** 当前预览下标，undefined 表示关闭预览 */
 const current = ref<number>()
-/** Swiper 功能模块 */
-const modules = [Keyboard, Navigation, Pagination]
-
-/** 预览时只加载当前项及相邻项，避免打开预览后一次性请求所有原图 / 视频 */
-const shouldLoad = (index: number) =>
-  current.value !== undefined && Math.abs(index - current.value) <= 1
-
-/** 切换预览项时同步当前下标，并暂停离开的 video */
-const onSlideChange = (swiper: SwiperInstance) => {
-  current.value = swiper.activeIndex
-  for (const video of swiper.el.querySelectorAll('video')) video.pause()
-}
 
 useEventListener('keyup', (event: KeyboardEvent) => {
   if (event.key === 'Escape') current.value = undefined
@@ -82,36 +64,13 @@ useEventListener('keyup', (event: KeyboardEvent) => {
           :icon="Close"
           circle
           text
-          @click.stop="current = undefined"
+          @click="current = undefined"
         />
-        <Swiper
-          class="swiper"
-          :modules="modules"
+        <MediaSwiper
+          :medias="medias"
           :initial-slide="current"
-          :keyboard="{ enabled: true }"
-          navigation
-          pagination
-          @slide-change="onSlideChange"
-        >
-          <SwiperSlide
-            v-for="(media, i) in medias"
-            :key="media.url"
-            class="slide"
-            @click.self="current = undefined"
-          >
-            <img
-              v-if="media.type === 'image' && shouldLoad(i)"
-              :src="toResourceUrl(media.url)"
-            />
-            <video
-              v-else-if="shouldLoad(i)"
-              :src="toResourceUrl(media.url)"
-              :poster="`${toResourceUrl(media.previewUrl ?? media.url)}?ci-process=snapshot&time=0&format=jpg`"
-              controls
-              playsinline
-            />
-          </SwiperSlide>
-        </Swiper>
+          @background-click="current = undefined"
+        />
       </div>
     </Teleport>
   </div>
@@ -146,14 +105,10 @@ useEventListener('keyup', (event: KeyboardEvent) => {
     border-radius: 6px;
     cursor: pointer;
 
-    > .PictureImg,
-    > video {
+    > .PictureImg {
       width: 100%;
       height: 100%;
-      object-fit: cover;
-    }
 
-    > .PictureImg {
       :deep(img) {
         object-fit: cover;
       }
@@ -184,23 +139,8 @@ useEventListener('keyup', (event: KeyboardEvent) => {
     font-size: 24px;
   }
 
-  > .swiper {
-    width: 100%;
-    height: 100%;
-  }
-
-  .slide {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 56px;
-
-    > img,
-    > video {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-    }
+  > .MediaSwiper {
+    --media-swiper-padding: 56px;
   }
 }
 </style>

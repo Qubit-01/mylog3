@@ -46,6 +46,11 @@ const log = computedAsync(
         </time>
       </header>
       <p class="text">{{ log.text }}</p>
+      <MediaSwiper
+        v-if="log.medias.length"
+        class="medias"
+        :medias="log.medias"
+      />
     </article>
   </ElScrollbar>
 </template>
@@ -60,21 +65,29 @@ const log = computedAsync(
     display: flex;
     flex-direction: column;
     gap: 20px;
-    padding: clamp(20px, 5vw, 48px);
+    padding: 20px 0;
 
     > .meta {
       display: flex;
       justify-content: space-between;
       gap: 12px;
+      padding: 0 20px;
       font-size: 13px;
       color: var(--el-text-color-secondary);
     }
 
     > .text {
+      padding: 0 20px;
       font-size: clamp(17px, 2.6vw, 20px);
       line-height: 1.8;
       white-space: pre-wrap;
       word-break: break-word;
+    }
+
+    > .medias {
+      height: 500px;
+      min-width: 0;
+      background: var(--el-fill-color-light);
     }
   }
 }

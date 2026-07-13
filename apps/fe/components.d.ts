@@ -31,6 +31,7 @@ declare module 'vue' {
     LogEditorAudios: typeof import('./src/components/LogEditorAudios.vue')['default']
     LogEditorFiles: typeof import('./src/components/LogEditorFiles.vue')['default']
     LogEditorMedias: typeof import('./src/components/LogEditorMedias.vue')['default']
+    MediaSwiper: typeof import('./src/components/MediaSwiper.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TabBar: typeof import('./src/components/TabBar.vue')['default']
