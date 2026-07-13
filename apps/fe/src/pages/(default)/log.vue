@@ -3,13 +3,12 @@
 import { getLog, type Log } from '@/api'
 import dayjs from 'dayjs'
 
-definePage({ meta: { title: 'Log 详情' } })
+definePage({ meta: { title: '详情' } })
 
 const route = useRoute()
 /** 当前详情实体；接口响应整体替换，无需深层响应式 */
 const log = shallowRef<Log>()
 const pending = ref(false)
-const failed = ref(false)
 const requestId = ref(0)
 
 /** 当前 query 中的正整数 Log id；格式无效时返回 undefined */
@@ -27,7 +26,6 @@ watch(
     const currentRequestId = ++requestId.value
     log.value = undefined
     pending.value = false
-    failed.value = false
     if (!currentId) return
 
     pending.value = true
@@ -35,7 +33,7 @@ watch(
       const result = await getLog({ id: currentId })
       if (currentRequestId === requestId.value) log.value = result
     } catch {
-      if (currentRequestId === requestId.value) failed.value = true
+      // 请求失败时保持空状态，由页面统一呈现非预期情况
     } finally {
       if (currentRequestId === requestId.value) pending.value = false
     }
@@ -51,9 +49,8 @@ watch(
     view-class="view"
   >
     <ElSkeleton v-if="pending" class="state m-panel" :rows="6" animated />
-    <ElEmpty v-else-if="!id" class="state m-panel" description="Log 链接无效" />
     <ElEmpty
-      v-else-if="failed || !log"
+      v-else-if="!log"
       class="state m-panel"
       description="Log 不存在或无权查看"
     />
