@@ -113,6 +113,10 @@ export const listPublicLogs = (payload: Body<'/log/list-public'> = {}) =>
 export const listMineLogs = (payload: Body<'/log/list-mine'> = {}) =>
   unwrap(api.POST('/log/list-mine', { body: payload }))
 
+/** 获取单条 Log；公开记录无需登录，私有记录仅本人可见 */
+export const getLog = (payload: Body<'/log/get'>) =>
+  unwrap(api.POST('/log/get', { body: payload }))
+
 /** 创建一条 Log（需登录），当前前端先提交正文与发生时间 */
 export const createLog = (payload: Body<'/log/create'>) =>
   unwrap(api.POST('/log/create', { body: payload }))

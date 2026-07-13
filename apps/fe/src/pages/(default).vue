@@ -12,7 +12,7 @@ const index = computed(() => tabs.findIndex((t) => t.to === route.path))
 
 /** swiper 实例 ref，用于响应路由变化命令式切页 */
 const swiper = shallowRef<{ slideTo: (i: number) => void }>()
-watch(index, (i) => swiper.value?.slideTo(i))
+watch(index, (i) => i >= 0 && swiper.value?.slideTo(i))
 
 /**
  * 已挂载过的 tab 索引集合，实现按需懒挂载：未访问的 slide 保持空壳，

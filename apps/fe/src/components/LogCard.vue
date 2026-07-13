@@ -15,8 +15,19 @@ const props = defineProps<{
 
 const logStore = useLogStore()
 const userStore = useUserStore()
+const router = useRouter()
 const pending = ref(false)
 const canDelete = computed(() => userStore.user?.id === props.log.userId)
+
+/** 点击卡片外层时在新标签页打开详情；正在选择文字时保留文本选择 */
+const onOpen = () => {
+  if (window.getSelection()?.toString()) return
+  window.open(
+    router.resolve({ path: '/log', query: { id: props.log.id } }).href,
+    '_blank',
+    'noopener',
+  )
+}
 
 /** 先删除当前 Log 的 COS 附件，再删除记录并同步清理列表缓存 */
 const onDelete = async () => {
@@ -51,7 +62,7 @@ const onDelete = async () => {
 </script>
 
 <template>
-  <article class="LogCard m-panel">
+  <article class="LogCard m-panel" @click="onOpen">
     <div class="meta">
       <div class="info">
         <span>#{{ log.userId }}</span>
@@ -66,12 +77,12 @@ const onDelete = async () => {
           text
           circle
           aria-label="删除记录"
-          @click="onDelete"
+          @click.stop="onDelete"
         />
       </div>
     </div>
-    <p class="text">{{ log.text }}</p>
-    <LogCardMedias :medias="log.medias" />
+    <p class="text swiper-no-swiping">{{ log.text }}</p>
+    <LogCardMedias :medias="log.medias" @click.stop />
     <div v-if="log.tags.length" class="tags">
       <span v-for="t in log.tags" :key="t">#{{ t }}</span>
     </div>
