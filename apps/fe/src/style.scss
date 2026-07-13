@@ -41,7 +41,7 @@ body {
     'Hiragino Sans GB',
     'Microsoft YaHei',
     sans-serif;
-  background-color: var(--el-bg-color, #fff);
+  background-color: var(--el-bg-color-page, #f2f3f5);
   color: var(--el-text-color-primary, #303133);
 }
 
@@ -133,12 +133,10 @@ html {
 
 /* 15. 通用面板 */
 .m-panel {
-  background: #ffffffe0;
-  border: 1px solid #ffffffb3;
+  background: var(--el-bg-color, #fff);
+  border: 1px solid var(--el-border-color-extra-light, #ebeef5);
   border-radius: 8px;
-  box-shadow:
-    0 1px 2px #0000000a,
-    0 12px 28px #00000014;
+  box-shadow: 0 2px 8px #00000014;
   backdrop-filter: blur(8px) saturate(2);
   -webkit-backdrop-filter: blur(8px) saturate(2);
 }

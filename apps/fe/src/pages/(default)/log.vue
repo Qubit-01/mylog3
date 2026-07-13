@@ -102,7 +102,6 @@ const onDelete = async () => {
           :loading="deleting"
           type="danger"
           text
-          aria-label="删除记录"
           @click="onDelete"
         />
       </div>
