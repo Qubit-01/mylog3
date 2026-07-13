@@ -81,7 +81,7 @@ const onDelete = async () => {
         />
       </div>
     </div>
-    <p class="text swiper-no-swiping">{{ log.text }}</p>
+    <p class="text">{{ log.text }}</p>
     <LogCardMedias :medias="log.medias" @click.stop />
     <div v-if="log.tags.length" class="tags">
       <span v-for="t in log.tags" :key="t">#{{ t }}</span>
