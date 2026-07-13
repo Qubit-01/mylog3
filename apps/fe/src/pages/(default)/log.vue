@@ -1,12 +1,21 @@
 <script lang="ts" setup>
 /** Log 详情：在默认布局内按 query.id 沉浸式展示单条记录 */
-import { getLog } from '@/api'
+import { deleteLog, getLog } from '@/api'
+import { deleteCosFiles } from '@/composables/cos'
+import { useLogStore } from '@/stores/log'
+import { useUserStore } from '@/stores/user'
+import { Delete } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 definePage({ meta: { title: '详情' } })
 
 const route = useRoute()
+const router = useRouter()
+const logStore = useLogStore()
+const userStore = useUserStore()
 const pending = ref(false)
+const deleting = ref(false)
 
 /** 当前 query 中的正整数 Log id；格式无效时返回 undefined */
 const id = computed(() => {
@@ -23,6 +32,39 @@ const log = computedAsync(
   undefined,
   pending,
 )
+
+/** 确认后先删除 COS 附件，再删除记录、清理列表缓存并返回我的 Log */
+const onDelete = async () => {
+  const target = log.value
+  if (!target || deleting.value) return
+  deleting.value = true
+  try {
+    await ElMessageBox.confirm('删除后不可恢复', '确定删除这条记录吗？', {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+      confirmButtonClass: 'el-button--danger',
+    })
+    try {
+      await deleteCosFiles(
+        [...target.medias, ...target.audios, ...target.files]
+          .map(({ url }) => url)
+          .filter((url) => !URL.canParse(url)),
+      )
+    } catch {
+      ElMessage.error('附件删除失败，请稍后重试')
+      return
+    }
+    await deleteLog({ id: target.id })
+    logStore.remove(target.id)
+    ElMessage.success('已删除')
+    await router.replace('/mine')
+  } catch (e) {
+    if (e !== 'cancel' && e !== 'close') throw e
+  } finally {
+    deleting.value = false
+  }
+}
 </script>
 
 <template>
@@ -38,20 +80,33 @@ const log = computedAsync(
       description="Log 不存在或无权查看"
     />
 
-    <article v-else class="content m-panel">
-      <header class="meta">
-        <span>#{{ log.userId }}</span>
-        <time :datetime="log.logAt">
-          {{ dayjs(log.logAt).format('YYYY-MM-DD HH:mm') }}
-        </time>
-      </header>
-      <p class="text">{{ log.text }}</p>
-      <MediaSwiper
-        v-if="log.medias.length"
-        class="medias"
-        :medias="log.medias"
-      />
-    </article>
+    <template v-else>
+      <article class="content m-panel">
+        <header class="meta">
+          <span>#{{ log.userId }}</span>
+          <time :datetime="log.logAt">
+            {{ dayjs(log.logAt).format('YYYY-MM-DD HH:mm') }}
+          </time>
+        </header>
+        <p class="text">{{ log.text }}</p>
+        <MediaSwiper
+          v-if="log.medias.length"
+          class="medias"
+          :medias="log.medias"
+        />
+      </article>
+
+      <div v-if="userStore.user?.id === log.userId" class="actions m-panel">
+        <ElButton
+          :icon="Delete"
+          :loading="deleting"
+          type="danger"
+          text
+          aria-label="删除记录"
+          @click="onDelete"
+        />
+      </div>
+    </template>
   </ElScrollbar>
 </template>
 
@@ -89,6 +144,12 @@ const log = computedAsync(
       min-width: 0;
       background: var(--el-fill-color-light);
     }
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px;
   }
 }
 </style>
