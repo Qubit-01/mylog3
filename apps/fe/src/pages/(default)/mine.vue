@@ -11,7 +11,7 @@ const { logs, footerText, fetchMore } = useLogList('mine')
 
 <template>
   <ElScrollbar
-    class="mine"
+    class="mine default-scrollbar"
     wrap-class="wrap"
     view-class="view"
     :distance="80"
@@ -25,27 +25,6 @@ const { logs, footerText, fetchMore } = useLogList('mine')
 
 <style lang="scss" scoped>
 .mine {
-  height: 100%;
-
-  :deep(.wrap) {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    overscroll-behavior: contain;
-  }
-
-  :deep(.view) {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-    max-width: var(--content-max-width);
-    padding: 12px;
-    // 底部悬浮 TabBar 占位，避免最后一条 log 被挡住
-    padding-bottom: calc(env(safe-area-inset-bottom) + 100px);
-    transition: max-width 0.3s;
-  }
-
   .footer {
     padding: 16px 0;
     text-align: center;

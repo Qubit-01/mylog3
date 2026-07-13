@@ -53,7 +53,11 @@ const onLogout = async () => {
 </script>
 
 <template>
-  <ElScrollbar class="profile" wrap-class="wrap" view-class="view">
+  <ElScrollbar
+    class="profile default-scrollbar"
+    wrap-class="wrap"
+    view-class="view"
+  >
     <header class="intro m-panel">
       <ElAvatar :src="user.avatar ?? undefined" :size="88" :alt="user.name">
         {{ user.name.slice(0, 1) }}
@@ -139,27 +143,6 @@ const onLogout = async () => {
 
 <style lang="scss" scoped>
 .profile {
-  height: 100%;
-
-  :deep(.wrap) {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    overscroll-behavior: contain;
-  }
-
-  :deep(.view) {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-    max-width: var(--content-max-width);
-    padding: 12px;
-    // 底部悬浮 TabBar 占位，避免内容被挡住
-    padding-bottom: calc(env(safe-area-inset-bottom) + 100px);
-    transition: max-width 0.3s;
-  }
-
   .intro {
     display: flex;
     align-items: center;

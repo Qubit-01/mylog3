@@ -45,7 +45,11 @@ watch(
 </script>
 
 <template>
-  <ElScrollbar class="log" wrap-class="wrap" view-class="view">
+  <ElScrollbar
+    class="log default-scrollbar"
+    wrap-class="wrap"
+    view-class="view"
+  >
     <ElSkeleton v-if="pending" class="state m-panel" :rows="6" animated />
     <ElEmpty v-else-if="!id" class="state m-panel" description="Log 链接无效" />
     <ElEmpty
@@ -68,27 +72,6 @@ watch(
 
 <style lang="scss" scoped>
 .log {
-  height: 100%;
-
-  :deep(.wrap) {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    overscroll-behavior: contain;
-  }
-
-  :deep(.view) {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-    max-width: var(--content-max-width);
-    min-height: 100%;
-    padding: 12px;
-    padding-bottom: calc(env(safe-area-inset-bottom) + 100px);
-    transition: max-width 0.3s;
-  }
-
   .state {
     padding: 24px;
   }

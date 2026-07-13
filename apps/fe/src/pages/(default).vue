@@ -87,3 +87,29 @@ $aside-gap: 12px;
   }
 }
 </style>
+
+<style lang="scss">
+/** 默认布局页面统一使用的内容滚动容器 */
+.default-scrollbar {
+  height: 100%;
+
+  > .wrap {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overscroll-behavior: contain;
+
+    > .view {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      max-width: var(--content-max-width);
+      padding: 12px;
+      // 底部悬浮 TabBar 占位，避免最后一项内容被挡住
+      padding-bottom: calc(env(safe-area-inset-bottom) + 100px);
+      transition: max-width 0.3s;
+    }
+  }
+}
+</style>
