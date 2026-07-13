@@ -37,6 +37,7 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       Record<never, never>,
       | '/(default)/'
+      | '/(default)/log'
       | '/(default)/map'
       | '/(default)/mine'
       | '/(default)/profile'
@@ -44,6 +45,13 @@ declare module 'vue-router/auto-routes' {
     '/(default)/': RouteRecordInfo<
       '/(default)/',
       '/',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/(default)/log': RouteRecordInfo<
+      '/(default)/log',
+      '/log',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -93,6 +101,7 @@ declare module 'vue-router/auto-routes' {
       routes:
         | '/(default)'
         | '/(default)/'
+        | '/(default)/log'
         | '/(default)/map'
         | '/(default)/mine'
         | '/(default)/profile'
@@ -104,6 +113,14 @@ declare module 'vue-router/auto-routes' {
     'src/pages/(default)/index.vue': {
       routes:
         | '/(default)/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/(default)/log.vue': {
+      routes:
+        | '/(default)/log'
       views:
         | never
       pathParamNames:
