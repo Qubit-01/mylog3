@@ -1,15 +1,12 @@
 <script lang="ts" setup>
 /** Log 详情：在默认布局内按 query.id 沉浸式展示单条记录 */
-import { getLog, type Log } from '@/api'
+import { getLog } from '@/api'
 import dayjs from 'dayjs'
 
 definePage({ meta: { title: '详情' } })
 
 const route = useRoute()
-/** 当前详情实体；接口响应整体替换，无需深层响应式 */
-const log = shallowRef<Log>()
 const pending = ref(false)
-const requestId = ref(0)
 
 /** 当前 query 中的正整数 Log id；格式无效时返回 undefined */
 const id = computed(() => {
@@ -19,26 +16,12 @@ const id = computed(() => {
   return value && /^[1-9]\d*$/.test(value) ? Number(value) : undefined
 })
 
-/** query 变化时加载对应实体，并忽略已过期请求的状态回写 */
-watch(
-  id,
-  async (currentId) => {
-    const currentRequestId = ++requestId.value
-    log.value = undefined
-    pending.value = false
-    if (!currentId) return
-
-    pending.value = true
-    try {
-      const result = await getLog({ id: currentId })
-      if (currentRequestId === requestId.value) log.value = result
-    } catch {
-      // 请求失败时保持空状态，由页面统一呈现非预期情况
-    } finally {
-      if (currentRequestId === requestId.value) pending.value = false
-    }
-  },
-  { immediate: true },
+/** 随 query.id 自动加载详情；无效参数或请求失败统一返回空状态 */
+const log = computedAsync(
+  () =>
+    id.value ? getLog({ id: id.value }).catch(() => undefined) : undefined,
+  undefined,
+  pending,
 )
 </script>
 
