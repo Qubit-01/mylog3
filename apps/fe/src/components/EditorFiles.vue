@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-/** Log 编辑器文件草稿：只处理浏览器端选文件和删除 */
+/** 文件编辑器：浏览器端选择、删除，仅维护本地文件列表，不涉及上传 */
 import type { UploadUserFile } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 
-/** 待提交文件草稿列表；父级提交流程后续会从这里拿原始 File */
+/** 当前编辑的文件列表；调用方可从 `raw` 拿原始 File 交给后续流程 */
 const files = defineModel<UploadUserFile[]>({ required: true })
 </script>
 
 <template>
   <ElUpload
     v-model:file-list="files"
-    class="LogEditorFiles"
+    class="EditorFiles"
     multiple
     :auto-upload="false"
   >
@@ -19,7 +19,7 @@ const files = defineModel<UploadUserFile[]>({ required: true })
 </template>
 
 <style lang="scss" scoped>
-.LogEditorFiles {
+.EditorFiles {
   display: flex;
   flex-direction: column;
   gap: 4px;

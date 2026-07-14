@@ -2,126 +2,62 @@ import {
   createLog,
   type CreateLog,
   type Log,
-  type LogAudio,
-  type LogFile,
   type LogMedia,
   updateLog,
 } from '@/api'
-import {
-  deleteCosFiles,
-  type CosUploadFile,
-  uploadCosFiles,
-} from '@/composables/cos'
+import { deleteCosFiles, uploadCosFiles } from '@/composables/cos'
 import { compressImagePreview } from '@/composables/compression'
 import { useLogStore } from '@/stores/log'
 import type { UploadUserFile } from 'element-plus'
 import { cloneDeep } from 'lodash-unified'
 
-/** 编辑器草稿：只包含用户可编辑、可提交的 Log 字段 */
-export type LogEditorDraft = Required<CreateLog>
-
-/** 已确认带浏览器原始 File 的待上传项 */
-type PreparedUpload = CosUploadFile & { Body: File }
-
-/** 待上传媒体及其可选轻量预览资源；原始媒体始终保持用户选择的原始 File */
-interface PreparedMediaUpload {
-  /** 图片或视频业务类型 */
-  type: LogMedia['type']
-  /** 未经重编码的原始媒体 */
-  original: PreparedUpload
-  /** 轻量预览资源；当前由图片压缩产生，未来视频压缩版本复用此字段 */
-  preview?: PreparedUpload
-}
-
-/** 一次提交产生的三类附件 */
-interface LogAttachments {
-  /** 图片和视频附件 */
-  medias: LogMedia[]
-  /** 音频附件 */
-  audios: LogAudio[]
-  /** 普通文件附件 */
-  files: LogFile[]
-}
-
-/** 将已有 Log 或空值转换为与服务端实体隔离的本地草稿 */
-const createDraft = (log?: Log): LogEditorDraft =>
-  log
-    ? cloneDeep({
-        scope: log.scope,
-        logAt: log.logAt,
-        text: log.text,
-        medias: log.medias,
-        audios: log.audios,
-        files: log.files,
-        tags: log.tags,
-        location: log.location,
-        people: log.people,
-        extra: log.extra,
-      })
-    : {
-        scope: 'PRIVATE',
-        logAt: new Date().toISOString(),
-        text: '',
-        medias: [],
-        audios: [],
-        files: [],
-        tags: [],
-        location: [],
-        people: [],
-        extra: {},
-      }
-
-/** 将本地文件草稿转换为 COS 上传项；没有原始 File 的条目不会参与上传 */
-const prepareUploads = (items: UploadUserFile[]): PreparedUpload[] =>
-  items.flatMap(({ raw }) =>
-    raw
-      ? [
-          {
-            Body: raw,
-            Key: `mylog/${crypto.randomUUID()}-${raw.name}`,
-          },
-        ]
-      : [],
-  )
-
 /**
- * 为图片生成列表预览图，同时保留原始文件用于高清预览和完整元数据读取。
- * JPEG 预览图尽量复制 EXIF，原始文件始终不参与重编码。
- * @returns 与媒体顺序一致的原始文件及可选轻量预览上传项
+ * 编辑器草稿：`logAt` / `text` / `scope` 始终存在，其余字段仅在启用对应编辑组件时才出现（`undefined` 表示未启用）。
+ * UI 层用 `v-if="logEdit.xxx !== undefined"` 控制编辑组件的显隐。
  */
-const prepareMediaUploads = (items: UploadUserFile[]) =>
-  Promise.all(
-    items
-      .flatMap(({ raw }) => (raw ? [raw] : []))
-      .map(async (raw): Promise<PreparedMediaUpload> => {
-        const id = crypto.randomUUID()
-        const original: PreparedUpload = {
-          Body: raw,
-          Key: `mylog/${id}-${raw.name}`,
-        }
-        const preview = await compressImagePreview(raw)
-        if (!preview) {
-          return {
-            type: raw.type.startsWith('image/') ? 'image' : 'video',
-            original,
-          }
-        }
+export type LogEdit = CreateLog &
+  Required<Pick<CreateLog, 'logAt' | 'text' | 'scope'>>
 
-        return {
-          type: 'image',
-          original,
-          preview: {
-            Body: preview,
-            Key: `mylog/preview/${id}-${preview.name}`,
-          },
-        }
-      }),
-  )
+/** 一条待上传媒体：始终有原始文件，图片会附带一份压缩预览 */
+interface PreparedMedia {
+  type: LogMedia['type']
+  original: File
+  preview?: File
+}
+
+/** 生成 COS 目录相对 key，避免用户目录内重名 */
+const cosKey = (name: string, prefix = '') =>
+  `mylog/${prefix}${crypto.randomUUID()}-${name}`
+
+/** 从 Element Plus 上传项里取出真正的原始 File */
+const rawFiles = (items: UploadUserFile[]) =>
+  items.flatMap(({ raw }) => (raw ? [raw] : []))
+
+/** 图片生成压缩预览；视频当前无预览；原始文件永远不参与重编码 */
+const prepareMedia = async (raw: File): Promise<PreparedMedia> => {
+  const preview = await compressImagePreview(raw)
+  if (preview) return { type: 'image', original: raw, preview }
+  return {
+    type: raw.type.startsWith('image/') ? 'image' : 'video',
+    original: raw,
+  }
+}
+
+/** 新建 Log 时的草稿默认值：只保留始终展示的字段 */
+const emptyLogEdit = (): LogEdit => ({
+  scope: 'PRIVATE',
+  text: '',
+  logAt: new Date().toISOString(),
+})
+
+/** 已有 Log → 本地草稿：与服务端实体隔离，可选字段按 log 上的真实存在与否决定 */
+const createLogEdit = (log?: Log): LogEdit =>
+  log ? cloneDeep({ ...emptyLogEdit(), ...log }) : emptyLogEdit()
 
 /** 管理 Log 编辑草稿、附件事务和保存状态，组件本身只负责渲染 */
 export const useLogEditor = (log?: Log) => {
   const logStore = useLogStore()
-  const draft = ref(createDraft(log))
+  const logEdit = ref(createLogEdit(log))
   const fileMap = reactive({
     medias: [] as UploadUserFile[],
     audios: [] as UploadUserFile[],
@@ -131,51 +67,41 @@ export const useLogEditor = (log?: Log) => {
   const uploadInfo = reactive({ percent: -1, speed: 0 })
 
   /** 上传全部本地附件，并转换为 Log 接口需要的三类资源 */
-  const uploadAttachments = async (): Promise<LogAttachments> => {
-    const mediaUploads = await prepareMediaUploads(fileMap.medias)
-    const audioUploads = prepareUploads(fileMap.audios)
-    const fileUploads = prepareUploads(fileMap.files)
+  const uploadAttachments = async () => {
+    const medias = await Promise.all(rawFiles(fileMap.medias).map(prepareMedia))
+    const audios = rawFiles(fileMap.audios)
+    const files = rawFiles(fileMap.files)
+
     const keys = await uploadCosFiles(
       [
-        ...mediaUploads.flatMap(({ original, preview }) =>
-          preview ? [original, preview] : [original],
-        ),
-        ...audioUploads,
-        ...fileUploads,
+        ...medias.flatMap(({ original, preview }) => [
+          { Body: original, Key: cosKey(original.name) },
+          ...(preview
+            ? [{ Body: preview, Key: cosKey(preview.name, 'preview/') }]
+            : []),
+        ]),
+        ...audios.map((file) => ({ Body: file, Key: cosKey(file.name) })),
+        ...files.map((file) => ({ Body: file, Key: cosKey(file.name) })),
       ],
       ({ percent, speed }) => {
         uploadInfo.percent = Math.round(percent * 99)
         uploadInfo.speed = Number((speed / 1024 / 1024).toFixed(2))
       },
     )
-    let offset = 0
 
+    // 生产与消费 keys 的顺序严格对应：先 media（可能带 preview），再 audio，最后 file
+    let i = 0
     return {
-      medias: mediaUploads.map(({ type, preview }) => {
-        const url = keys[offset++]!
-        const previewUrl = preview ? keys[offset++] : undefined
-        return { type, url, previewUrl }
-      }),
-      audios: audioUploads.map(() => ({
-        type: 'audio',
-        url: keys[offset++]!,
+      keys,
+      medias: medias.map(({ type, preview }) => ({
+        type,
+        url: keys[i++]!,
+        previewUrl: preview ? keys[i++] : undefined,
       })),
-      files: fileUploads.map(() => ({
-        type: 'file',
-        url: keys[offset++]!,
-      })),
+      audios: audios.map(() => ({ type: 'audio' as const, url: keys[i++]! })),
+      files: files.map(() => ({ type: 'file' as const, url: keys[i++]! })),
     }
   }
-
-  /** 删除一次提交已上传的全部附件，用于 Log 保存失败时回滚 */
-  const rollbackAttachments = (attachments: LogAttachments) =>
-    deleteCosFiles([
-      ...attachments.medias.flatMap(({ url, previewUrl }) =>
-        previewUrl ? [url, previewUrl] : [url],
-      ),
-      ...attachments.audios.map(({ url }) => url),
-      ...attachments.files.map(({ url }) => url),
-    ])
 
   /** 清空全部本地附件草稿 */
   const resetAttachments = () => {
@@ -186,8 +112,8 @@ export const useLogEditor = (log?: Log) => {
 
   /** 提交当前草稿；附件与 Log 保存组成一个尽力回滚的事务 */
   const submit = async () => {
-    if (!draft.value.text.trim() || pending.value) return
-    const snapshot = cloneDeep(draft.value)
+    if (!logEdit.value.text.trim() || pending.value) return
+    const snapshot = cloneDeep(logEdit.value)
     pending.value = true
     uploadInfo.percent = 0
     uploadInfo.speed = 0
@@ -203,12 +129,15 @@ export const useLogEditor = (log?: Log) => {
         return
       }
 
+      // 已启用的附件字段与本次新上传的合并；未启用的字段仍为 undefined，不会污染 payload
       const payload: CreateLog = {
         ...snapshot,
         text: snapshot.text.trim(),
-        medias: [...snapshot.medias, ...attachments.medias],
-        audios: [...snapshot.audios, ...attachments.audios],
-        files: [...snapshot.files, ...attachments.files],
+        // 新建时以点击提交的时间为准；编辑时保留原 Log 的 logAt
+        logAt: log ? snapshot.logAt : new Date().toISOString(),
+        medias: [...(snapshot.medias ?? []), ...attachments.medias],
+        audios: [...(snapshot.audios ?? []), ...attachments.audios],
+        files: [...(snapshot.files ?? []), ...attachments.files],
       }
       let saved: Log
       try {
@@ -216,12 +145,12 @@ export const useLogEditor = (log?: Log) => {
           ? await updateLog({ id: log.id, ...payload })
           : await createLog(payload)
       } catch {
-        await rollbackAttachments(attachments).catch(() => undefined)
+        await deleteCosFiles(attachments.keys).catch(() => undefined)
         return
       }
 
       logStore.upsert(saved)
-      draft.value = log ? createDraft(saved) : createDraft()
+      logEdit.value = log ? createLogEdit(saved) : createLogEdit()
       resetAttachments()
       uploadInfo.percent = 100
     } finally {
@@ -232,8 +161,8 @@ export const useLogEditor = (log?: Log) => {
   }
 
   return {
-    /** 当前可编辑草稿 */
-    draft,
+    /** 当前可编辑草稿；`text` / `scope` 始终存在，其余字段 undefined 表示未启用编辑 */
+    logEdit,
     /** 是否正在上传或保存 */
     pending,
     /** 当前上传百分比与速度；percent 为 -1 时不展示进度 */
