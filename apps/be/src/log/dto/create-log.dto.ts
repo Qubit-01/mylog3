@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -28,13 +28,14 @@ export class CreateLogDto {
   @IsEnum(LogScope)
   scope?: LogScope;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
     format: 'date-time',
-    description: '记录时间（ISO 字符串），内容对应的真实发生时间',
+    description: '记录时间（ISO 字符串），不传则服务端以当前时间兼底',
   })
+  @IsOptional()
   @IsDateString()
-  logAt!: string;
+  logAt?: string;
 
   @ApiPropertyOptional({ type: String, description: '正文文本' })
   @IsOptional()

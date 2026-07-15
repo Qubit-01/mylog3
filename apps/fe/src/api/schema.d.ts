@@ -347,9 +347,9 @@ export interface components {
             scope?: "PRIVATE" | "PUBLIC";
             /**
              * Format: date-time
-             * @description 记录时间（ISO 字符串），内容对应的真实发生时间
+             * @description 记录时间（ISO 字符串），不传则服务端以当前时间兼底
              */
-            logAt: string;
+            logAt?: string;
             /** @description 正文文本 */
             text?: string;
             /** @description 图片 + 视频列表 */
@@ -459,7 +459,7 @@ export interface components {
             scope?: "PRIVATE" | "PUBLIC";
             /**
              * Format: date-time
-             * @description 记录时间（ISO 字符串），内容对应的真实发生时间
+             * @description 记录时间（ISO 字符串），不传则服务端以当前时间兼底
              */
             logAt?: string;
             /** @description 正文文本 */

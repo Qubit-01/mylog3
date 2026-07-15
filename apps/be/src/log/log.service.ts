@@ -15,7 +15,7 @@ export class LogService {
     const data: Partial<LogRow> = {
       userId,
       scope: dto.scope ?? LogScope.PRIVATE,
-      logAt: new Date(dto.logAt),
+      logAt: dto.logAt ? new Date(dto.logAt) : new Date(),
       text: dto.text ?? '',
       medias: dto.medias ?? [],
       audios: dto.audios ?? [],
