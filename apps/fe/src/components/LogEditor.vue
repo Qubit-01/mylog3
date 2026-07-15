@@ -17,9 +17,7 @@ const props = defineProps<{
   log?: Log
 }>()
 
-const { logEdit, fileMap, pending, uploadInfo, submit } = useLogEditor(
-  props.log,
-)
+const { logEdit, fileMap, pending, status, submit } = useLogEditor(props.log)
 
 /** 切换草稿字段的启用状态；启用时用传入的初值，关闭时同步清空对应文件缓冲 */
 const toggle = <K extends keyof LogEdit>(
@@ -103,17 +101,7 @@ const toggle = <K extends keyof LogEdit>(
       v-model="fileMap.audios"
     />
     <EditorFiles v-if="logEdit.files !== undefined" v-model="fileMap.files" />
-    <ElProgress
-      v-if="uploadInfo.percent > -1"
-      :percentage="uploadInfo.percent"
-      :text-inside="true"
-      :stroke-width="20"
-      striped
-      striped-flow
-      :duration="10"
-    >
-      {{ uploadInfo.percent }}% {{ uploadInfo.speed }}MB/s
-    </ElProgress>
+    <div v-if="status" class="status">{{ status }}</div>
   </section>
 </template>
 
@@ -140,6 +128,11 @@ const toggle = <K extends keyof LogEdit>(
     :deep(.el-button + .el-button) {
       margin-left: 0;
     }
+  }
+
+  > .status {
+    color: #0009;
+    font-size: 13px;
   }
 }
 </style>

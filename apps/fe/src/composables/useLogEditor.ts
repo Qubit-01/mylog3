@@ -63,14 +63,17 @@ export const useLogEditor = (log?: Log) => {
     files: [] as UploadUserFile[],
   })
   const pending = ref(false)
-  const uploadInfo = reactive({ percent: -1, speed: 0 })
+  /** 当前提交阶段的展示文案；`undefined` 表示空闲 */
+  const status = ref<string>()
 
   /** 上传全部本地附件，并转换为 Log 接口需要的三类资源 */
   const uploadAttachments = async () => {
+    status.value = '压缩图片中…'
     const medias = await Promise.all(rawFiles(fileMap.medias).map(prepareMedia))
     const audios = rawFiles(fileMap.audios)
     const files = rawFiles(fileMap.files)
 
+    status.value = '上传文件中… 0% · 0MB/s'
     const keys = await uploadCosFiles(
       [
         ...medias.flatMap(({ original, preview }) => [
@@ -83,8 +86,9 @@ export const useLogEditor = (log?: Log) => {
         ...files.map((file) => ({ Body: file, Key: cosKey(file.name) })),
       ],
       ({ percent, speed }) => {
-        uploadInfo.percent = Math.round(percent * 99)
-        uploadInfo.speed = Number((speed / 1024 / 1024).toFixed(2))
+        const p = Math.round(percent * 100)
+        const s = (speed / 1024 / 1024).toFixed(2)
+        status.value = `上传文件中… ${p}% · ${s}MB/s`
       },
     )
 
@@ -114,15 +118,11 @@ export const useLogEditor = (log?: Log) => {
     if (!logEdit.value.text.trim() || pending.value) return
     const snapshot = cloneDeep(logEdit.value)
     pending.value = true
-    uploadInfo.percent = 0
-    uploadInfo.speed = 0
 
     try {
       let attachments
       try {
         attachments = await uploadAttachments()
-        uploadInfo.percent = 99
-        uploadInfo.speed = 0
       } catch {
         ElMessage.error('文件上传失败，请稍后重试')
         return
@@ -136,6 +136,7 @@ export const useLogEditor = (log?: Log) => {
         audios: [...(snapshot.audios ?? []), ...attachments.audios],
         files: [...(snapshot.files ?? []), ...attachments.files],
       }
+      status.value = '提交 Log 中…'
       let saved: Log
       try {
         saved = log
@@ -149,11 +150,9 @@ export const useLogEditor = (log?: Log) => {
       logStore.upsert(saved)
       logEdit.value = log ? createLogEdit(saved) : createLogEdit()
       resetAttachments()
-      uploadInfo.percent = 100
     } finally {
       pending.value = false
-      uploadInfo.percent = -1
-      uploadInfo.speed = 0
+      status.value = undefined
     }
   }
 
@@ -162,8 +161,8 @@ export const useLogEditor = (log?: Log) => {
     logEdit,
     /** 是否正在上传或保存 */
     pending,
-    /** 当前上传百分比与速度；percent 为 -1 时不展示进度 */
-    uploadInfo,
+    /** 当前提交阶段的展示文案；`undefined` 表示空闲 */
+    status,
     /** 按业务类型分组的本地待提交文件 */
     fileMap,
     /** 提交当前草稿 */
