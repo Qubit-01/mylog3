@@ -12,11 +12,11 @@ import type { UploadUserFile } from 'element-plus'
 import { cloneDeep } from 'lodash-unified'
 
 /**
- * 编辑器草稿：`logAt` / `text` / `scope` 始终存在，其余字段仅在启用对应编辑组件时才出现（`undefined` 表示未启用）。
+ * 编辑器草稿：`text` / `scope` 始终存在，其余字段仅在启用对应编辑组件时才出现（`undefined` 表示未启用）。
+ * `logAt` 也遵循同样约定：未启用时为 undefined，服务端提交时自动兼底为当前时间。
  * UI 层用 `v-if="logEdit.xxx !== undefined"` 控制编辑组件的显隐。
  */
-export type LogEdit = CreateLog &
-  Required<Pick<CreateLog, 'logAt' | 'text' | 'scope'>>
+export type LogEdit = CreateLog & Required<Pick<CreateLog, 'text' | 'scope'>>
 
 /** 一条待上传媒体：始终有原始文件，图片会附带一份压缩预览 */
 interface PreparedMedia {
@@ -47,7 +47,6 @@ const prepareMedia = async (raw: File): Promise<PreparedMedia> => {
 const emptyLogEdit = (): LogEdit => ({
   scope: 'PRIVATE',
   text: '',
-  logAt: new Date().toISOString(),
 })
 
 /** 已有 Log → 本地草稿：与服务端实体隔离，可选字段按 log 上的真实存在与否决定 */
@@ -133,8 +132,6 @@ export const useLogEditor = (log?: Log) => {
       const payload: CreateLog = {
         ...snapshot,
         text: snapshot.text.trim(),
-        // 新建时以点击提交的时间为准；编辑时保留原 Log 的 logAt
-        logAt: log ? snapshot.logAt : new Date().toISOString(),
         medias: [...(snapshot.medias ?? []), ...attachments.medias],
         audios: [...(snapshot.audios ?? []), ...attachments.audios],
         files: [...(snapshot.files ?? []), ...attachments.files],

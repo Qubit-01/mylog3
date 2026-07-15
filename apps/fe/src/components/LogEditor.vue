@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 /** Log 编辑器：新增和编辑共用；每条 Log 使用独立实例，草稿仅在初始化时读取 log */
 import type { Log } from '@/api'
-import { useLogEditor } from '@/composables/useLogEditor'
+import { useLogEditor, type LogEdit } from '@/composables/useLogEditor'
 import {
+  Clock,
   Document,
   Headset,
   Hide,
@@ -20,14 +21,14 @@ const { logEdit, fileMap, pending, uploadInfo, submit } = useLogEditor(
   props.log,
 )
 
-/** 切换附件编辑器启用状态；关闭时同步清空本地文件缓冲，避免残留 blob 与 File */
-const toggle = (key: 'medias' | 'audios' | 'files') => {
-  if (logEdit.value[key] === undefined) {
-    logEdit.value[key] = []
-  } else {
-    logEdit.value[key] = undefined
-    fileMap[key] = []
-  }
+/** 切换草稿字段的启用状态；启用时用传入的初值，关闭时同步清空对应文件缓冲 */
+const toggle = <K extends keyof LogEdit>(
+  key: K,
+  initial: NonNullable<LogEdit[K]>,
+) => {
+  const enabled = logEdit.value[key] !== undefined
+  logEdit.value[key] = (enabled ? undefined : initial) as LogEdit[K]
+  if (enabled && key in fileMap) fileMap[key as keyof typeof fileMap] = []
 }
 </script>
 
@@ -44,25 +45,32 @@ const toggle = (key: 'medias' | 'audios' | 'files') => {
     />
     <div class="actions">
       <ElButton
+        :icon="Clock"
+        :type="logEdit.logAt !== undefined ? 'primary' : 'default'"
+        title="记录时间"
+        circle
+        @click="toggle('logAt', new Date().toISOString())"
+      />
+      <ElButton
         :icon="Picture"
         :type="logEdit.medias !== undefined ? 'primary' : 'default'"
         title="图片 / 视频"
         circle
-        @click="toggle('medias')"
+        @click="toggle('medias', [])"
       />
       <ElButton
         :icon="Headset"
         :type="logEdit.audios !== undefined ? 'primary' : 'default'"
         title="音频"
         circle
-        @click="toggle('audios')"
+        @click="toggle('audios', [])"
       />
       <ElButton
         :icon="Document"
         :type="logEdit.files !== undefined ? 'primary' : 'default'"
         title="文件"
         circle
-        @click="toggle('files')"
+        @click="toggle('files', [])"
       />
       <div class="spacer" />
       <ElButton
@@ -85,6 +93,7 @@ const toggle = (key: 'medias' | 'audios' | 'files') => {
         发送
       </ElButton>
     </div>
+    <EditorTime v-if="logEdit.logAt !== undefined" v-model="logEdit.logAt!" />
     <EditorMedias
       v-if="logEdit.medias !== undefined"
       v-model="fileMap.medias"
