@@ -17,7 +17,15 @@ const props = defineProps<{
   log?: Log
 }>()
 
+const emit = defineEmits<{
+  /** 保存成功时触发，携带保存后的 Log；宿主可据此关闭编辑态或刷新上下文 */
+  done: [log: Log]
+}>()
+
 const { logEdit, fileMap, pending, status, submit } = useLogEditor(props.log)
+
+/** 包装 submit：成功则带着保存后的 Log 知会宿主 */
+const onSubmit = () => submit().then((saved) => saved && emit('done', saved))
 
 /** 切换草稿字段的启用状态；启用时用传入的初值，关闭时同步清空对应文件缓冲 */
 const toggle = <K extends keyof LogEdit>(
@@ -33,13 +41,13 @@ const toggle = <K extends keyof LogEdit>(
 <template>
   <section class="LogEditor m-panel" :inert="pending">
     <ElInput
-      v-model="logEdit.text"
+      v-model.trim="logEdit.text"
       type="textarea"
       :autosize="{ minRows: 3, maxRows: 8 }"
       resize="none"
       placeholder="记录生活，记录你"
-      @keydown.meta.enter.prevent="submit"
-      @keydown.ctrl.enter.prevent="submit"
+      @keydown.meta.enter.prevent="onSubmit"
+      @keydown.ctrl.enter.prevent="onSubmit"
     />
     <div class="actions">
       <ElButton
@@ -86,7 +94,7 @@ const toggle = <K extends keyof LogEdit>(
         :disabled="!logEdit.text.trim() || pending"
         type="primary"
         round
-        @click="submit"
+        @click="onSubmit"
       >
         发送
       </ElButton>

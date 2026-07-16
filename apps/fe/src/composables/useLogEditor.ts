@@ -16,15 +16,9 @@ export type LogEdit = CreateLog & Required<Pick<CreateLog, 'text' | 'scope'>>
 const cosKey = (name: string, prefix = '') =>
   `mylog/${prefix}${crypto.randomUUID()}-${name}`
 
-/** 新建 Log 时的草稿默认值：只保留始终展示的字段 */
-const emptyLogEdit = (): LogEdit => ({
-  scope: 'PRIVATE',
-  text: '',
-})
-
-/** 已有 Log → 本地草稿：与服务端实体隔离，可选字段按 log 上的真实存在与否决定 */
+/** 生成本地草稿：新建时给默认值，编辑时从服务端实体深克隆；可选字段按 log 的真实存在与否决定 */
 const createLogEdit = (log?: Log): LogEdit =>
-  log ? cloneDeep({ ...emptyLogEdit(), ...log }) : emptyLogEdit()
+  cloneDeep({ scope: 'PRIVATE', text: '', ...log })
 
 /** 管理 Log 编辑草稿、附件事务和保存状态，组件本身只负责渲染 */
 export const useLogEditor = (log?: Log) => {
@@ -86,15 +80,8 @@ export const useLogEditor = (log?: Log) => {
     }
   }
 
-  /** 清空全部本地附件草稿 */
-  const resetAttachments = () => {
-    fileMap.medias = []
-    fileMap.audios = []
-    fileMap.files = []
-  }
-
-  /** 提交当前草稿；附件与 Log 保存组成一个尽力回滚的事务 */
-  const submit = async () => {
+  /** 提交当前草稿；附件与 Log 保存组成一个尽力回滚的事务。返回保存后的 Log；未提交或失败返回 undefined */
+  const submit = async (): Promise<Log | undefined> => {
     if (!logEdit.value.text.trim() || pending.value) return
     const snapshot = cloneDeep(logEdit.value)
     pending.value = true
@@ -111,7 +98,6 @@ export const useLogEditor = (log?: Log) => {
       // 已启用的附件字段与本次新上传的合并；未启用的字段仍为 undefined，不会污染 payload
       const payload: CreateLog = {
         ...snapshot,
-        text: snapshot.text.trim(),
         medias: [...(snapshot.medias ?? []), ...attachments.medias],
         audios: [...(snapshot.audios ?? []), ...attachments.audios],
         files: [...(snapshot.files ?? []), ...attachments.files],
@@ -129,7 +115,10 @@ export const useLogEditor = (log?: Log) => {
 
       logStore.upsert(saved)
       logEdit.value = log ? createLogEdit(saved) : createLogEdit()
-      resetAttachments()
+      fileMap.medias = []
+      fileMap.audios = []
+      fileMap.files = []
+      return saved
     } finally {
       pending.value = false
       status.value = undefined
