@@ -41,6 +41,10 @@ declare global {
       remove(): void
       show(): void
       hide(): void
+      /** 内部配置对象（私有实现字段，用于运行时查改配置） */
+      _config: GeolocationOptions
+      /** 当前定位坐标的 Marker（私有实现字段，用于业务替换图标等） */
+      _marker: AMap.Marker
     }
 
     interface GeolocationOptions {

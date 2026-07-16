@@ -154,45 +154,63 @@ export const getAddress = async (p: AMap.Vector2) => {
 
 /**
  * 连接 Vue 生命周期与高德地图实例。
+ * 底图样式自动跟随 `useColorMode()`：暗色模式走 `dark` 底图，其它走 `normal`。
  * @param container 地图容器模板引用
- * @param options 地图初始化选项
+ * @param options 地图初始化选项，会与内置默认值浅合并
  */
 export const useAMap = (
   container: Readonly<Ref<HTMLElement | null>>,
   options?: AMap.MapOptions,
 ) => {
   const map = shallowRef<AMap.Map>()
-  const pending = ref(true)
+  const geolocation = shallowRef<AMap.Geolocation>()
   const error = ref('')
-  // SDK 加载是异步的，若等待期间组件已卸载，需要放弃后续初始化，避免创建孤儿地图实例
-  let disposed = false
+  // 已解析的颜色模式（'dark' | 'light'，auto 会被 VueUse 自动解析）
+  const mode = useColorMode()
+  const mapStyle = computed(
+    () => `amap://styles/${mode.value === 'dark' ? 'dark' : 'normal'}`,
+  )
 
   onMounted(async () => {
     try {
       const AMap = await getAMap()
-      if (disposed || !container.value) return
-      const instance = new AMap.Map(container.value, options)
-      map.value = instance
-      instance.on('complete', () => {
-        pending.value = false
+      if (!container.value) return
+
+      map.value = new AMap.Map(container.value, {
+        zoom: 17, // 地图级别
+        // center: 天府广场,
+        mapStyle: mapStyle.value,
+        ...options,
       })
+
+      // 定位控件与地图强绑定：坐标系偏移、marker、精度圈都依赖 map 上下文，随 map 一起销毁
+      // 也作为编程式定位入口（`getPositionByGeo(geolocation)` 等）——同一实例既是控件又是工具
+      geolocation.value = new AMap.Geolocation({
+        enableHighAccuracy: true, // 是否使用高精度定位，默认:true
+        timeout: 10000, // 超过10秒后停止定位，默认：无穷大
+        panToLocation: false,
+      })
+      geolocation.value!.addTo(map.value!)
+      geolocation.value!.hide()
+
+      map.value!.setCenter(await getPosition(geolocation.value), true)
     } catch (e) {
-      pending.value = false
       error.value = e instanceof Error ? e.message : '高德地图加载失败'
     }
   })
 
+  // 颜色模式变化时同步切换底图
+  watch(mapStyle, (style) => map.value?.setMapStyle(style))
+
   onUnmounted(() => {
-    disposed = true
     map.value?.destroy()
-    map.value = undefined
   })
 
   return {
     /** 当前地图实例；SDK 加载与组件挂载完成前为空 */
     map,
-    /** 地图资源或图面是否仍在加载 */
-    pending,
+    /** 定位控件（默认隐藏，无按钮 UI）；也可以传给 `getPositionByGeo` 等做编程式定位 */
+    geolocation,
     /** 地图初始化失败信息，空字符串表示无错误 */
     error,
   }

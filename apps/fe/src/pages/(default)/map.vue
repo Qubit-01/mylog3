@@ -5,13 +5,13 @@ import { useAMap } from '@/composables/map'
 definePage({ meta: { auth: true, title: '地图' } })
 
 const $aMap = useTemplateRef('$aMap')
-const { pending, error } = useAMap($aMap, { viewMode: '2D', zoom: 5 })
+const { map, error } = useAMap($aMap)
 </script>
 
 <template>
   <div class="map">
     <div ref="$aMap" class="aMap swiper-no-swiping" />
-    <div v-if="pending || error" class="status">
+    <div v-if="!map || error" class="status">
       <span>{{ error || '地图加载中…' }}</span>
     </div>
   </div>

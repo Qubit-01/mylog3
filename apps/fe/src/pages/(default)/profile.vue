@@ -11,7 +11,7 @@ const userStore = useUserStore()
 /** 当前用户；鉴权路由保证页面挂载时一定存在 */
 const user = computed(() => userStore.user!)
 /** 用户选择的颜色模式，`auto` 表示跟随系统 */
-const { store: mode } = useColorMode()
+const { store } = useColorMode()
 /** 退出请求是否正在进行，用于防止重复提交 */
 const pending = ref(false)
 /** 当前展开的资料区，默认展示账户信息与外观设置 */
@@ -90,7 +90,7 @@ const onLogout = async () => {
           <div class="item">
             <span class="label">颜色模式</span>
             <ElSegmented
-              v-model="mode"
+              v-model="store"
               :options="[
                 { value: 'auto', icon: 'Monitor' },
                 { value: 'light', icon: 'Sunny' },
