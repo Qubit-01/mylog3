@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 /** Log 详情：在默认布局内按 query.id 沉浸式展示单条记录 */
-import { deleteLog, getLog } from '@/api'
+import { deleteLog, getLog, type Log } from '@/api'
 import { deleteCosFiles } from '@/composables/cos'
 import { useLogStore } from '@/stores/log'
 import { useUserStore } from '@/stores/user'
-import { Delete } from '@element-plus/icons-vue'
+import { Close, Delete, Edit } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -16,7 +16,8 @@ const logStore = useLogStore()
 const userStore = useUserStore()
 const pending = ref(false)
 const deleting = ref(false)
-
+/** 是否处于编辑态；编辑器在 article 下方展开，保存成功或点关闭回到只读 */
+const editing = ref(false)
 /** 当前 query 中的正整数 Log id；格式无效时返回 undefined */
 const id = computed(() => {
   const value = Array.isArray(route.query.id)
@@ -25,13 +26,27 @@ const id = computed(() => {
   return value && /^[1-9]\d*$/.test(value) ? Number(value) : undefined
 })
 
-/** 随 query.id 自动加载详情；无效参数或请求失败统一返回空状态 */
-const log = computedAsync(
-  () =>
-    id.value ? getLog({ id: id.value }).catch(() => undefined) : undefined,
-  undefined,
-  pending,
+/** 当前详情实体；ref 可写以便保存后本地即时刷新，无需重新拉取 */
+const log = ref<Log>()
+
+/** 随 query.id 自动加载详情；无效参数或请求失败统一走空状态 */
+watch(
+  id,
+  async (newId) => {
+    log.value = undefined
+    if (!newId) return
+    pending.value = true
+    log.value = await getLog({ id: newId }).catch(() => undefined)
+    pending.value = false
+  },
+  { immediate: true },
 )
+
+/** 编辑器保存成功：本地刷新展示、退出编辑态 */
+const onSaved = (saved: Log) => {
+  log.value = saved
+  editing.value = false
+}
 
 /** 确认后先删除 COS 附件，再删除记录、清理列表缓存并返回我的 Log */
 const onDelete = async () => {
@@ -98,6 +113,11 @@ const onDelete = async () => {
 
       <div v-if="userStore.user?.id === log.userId" class="actions m-panel">
         <ElButton
+          :icon="editing ? Close : Edit"
+          text
+          @click="editing = !editing"
+        />
+        <ElButton
           :icon="Delete"
           :loading="deleting"
           type="danger"
@@ -105,6 +125,8 @@ const onDelete = async () => {
           @click="onDelete"
         />
       </div>
+
+      <LogEditor v-if="editing" :log="log" @done="onSaved" />
     </template>
   </ElScrollbar>
 </template>
