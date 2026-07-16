@@ -1,9 +1,4 @@
-import {
-  createLog,
-  type CreateLog,
-  type Log,
-  updateLog,
-} from '@/api'
+import { createLog, type CreateLog, type Log, updateLog } from '@/api'
 import { deleteCosFiles, uploadCosFiles } from '@/composables/cos'
 import { compressImagePreview } from '@/composables/compression'
 import { useLogStore } from '@/stores/log'
@@ -20,10 +15,6 @@ export type LogEdit = CreateLog & Required<Pick<CreateLog, 'text' | 'scope'>>
 /** 生成 COS 目录相对 key，避免用户目录内重名 */
 const cosKey = (name: string, prefix = '') =>
   `mylog/${prefix}${crypto.randomUUID()}-${name}`
-
-/** 从 Element Plus 上传项里取出真正的原始 File */
-const rawFiles = (items: UploadUserFile[]) =>
-  items.flatMap(({ raw }) => (raw ? [raw] : []))
 
 /** 新建 Log 时的草稿默认值：只保留始终展示的字段 */
 const emptyLogEdit = (): LogEdit => ({
@@ -51,23 +42,23 @@ export const useLogEditor = (log?: Log) => {
   /** 上传全部本地附件，并转换为 Log 接口需要的三类资源 */
   const uploadAttachments = async () => {
     status.value = '压缩图片中…'
-    // 图片生成压缩预览；视频对应位置为 undefined；原始文件永远不参与重编码
-    const rawMedias = rawFiles(fileMap.medias)
-    const previews = await Promise.all(rawMedias.map(compressImagePreview))
-    const audios = rawFiles(fileMap.audios)
-    const files = rawFiles(fileMap.files)
+    // 从 Element Plus 上传项里取原始 File；图片额外生成压缩预览，视频对应位置为 undefined
+    const medias = fileMap.medias.flatMap(({ raw }) => (raw ? [raw] : []))
+    const audios = fileMap.audios.flatMap(({ raw }) => (raw ? [raw] : []))
+    const files = fileMap.files.flatMap(({ raw }) => (raw ? [raw] : []))
+    const previews = await Promise.all(medias.map(compressImagePreview))
 
     status.value = '上传文件中…'
     const keys = await uploadCosFiles(
       [
-        ...rawMedias.flatMap((raw, i) => {
+        ...medias.flatMap((f, i) => {
           const preview = previews[i]
           return preview
             ? [
-                { Body: raw, Key: cosKey(raw.name) },
+                { Body: f, Key: cosKey(f.name) },
                 { Body: preview, Key: cosKey(preview.name, 'preview/') },
               ]
-            : [{ Body: raw, Key: cosKey(raw.name) }]
+            : [{ Body: f, Key: cosKey(f.name) }]
         }),
         ...audios.map((f) => ({ Body: f, Key: cosKey(f.name) })),
         ...files.map((f) => ({ Body: f, Key: cosKey(f.name) })),
@@ -83,8 +74,10 @@ export const useLogEditor = (log?: Log) => {
     let i = 0
     return {
       keys,
-      medias: rawMedias.map((raw, idx) => ({
-        type: raw.type.startsWith('video/') ? ('video' as const) : ('image' as const),
+      medias: medias.map((f, idx) => ({
+        type: f.type.startsWith('video/')
+          ? ('video' as const)
+          : ('image' as const),
         url: keys[i++]!,
         previewUrl: previews[idx] ? keys[i++] : undefined,
       })),
