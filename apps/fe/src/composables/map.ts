@@ -29,6 +29,18 @@ export const getAMap = () =>
 /** `AMap.LngLat` 对象转 `[lng, lat]` 元组，方便与高德接口的 `Vector2` 参数互通 */
 export const l2v = (p: AMap.LngLat): AMap.Vector2 => [p.lng, p.lat]
 
+/** 兜底坐标：成都天府广场 */
+const 天府广场: AMap.Vector2 = [104.065739, 30.657452]
+
+/****************
+ * 定位
+ * Ip定位
+ * - getCityByIp 获取城市，不要权限，可能为空
+ * Geo定位
+ * - getPositionByGeo 获取当前精确位置，要权限
+ * - getCityInfoByGeo 获取城市信息，不要权限，不会为空
+ ****************/
+
 /**
  * 公共定位对象（懒加载单例）。
  * 首次调用触发 SDK 加载和构造，之后复用；构造本身不触发权限询问，具体方法调用时才询问。
@@ -55,6 +67,90 @@ export const getGeolocation = () =>
         // zoomToAccuracy: false,  // 定位成功且显示精度范围时，是否把地图视野调整到正好显示精度范围 false
       }),
   ))
+
+/**
+ * IP定位: 根据IP返回对应城市信息。不要权限，但有代理时不会返回结果
+ * @param ip 指定ip查询，可以不传，就自动获取ip
+ * @returns Promise<{bounds.getCenter()才是中心点, ...}>
+ * @see https://lbs.amap.com/api/javascript-api-v2/documentation#citysearch
+ * status:
+ *   complete => result为CitySearchResult
+ *   error => result为错误信息info
+ *   no_data => 代表检索返回0结果，result空对象
+ */
+export const getCityByIp = async (ip?: string) => {
+  const AMap = await getAMap()
+  return new Promise<AMap.CitySearchResult>((resolve, reject) => {
+    const citySearch = new AMap.CitySearch()
+    const cb = (status: string, result: AMap.CitySearchResult) => {
+      console.info('getCityByIp', status, result)
+      if (status === 'complete' && result.info === 'OK') resolve(result)
+      else reject({ status, result })
+    }
+    ip ? citySearch.getCityByIp(ip, cb) : citySearch.getLocalCity(cb)
+  })
+}
+
+/**
+ * 获取精确位置，有失败几率，浏览器定位，要权限。有几率失败，可能是因为没给权限
+ * 并且 getCurrentPosition 方法会触发地图展示当前坐标
+ * @param 可以自己传入，没有权限时，不会有坐标
+ * @return Promise<{position坐标对象, ...}>
+ * error =>
+ *     message: "Get ipLocation failed.Geolocation permission denied."
+ *     originMessage: "User denied Geolocation"
+ */
+export const getPositionByGeo = async (gl?: AMap.Geolocation) => {
+  const geolocation = gl ?? (await getGeolocation())
+  return new Promise<{ position: AMap.LngLat }>((resolve, reject) => {
+    geolocation.getCurrentPosition((status: string, result: any) => {
+      console.info('getPositionByGeo', status, result)
+      status === 'complete' ? resolve(result) : reject({ status, result })
+    })
+  })
+}
+
+/**
+ * 获取当前城市信息，浏览器定位，不要权限。而且在使用代理时，也会通过ip返回结果，有几率失败
+ * @returns Promise<{position坐标数组, ...}>
+ */
+export const getCityInfoByGeo = async (gl?: AMap.Geolocation) => {
+  const geolocation = gl ?? (await getGeolocation())
+  return new Promise<{ position: AMap.Vector2 }>((resolve, reject) => {
+    geolocation.getCityInfo((status: string, result: any) => {
+      console.info('getCityInfoByGeo', status, result)
+      status === 'complete' ? resolve(result) : reject({ status, result })
+    })
+  })
+}
+
+/** 不管有没有权限都要给出一个坐标，天府广场兜底 */
+export const getPosition = async (gl?: AMap.Geolocation) =>
+  getPositionByGeo(gl)
+    .then((res) => l2v(res.position))
+    .catch(() =>
+      getCityInfoByGeo(gl).then((res) => res.position as AMap.Vector2),
+    )
+    .catch(() => getCityByIp().then((res) => l2v(res.bounds.getCenter())))
+    .catch(() => 天府广场)
+
+/** 坐标转描述 */
+export const getAddress = async (p: AMap.Vector2) => {
+  const AMap = await getAMap()
+  const geocoder = new AMap.Geocoder({
+    // city: '',
+    // radius: 1000,
+    // batch: false,
+    // extensions: 'all',
+  })
+  return new Promise<any>((resolve, reject) => {
+    geocoder.getAddress(p, (status: string, result: any) => {
+      status === 'complete' && result.info === 'OK'
+        ? resolve(result.regeocode)
+        : reject([status, result])
+    })
+  })
+}
 
 /**
  * 连接 Vue 生命周期与高德地图实例。
@@ -99,54 +195,5 @@ export const useAMap = (
     pending,
     /** 地图初始化失败信息，空字符串表示无错误 */
     error,
-  }
-}
-
-/** 类型定义 **********************************/
-
-declare global {
-  namespace AMap {
-    interface CitySearchResult {
-      bounds: AMap.Bounds
-      city: string
-      province: string
-      info: string
-    }
-
-    interface Control {
-      addTo(map: AMap.Map): void
-      remove(): void
-      show(): void
-      hide(): void
-    }
-
-    /** IP 定位 */
-    class CitySearch {
-      constructor()
-      /** 指定 IP 查询城市；无权限也可用，但代理下可能拿不到结果 */
-      getCityByIp(
-        ip: string,
-        callback: (status: string, result: CitySearchResult) => void,
-      ): void
-      getLocalCity(
-        callback: (status: string, result: CitySearchResult) => void,
-      ): void
-    }
-
-    /** 浏览器定位控件 */
-    class Geolocation extends Control {
-      constructor(options?: any)
-      getCurrentPosition(callback: (status: string, result: any) => void): void
-      getCityInfo(callback: (status: string, result: any) => void): void
-    }
-
-    /** 逆地理编码 */
-    class Geocoder {
-      constructor(options?: any)
-      getAddress(
-        lnglat: any,
-        callback: (status: string, result: any) => void,
-      ): void
-    }
   }
 }
