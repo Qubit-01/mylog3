@@ -5,7 +5,7 @@
 - 仅维护编辑状态，不负责上传文件或删除远端资源。
 -->
 <script lang="ts">
-import { toResourceUrl } from '@/composables/cos'
+import { toResourceUrl } from 'shared/cos'
 import type { UploadUserFile } from 'element-plus'
 
 /** 可适配为上传列表项的既有资源 */

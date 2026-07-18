@@ -3,7 +3,7 @@
 import { Keyboard, Mousewheel, Navigation, Pagination } from 'swiper/modules'
 import type { Swiper as SwiperInstance } from 'swiper/types'
 import { Swiper, SwiperSlide } from 'swiper/vue'
-import { toResourceUrl } from '@/composables/cos'
+import { toResourceUrl } from 'shared/cos'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'

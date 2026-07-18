@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 /** Log 媒体画廊：单行平铺，点击后进入图片 / 视频混合预览 */
 import type { LogMedia } from '@/api'
-import { toResourceUrl } from '@/composables/cos'
+import { toResourceUrl } from 'shared/cos'
 import { Close, VideoPlay } from '@element-plus/icons-vue'
 import PictureImg from 'shared/PictureImg'
 
