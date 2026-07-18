@@ -8,6 +8,7 @@ import { cloneDeep } from 'lodash-unified'
 /**
  * 编辑器草稿：`text` / `scope` 始终存在，其余字段仅在启用对应编辑组件时才出现（`undefined` 表示未启用）。
  * `logAt` 也遵循同样约定：未启用时为 undefined，服务端提交时自动兼底为当前时间。
+ * 编辑时从原 Log 深克隆；新增时可选字段由对应编辑组件按需启用。
  * UI 层用 `v-if="logEdit.xxx !== undefined"` 控制编辑组件的显隐。
  */
 export type LogEdit = CreateLog & Required<Pick<CreateLog, 'text' | 'scope'>>
@@ -16,9 +17,18 @@ export type LogEdit = CreateLog & Required<Pick<CreateLog, 'text' | 'scope'>>
 const cosKey = (name: string, prefix = '') =>
   `mylog/${prefix}${crypto.randomUUID()}-${name}`
 
-/** 生成本地草稿：新建时给默认值，编辑时从服务端实体深克隆；可选字段按 log 的真实存在与否决定 */
+/** 生成本地草稿：新建时使用默认值，编辑时深克隆原 Log */
 const createLogEdit = (log?: Log): LogEdit =>
   cloneDeep({ scope: 'PRIVATE', text: '', ...log })
+
+/** 收集附件占用的 COS object key，跳过外链 */
+const collectCosKeys = (
+  ...groups: ({ url: string; previewUrl?: string }[] | undefined)[]
+) =>
+  groups
+    .flatMap((items) => items ?? [])
+    .flatMap(({ url, previewUrl }) => (previewUrl ? [url, previewUrl] : [url]))
+    .filter((key) => !URL.canParse(key))
 
 /** 管理 Log 编辑草稿、附件事务和保存状态，组件本身只负责渲染 */
 export const useLogEditor = (log?: Log) => {
@@ -58,9 +68,7 @@ export const useLogEditor = (log?: Log) => {
         ...files.map((f) => ({ Body: f, Key: cosKey(f.name) })),
       ],
       ({ percent, speed }) => {
-        const p = Math.round(percent * 100)
-        const s = (speed / 1024 / 1024).toFixed(2)
-        status.value = `上传文件中… ${p}% · ${s}MB/s`
+        status.value = `上传文件中… ${Math.round(percent * 100)}% · ${(speed / 1024 / 1024).toFixed(2)}MB/s`
       },
     )
 
@@ -95,12 +103,12 @@ export const useLogEditor = (log?: Log) => {
         return
       }
 
-      // 已启用的附件字段与本次新上传的合并；未启用的字段仍为 undefined，不会污染 payload
+      // 仅合并已启用字段中的既有附件与本次上传结果
       const payload: CreateLog = {
         ...snapshot,
-        medias: [...(snapshot.medias ?? []), ...attachments.medias],
-        audios: [...(snapshot.audios ?? []), ...attachments.audios],
-        files: [...(snapshot.files ?? []), ...attachments.files],
+        medias: snapshot.medias?.concat(attachments.medias),
+        audios: snapshot.audios?.concat(attachments.audios),
+        files: snapshot.files?.concat(attachments.files),
       }
       status.value = '提交 Log 中…'
       let saved: Log
@@ -111,6 +119,19 @@ export const useLogEditor = (log?: Log) => {
       } catch {
         await deleteCosFiles(attachments.keys).catch(() => undefined)
         return
+      }
+
+      // 编辑成功后：把用户从既有列表里移除的原始附件在 COS 中一并清理
+      if (log) {
+        const keptKeys = new Set(
+          collectCosKeys(snapshot.medias, snapshot.audios, snapshot.files),
+        )
+        const removedKeys = collectCosKeys(
+          log.medias,
+          log.audios,
+          log.files,
+        ).filter((key) => !keptKeys.has(key))
+        await deleteCosFiles(removedKeys).catch(() => undefined)
       }
 
       logStore.upsert(saved)
@@ -132,7 +153,7 @@ export const useLogEditor = (log?: Log) => {
     pending,
     /** 当前提交阶段的展示文案；`undefined` 表示空闲 */
     status,
-    /** 按业务类型分组的本地待提交文件 */
+    /** 按业务类型分组的本地待上传新增文件 */
     fileMap,
     /** 提交当前草稿 */
     submit,
