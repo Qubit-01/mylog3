@@ -91,13 +91,13 @@ export const useLogEditor = (log?: Log) => {
   /** 提交当前草稿；附件与 Log 保存组成一个尽力回滚的事务。返回保存后的 Log；未提交或失败返回 undefined */
   const submit = async (): Promise<Log | undefined> => {
     if (!logEdit.value.text.trim() || pending.value) return
-    const snapshot = cloneDeep(logEdit.value)
+    const _logEdit = cloneDeep(logEdit.value)
     pending.value = true
 
     try {
-      let attachments
+      let uploaded
       try {
-        attachments = await uploadAttachments()
+        uploaded = await uploadAttachments()
       } catch {
         ElMessage.error('文件上传失败，请稍后重试')
         return
@@ -105,10 +105,10 @@ export const useLogEditor = (log?: Log) => {
 
       // 仅合并已启用字段中的既有附件与本次上传结果
       const payload: CreateLog = {
-        ...snapshot,
-        medias: snapshot.medias?.concat(attachments.medias),
-        audios: snapshot.audios?.concat(attachments.audios),
-        files: snapshot.files?.concat(attachments.files),
+        ..._logEdit,
+        medias: _logEdit.medias?.concat(uploaded.medias),
+        audios: _logEdit.audios?.concat(uploaded.audios),
+        files: _logEdit.files?.concat(uploaded.files),
       }
       status.value = '提交 Log 中…'
       let saved: Log
@@ -117,14 +117,14 @@ export const useLogEditor = (log?: Log) => {
           ? await updateLog({ id: log.id, ...payload })
           : await createLog(payload)
       } catch {
-        await deleteCosFiles(attachments.keys).catch(() => undefined)
+        await deleteCosFiles(uploaded.keys).catch(() => undefined)
         return
       }
 
       // 编辑成功后：把用户从既有列表里移除的原始附件在 COS 中一并清理
       if (log) {
         const keptKeys = new Set(
-          collectCosKeys(snapshot.medias, snapshot.audios, snapshot.files),
+          collectCosKeys(_logEdit.medias, _logEdit.audios, _logEdit.files),
         )
         const removedKeys = collectCosKeys(
           log.medias,
