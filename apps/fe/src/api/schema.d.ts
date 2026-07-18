@@ -301,6 +301,16 @@ export interface components {
              */
             lat: number;
         };
+        LogMediaMetadataDto: {
+            /**
+             * Format: date-time
+             * @description 媒体拍摄时刻（ISO 8601 UTC 字符串）
+             * @example 2026-07-19T06:30:00.000Z
+             */
+            takenAt?: string;
+            /** @description 媒体拍摄位置坐标 */
+            location?: components["schemas"]["LogMediaLocationDto"];
+        };
         LogMediaDto: {
             /**
              * @description 媒体类型：image 图片 / video 视频
@@ -315,8 +325,8 @@ export interface components {
              * @example users/1/mylog/preview/uuid-media.jpg
              */
             previewUrl?: string;
-            /** @description 图片 EXIF 位置坐标 */
-            location?: components["schemas"]["LogMediaLocationDto"];
+            /** @description 从媒体文件中解析并归一化的元数据 */
+            metadata?: components["schemas"]["LogMediaMetadataDto"];
         };
         LogAudioDto: {
             /**

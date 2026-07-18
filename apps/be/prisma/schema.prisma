@@ -67,8 +67,8 @@ model Log {
   /// 正文文本，`LongText` 支持长内容
   text      String   @db.LongText
   /// 图片 + 视频列表，按顺序展示用于横滑轮播，缺省 `[]`
-  /// - image: `{ type: 'image', url, location?: { lng, lat } }`
-  /// - video: `{ type: 'video', url }`
+  /// - image: `{ type: 'image', url, previewUrl?, metadata?: { takenAt?, location?: { lng, lat } } }`
+  /// - video: `{ type: 'video', url, metadata?: { takenAt?, location?: { lng, lat } } }`
   medias    Json
   /// 音频列表，元素 `{ url }`，缺省 `[]`
   audios    Json
@@ -77,7 +77,6 @@ model Log {
   /// 标签，元素为 string，如 `["生活", "随笔"]`，缺省 `[]`
   tags      Json
   /// 位置列表（地图打点 / 旅行轨迹），元素 `{ lng, lat, name?, address? }`，缺省 `[]`
-  /// 图片 EXIF 坐标另存于 `medias[].location`，两者互不重复
   location  Json
   /// 关联人员列表，元素 `{ userId?, name?, avatar? }`，缺省 `[]`
   people    Json

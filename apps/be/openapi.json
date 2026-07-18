@@ -490,6 +490,25 @@
           "lat"
         ]
       },
+      "LogMediaMetadataDto": {
+        "type": "object",
+        "properties": {
+          "takenAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "媒体拍摄时刻（ISO 8601 UTC 字符串）",
+            "example": "2026-07-19T06:30:00.000Z"
+          },
+          "location": {
+            "description": "媒体拍摄位置坐标",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LogMediaLocationDto"
+              }
+            ]
+          }
+        }
+      },
       "LogMediaDto": {
         "type": "object",
         "properties": {
@@ -511,11 +530,11 @@
             "description": "用于快速展示的轻量媒体 COS object key；没有时省略",
             "example": "users/1/mylog/preview/uuid-media.jpg"
           },
-          "location": {
-            "description": "图片 EXIF 位置坐标",
+          "metadata": {
+            "description": "从媒体文件中解析并归一化的元数据",
             "allOf": [
               {
-                "$ref": "#/components/schemas/LogMediaLocationDto"
+                "$ref": "#/components/schemas/LogMediaMetadataDto"
               }
             ]
           }
