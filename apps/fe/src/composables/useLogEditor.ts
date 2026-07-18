@@ -1,5 +1,9 @@
 import { createLog, type CreateLog, type Log, updateLog } from '@/api'
-import { deleteCosFiles, uploadCosFiles } from '@/composables/cos'
+import {
+  collectCosKeys,
+  deleteCosFiles,
+  uploadCosFiles,
+} from '@/composables/cos'
 import { compressImagePreview } from '@/composables/compression'
 import { useLogStore } from '@/stores/log'
 import type { UploadUserFile } from 'element-plus'
@@ -21,16 +25,7 @@ const cosKey = (name: string, prefix = '') =>
 const createLogEdit = (log?: Log): LogEdit =>
   cloneDeep({ scope: 'PRIVATE', text: '', ...log })
 
-/** 收集附件占用的 COS object key，跳过外链 */
-const collectCosKeys = (
-  ...groups: ({ url: string; previewUrl?: string }[] | undefined)[]
-) =>
-  groups
-    .flatMap((items) => items ?? [])
-    .flatMap(({ url, previewUrl }) => (previewUrl ? [url, previewUrl] : [url]))
-    .filter((key) => !URL.canParse(key))
-
-/** 管理 Log 编辑草稿、附件事务和保存状态，组件本身只负责渲染 */
+/** 管理 Log 编辑草稿、附件上传清理和保存状态，组件本身只负责渲染 */
 export const useLogEditor = (log?: Log) => {
   const logStore = useLogStore()
   const logEdit = ref(createLogEdit(log))
@@ -75,7 +70,6 @@ export const useLogEditor = (log?: Log) => {
     // 与上方上传项的顺序一致：先 media（可能带 preview），再 audio，最后 file
     let i = 0
     return {
-      keys,
       medias: medias.map((f, idx) => ({
         type: f.type.startsWith('video/')
           ? ('video' as const)
@@ -88,7 +82,7 @@ export const useLogEditor = (log?: Log) => {
     }
   }
 
-  /** 提交当前草稿；附件与 Log 保存组成一个尽力回滚的事务。返回保存后的 Log；未提交或失败返回 undefined */
+  /** 提交当前草稿；保存成功后尽力清理不再引用的附件。返回保存后的 Log；未提交或失败返回 undefined */
   const submit = async (): Promise<Log | undefined> => {
     if (!logEdit.value.text.trim() || pending.value) return
     const _logEdit = cloneDeep(logEdit.value)
@@ -111,20 +105,16 @@ export const useLogEditor = (log?: Log) => {
         files: _logEdit.files?.concat(uploaded.files),
       }
       status.value = '提交 Log 中…'
-      let saved: Log
-      try {
-        saved = log
-          ? await updateLog({ id: log.id, ...payload })
-          : await createLog(payload)
-      } catch {
-        await deleteCosFiles(uploaded.keys).catch(() => undefined)
-        return
-      }
+      // 请求可能已落库但响应失败，不能删除可能已被引用的新文件
+      const saved = await (
+        log ? updateLog({ id: log.id, ...payload }) : createLog(payload)
+      ).catch(() => undefined)
+      if (!saved) return
 
       // 编辑成功后：把用户从既有列表里移除的原始附件在 COS 中一并清理
       if (log) {
         const keptKeys = new Set(
-          collectCosKeys(_logEdit.medias, _logEdit.audios, _logEdit.files),
+          collectCosKeys(saved.medias, saved.audios, saved.files),
         )
         const removedKeys = collectCosKeys(
           log.medias,

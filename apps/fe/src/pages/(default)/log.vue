@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 /** Log 详情：在默认布局内按 query.id 沉浸式展示单条记录 */
 import { deleteLog, getLog, type Log } from '@/api'
-import { deleteCosFiles } from '@/composables/cos'
+import { collectCosKeys, deleteCosFiles } from '@/composables/cos'
 import { useLogStore } from '@/stores/log'
 import { useUserStore } from '@/stores/user'
 import { Close, Delete, Edit } from '@element-plus/icons-vue'
@@ -48,7 +48,7 @@ const onSaved = (saved: Log) => {
   editing.value = false
 }
 
-/** 确认后先删除 COS 附件，再删除记录、清理列表缓存并返回我的 Log */
+/** 确认后先删除记录，再尽力清理 COS 附件、列表缓存并返回我的 Log */
 const onDelete = async () => {
   const target = log.value
   if (!target || deleting.value) return
@@ -60,19 +60,16 @@ const onDelete = async () => {
       cancelButtonText: '取消',
       confirmButtonClass: 'el-button--danger',
     })
-    try {
-      await deleteCosFiles(
-        [...target.medias, ...target.audios, ...target.files]
-          .map(({ url }) => url)
-          .filter((url) => !URL.canParse(url)),
-      )
-    } catch {
-      ElMessage.error('附件删除失败，请稍后重试')
-      return
-    }
     await deleteLog({ id: target.id })
     logStore.remove(target.id)
-    ElMessage.success('已删除')
+    try {
+      await deleteCosFiles(
+        collectCosKeys(target.medias, target.audios, target.files),
+      )
+      ElMessage.success('已删除')
+    } catch {
+      ElMessage.warning('Log 已删除，但附件清理失败')
+    }
     await router.replace('/mine')
   } catch (e) {
     if (e !== 'cancel' && e !== 'close') throw e

@@ -19,6 +19,15 @@ const createCosClient = async () => {
   )
 }
 
+/** 收集资源占用的 COS object key，跳过外链 */
+export const collectCosKeys = (
+  ...groups: ({ url: string; previewUrl?: string }[] | undefined)[]
+) =>
+  groups
+    .flatMap((items) => items ?? [])
+    .flatMap(({ url, previewUrl }) => (previewUrl ? [url, previewUrl] : [url]))
+    .filter((key) => !URL.canParse(key))
+
 /**
  * 分页统计当前用户目录的对象数量与总大小。
  * @returns objectCount 为对象数量，totalBytes 为对象总字节数
