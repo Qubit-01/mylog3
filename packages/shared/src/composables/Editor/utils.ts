@@ -23,8 +23,9 @@ export const computedFileList = <T extends FileResource>(
   fileList: Ref<UploadUserFile[]>,
 ) =>
   computed<(UploadUserFile & { _origin?: T })[]>({
-    get: () => [
+    get: (list) => [
       ...files.value.map((item) => ({
+        ...list?.find((file) => file._origin === item),
         name: item.url,
         url: toResourceUrl(item.previewUrl ?? item.url),
         status: 'success' as const,
