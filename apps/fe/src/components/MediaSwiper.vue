@@ -3,6 +3,7 @@
 import { Keyboard, Mousewheel, Navigation, Pagination } from 'swiper/modules'
 import type { Swiper as SwiperInstance } from 'swiper/types'
 import { Swiper, SwiperSlide } from 'swiper/vue'
+import { toResourceUrl } from '@/composables/cos'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
@@ -30,17 +31,6 @@ const emit = defineEmits<{
 const modules = [Keyboard, Mousewheel, Navigation, Pagination]
 /** 当前展示项下标，用于限制原图与视频的加载范围 */
 const current = ref(initialSlide)
-
-/**
- * 把资源引用转成可访问地址
- * @param url 完整 URL 或 COS object key
- * @returns 可直接用于 src 的 HTTPS 地址
- */
-const toResourceUrl = (url: string) => {
-  if (url.startsWith('http://')) return url.replace('http://', 'https://')
-  if (url.startsWith('https://')) return url
-  return `https://cos.mylog.ink/${url}`
-}
 
 /** 只加载当前项及相邻项，避免一次性请求所有原图与视频 */
 const shouldLoad = (index: number) => Math.abs(index - current.value) <= 1

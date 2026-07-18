@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 /** Log 媒体画廊：单行平铺，点击后进入图片 / 视频混合预览 */
 import type { LogMedia } from '@/api'
+import { toResourceUrl } from '@/composables/cos'
 import { Close, VideoPlay } from '@element-plus/icons-vue'
 import PictureImg from 'shared/PictureImg'
 
@@ -8,17 +9,6 @@ const { medias } = defineProps<{
   /** 图片 + 视频混排列表，原始资源使用 url，轻量展示资源使用可选 previewUrl */
   medias: LogMedia[]
 }>()
-
-/**
- * 把资源引用转成可访问地址
- * @param url 完整 URL 或 COS object key
- * @returns 可直接用于 src 的访问地址
- */
-const toResourceUrl = (url: string) => {
-  if (url.startsWith('http://')) return url.replace('http://', 'https://')
-  if (url.startsWith('https://')) return url
-  return `https://cos.mylog.ink/${url}`
-}
 
 /** 当前预览下标，undefined 表示关闭预览 */
 const current = ref<number>()

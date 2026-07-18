@@ -4,6 +4,17 @@
 import COS from 'cos-js-sdk-v5'
 import { createCosCredential } from '@/api'
 
+/**
+ * 把资源引用转成可访问地址。
+ * @param url 完整 URL 或 COS object key
+ * @returns 可直接用于浏览器资源标签的 HTTPS 地址
+ */
+export const toResourceUrl = (url: string) => {
+  if (url.startsWith('http://')) return url.replace('http://', 'https://')
+  if (url.startsWith('https://')) return url
+  return `https://cos.mylog.ink/${url}`
+}
+
 /** 创建附带当前用户凭证信息的 COS 客户端，仅供当前适配层使用 */
 const createCosClient = async () => {
   const credential = await createCosCredential()
