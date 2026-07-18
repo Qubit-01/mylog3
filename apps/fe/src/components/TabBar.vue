@@ -32,7 +32,7 @@ const activeIndex = computed(() => tabs.findIndex((t) => t.to === route.path))
   padding: 6px;
   overflow: hidden;
   border-radius: 999px;
-  background: #fff9;
+  background: #ccc7;
   backdrop-filter: blur(8px) saturate(180%);
   -webkit-backdrop-filter: blur(8px) saturate(180%);
   box-shadow:
@@ -62,7 +62,7 @@ const activeIndex = computed(() => tabs.findIndex((t) => t.to === route.path))
     height: 40px;
     padding: 0 16px;
     color: #000;
-    text-shadow: 0 1px 2px #fff9;
+    text-shadow: 0 1px 2px #ccc7;
     font-size: 14px;
     font-weight: 700;
     text-decoration: none;
