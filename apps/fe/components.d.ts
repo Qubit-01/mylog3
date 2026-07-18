@@ -12,9 +12,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AsideUser: typeof import('./src/components/AsideUser.vue')['default']
-    EditorAudios: typeof import('./src/components/EditorAudios.vue')['default']
-    EditorFiles: typeof import('./src/components/EditorFiles.vue')['default']
-    EditorMedias: typeof import('./src/components/EditorMedias.vue')['default']
     EditorTime: typeof import('./src/components/EditorTime.vue')['default']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElButton: typeof import('element-plus/es')['ElButton']

@@ -2,6 +2,7 @@
 /** Log 编辑器：新增和编辑共用；每条 Log 使用独立实例，草稿仅在初始化时读取 log */
 import type { Log } from '@/api'
 import { useLogEditor, type LogEdit } from '@/composables/useLogEditor'
+import { EditorAudios, EditorFiles, EditorMedias } from 'shared/Editor'
 import {
   Clock,
   Document,

@@ -9,11 +9,8 @@
   setup
   generic="T extends FileResource & { type: 'image' | 'video' }"
 >
-import {
-  computedFileList,
-  type FileResource,
-} from '@/components/EditorFiles.vue'
-import type { UploadProps, UploadUserFile } from 'element-plus'
+import { computedFileList, type FileResource } from './utils'
+import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
 import { Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
 
 /** 本轮新增的图片 / 视频；调用方可从 `raw` 拿原始 File 交给后续流程 */
