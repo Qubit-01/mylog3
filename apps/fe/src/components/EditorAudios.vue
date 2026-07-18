@@ -1,10 +1,24 @@
-<script lang="ts" setup>
-/** 音频编辑器：浏览器端选择、试听、删除，仅维护本地文件列表，不涉及上传 */
+<!--
+音频编辑器：
+- 默认 model 维护本轮新增的本地音频，audios model 可选传入带 url 的既有音频。
+- 新旧音频统一展示、试听和删除，操作后自动同步拆回各自 model。
+- 仅维护编辑状态和本地试听地址，不负责上传或删除远端资源。
+-->
+<script lang="ts" setup generic="T extends FileResource">
+import {
+  computedFileList,
+  type FileResource,
+} from '@/components/EditorFiles.vue'
 import type { UploadProps, UploadUserFile } from 'element-plus'
 import { Delete, Plus } from '@element-plus/icons-vue'
 
-/** 当前编辑的音频列表；调用方可从 `raw` 拿原始 File 交给后续流程 */
+/** 本轮新增的音频；调用方可从 `raw` 拿原始 File 交给后续流程 */
 const fileList = defineModel<UploadUserFile[]>({ required: true })
+
+/** 编辑前已存在的音频资源；用户点删除会直接从这里剔除 */
+const audios = defineModel<T[]>('audios', { default: () => [] })
+
+const _fileList = computedFileList(audios, fileList)
 
 /** 释放本地试听 blob URL，避免反复选文件后残留 */
 const revoke = (file: UploadUserFile) => {
@@ -13,23 +27,17 @@ const revoke = (file: UploadUserFile) => {
   file.url = undefined
 }
 
-/** 选择后生成本地试听地址；这一阶段只留在浏览器 */
+/** 选择后校验类型并生成本地试听地址；类型不符直接把它从列表移除 */
 const onChange: UploadProps['onChange'] = (file, files) => {
   if (!file.raw?.type.startsWith('audio/')) {
     ElMessage.warning('只能添加音频')
-    fileList.value = files.filter((item) => item.uid !== file.uid)
+    _fileList.value = files.filter((item) => item.uid !== file.uid)
     return
   }
-
-  if (!file.url && file.raw) file.url = URL.createObjectURL(file.raw)
+  file.url ||= URL.createObjectURL(file.raw)
 }
 
-/** 自定义列表删除入口；用于覆盖 Element Plus 默认文件模板后的删除动作 */
-const remove = (file: UploadUserFile) => {
-  fileList.value = fileList.value.filter((item) => item.uid !== file.uid)
-}
-
-/** 外部清空音频列表时，回收已经移除的本地试听地址 */
+/** 本地音频移除时回收试听地址 */
 watch(fileList, (value, oldValue) => {
   oldValue
     ?.filter((old) => !value.some((file) => file.uid === old.uid))
@@ -43,7 +51,7 @@ onUnmounted(() => {
 
 <template>
   <ElUpload
-    v-model:file-list="fileList"
+    v-model:file-list="_fileList"
     class="EditorAudios"
     accept="audio/*"
     multiple
@@ -55,7 +63,13 @@ onUnmounted(() => {
       <div class="item">
         <audio :src="file.url" controls preload="metadata" />
         <span class="name">{{ file.name }}</span>
-        <ElButton :icon="Delete" text @click.stop="remove(file)" />
+        <ElButton
+          :icon="Delete"
+          text
+          @click.stop="
+            _fileList = _fileList.filter((item) => item.uid !== file.uid)
+          "
+        />
       </div>
     </template>
   </ElUpload>

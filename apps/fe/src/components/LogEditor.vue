@@ -27,7 +27,7 @@ const { logEdit, fileMap, pending, status, submit } = useLogEditor(props.log)
 /** 包装 submit：成功则带着保存后的 Log 知会宿主 */
 const onSubmit = () => submit().then((saved) => saved && emit('done', saved))
 
-/** 切换草稿字段的启用状态；启用时用传入的初值，关闭时同步清空对应文件缓冲 */
+/** 切换草稿字段的启用状态；启用时用传入的初值，关闭时同步清空对应新增文件缓冲 */
 const toggle = <K extends keyof LogEdit>(
   key: K,
   initial: NonNullable<LogEdit[K]>,
@@ -103,12 +103,18 @@ const toggle = <K extends keyof LogEdit>(
     <EditorMedias
       v-if="logEdit.medias !== undefined"
       v-model="fileMap.medias"
+      v-model:medias="logEdit.medias"
     />
     <EditorAudios
       v-if="logEdit.audios !== undefined"
       v-model="fileMap.audios"
+      v-model:audios="logEdit.audios"
     />
-    <EditorFiles v-if="logEdit.files !== undefined" v-model="fileMap.files" />
+    <EditorFiles
+      v-if="logEdit.files !== undefined"
+      v-model="fileMap.files"
+      v-model:files="logEdit.files"
+    />
     <div v-if="status" class="status">{{ status }}</div>
   </section>
 </template>
