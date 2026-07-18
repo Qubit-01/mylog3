@@ -4,12 +4,12 @@ import type { UploadUserFile } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 
 /** 当前编辑的文件列表；调用方可从 `raw` 拿原始 File 交给后续流程 */
-const files = defineModel<UploadUserFile[]>({ required: true })
+const fileList = defineModel<UploadUserFile[]>({ required: true })
 </script>
 
 <template>
   <ElUpload
-    v-model:file-list="files"
+    v-model:file-list="fileList"
     class="EditorFiles"
     multiple
     :auto-upload="false"

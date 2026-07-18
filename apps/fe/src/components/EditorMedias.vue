@@ -4,7 +4,7 @@ import type { UploadProps, UploadUserFile } from 'element-plus'
 import { Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
 
 /** 当前编辑的图片 / 视频列表；调用方可从 `raw` 拿原始 File 交给后续流程 */
-const medias = defineModel<UploadUserFile[]>({ required: true })
+const fileList = defineModel<UploadUserFile[]>({ required: true })
 
 /** 判断是否是支持的图片或视频 */
 const isMedia = (file: UploadUserFile) =>
@@ -22,7 +22,7 @@ const onChange: UploadProps['onChange'] = (file, files) => {
   if (!isMedia(file)) {
     revoke(file)
     ElMessage.warning('只能添加图片或视频')
-    medias.value = files.filter((item) => item.uid !== file.uid)
+    fileList.value = files.filter((item) => item.uid !== file.uid)
     return
   }
 
@@ -31,24 +31,24 @@ const onChange: UploadProps['onChange'] = (file, files) => {
 
 /** 自定义缩略图删除入口；用于覆盖 Element Plus 默认图片模板后的删除动作 */
 const remove = (file: UploadUserFile) => {
-  medias.value = medias.value.filter((item) => item.uid !== file.uid)
+  fileList.value = fileList.value.filter((item) => item.uid !== file.uid)
 }
 
 /** 外部清空媒体列表时，回收已经移除的本地预览地址 */
-watch(medias, (value, oldValue) => {
+watch(fileList, (value, oldValue) => {
   oldValue
     ?.filter((old) => !value.some((file) => file.uid === old.uid))
     .forEach(revoke)
 })
 
 onUnmounted(() => {
-  medias.value.forEach(revoke)
+  fileList.value.forEach(revoke)
 })
 </script>
 
 <template>
   <ElUpload
-    v-model:file-list="medias"
+    v-model:file-list="fileList"
     class="EditorMedias"
     list-type="picture-card"
     accept="image/*,video/*"
