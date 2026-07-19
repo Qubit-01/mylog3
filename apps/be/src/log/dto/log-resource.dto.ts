@@ -9,6 +9,14 @@ export class LogResourceDto {
 
   @ApiProperty({
     type: String,
+    description: '上传时的原始文件名，用于展示和下载命名',
+    example: '年度总结.pdf',
+  })
+  @IsString()
+  name!: string;
+
+  @ApiProperty({
+    type: String,
     description: '资源引用：完整 URL 或 COS object key',
   })
   @IsString()

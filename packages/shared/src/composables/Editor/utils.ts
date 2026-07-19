@@ -8,6 +8,8 @@ import type { UploadUserFile } from 'element-plus'
 export interface Resource {
   /** 资源业务类型 */
   type: 'image' | 'video' | 'audio' | 'file'
+  /** 上传时的原始文件名，用于展示和下载命名 */
+  name: string
   /** 资源 URL 或 COS object key */
   url: string
   /** 优先用于列表展示的轻量预览资源 */
@@ -52,7 +54,7 @@ export const computedFileList = <T extends Resource>(
         .slice(0, Math.max(0, files.value.length - fileList.value.length))
         .map((item) => ({
           ...list?.find((file) => file._origin === item),
-          name: item.url,
+          name: item.name,
           url: toResourceUrl(item.previewUrl ?? item.url),
           status: 'success' as const,
           _origin: item,

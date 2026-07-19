@@ -1,6 +1,6 @@
 <!--
 音频编辑器：
-- audios model 维护 Log 音频列表，本地待上传项暂用文件名作为 url。
+- audios model 维护 Log 音频列表，本地待上传项同时保存原始文件名。
 - 默认 model 维护带 raw 的真实本地音频，供最终发布时上传。
 - 新旧音频统一展示、试听和删除，操作后立即同步两个 model。
 - 仅维护编辑状态和本地试听地址，不负责上传或删除远端资源。
@@ -13,11 +13,12 @@ import { Delete, Plus } from '@element-plus/icons-vue'
 /** 真实的本地待上传音频；调用方可从 `raw` 取原始 File */
 const fileList = defineModel<UploadUserFile[]>({ required: true })
 
-/** Log 音频列表；本地项在发布前以文件名暂存 url */
+/** Log 音频列表；本地项在发布前暂用文件名作为 url */
 const audios = defineModel<AudioResource[]>('audios', { default: () => [] })
 
 const _fileList = computedFileList(audios, fileList, (file) => ({
   type: 'audio',
+  name: file.name,
   url: file.name,
 }))
 

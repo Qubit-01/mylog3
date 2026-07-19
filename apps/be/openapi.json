@@ -521,6 +521,11 @@
             ],
             "example": "image"
           },
+          "name": {
+            "type": "string",
+            "description": "上传时的原始文件名，用于展示和下载命名",
+            "example": "年度总结.pdf"
+          },
           "url": {
             "type": "string",
             "description": "资源引用：完整 URL 或 COS object key"
@@ -541,6 +546,7 @@
         },
         "required": [
           "type",
+          "name",
           "url"
         ]
       },
@@ -555,6 +561,11 @@
             ],
             "example": "audio"
           },
+          "name": {
+            "type": "string",
+            "description": "上传时的原始文件名，用于展示和下载命名",
+            "example": "年度总结.pdf"
+          },
           "url": {
             "type": "string",
             "description": "资源引用：完整 URL 或 COS object key"
@@ -567,6 +578,7 @@
         },
         "required": [
           "type",
+          "name",
           "url"
         ]
       },
@@ -581,6 +593,11 @@
             ],
             "example": "file"
           },
+          "name": {
+            "type": "string",
+            "description": "上传时的原始文件名，用于展示和下载命名",
+            "example": "年度总结.pdf"
+          },
           "url": {
             "type": "string",
             "description": "资源引用：完整 URL 或 COS object key"
@@ -593,6 +610,7 @@
         },
         "required": [
           "type",
+          "name",
           "url"
         ]
       },
@@ -706,7 +724,7 @@
             }
           },
           "audios": {
-            "description": "音频列表，元素 `{ url }`",
+            "description": "音频列表，元素 `{ name, url }`",
             "example": [],
             "type": "array",
             "items": {
@@ -714,7 +732,7 @@
             }
           },
           "files": {
-            "description": "文件列表，元素 `{ url, name }`",
+            "description": "文件列表，元素 `{ name, url }`",
             "example": [],
             "type": "array",
             "items": {

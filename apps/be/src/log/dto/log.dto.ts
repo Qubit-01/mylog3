@@ -41,14 +41,14 @@ export class LogDto {
 
   @ApiProperty({
     type: [LogAudioDto],
-    description: '音频列表，元素 `{ url }`',
+    description: '音频列表，元素 `{ name, url }`',
     example: [],
   })
   audios!: LogAudioDto[];
 
   @ApiProperty({
     type: [LogFileDto],
-    description: '文件列表，元素 `{ url, name }`',
+    description: '文件列表，元素 `{ name, url }`',
     example: [],
   })
   files!: LogFileDto[];

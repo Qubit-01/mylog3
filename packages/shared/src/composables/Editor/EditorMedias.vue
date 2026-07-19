@@ -1,6 +1,6 @@
 <!--
 图片/视频编辑器：
-- medias model 维护 Log 媒体列表，本地待上传项暂用文件名作为 url。
+- medias model 维护 Log 媒体列表，本地待上传项同时保存原始文件名。
 - 默认 model 维护带 raw 的真实本地媒体，供最终发布时上传。
 - 新旧媒体统一展示、预览和删除，已上传项显示成功状态标记。
 - 删除操作需先点击卡片聚焦，再点击删除图标，不依赖 hover。
@@ -15,11 +15,12 @@ import { Check, Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
 /** 真实的本地待上传图片 / 视频；调用方可从 `raw` 取原始 File */
 const fileList = defineModel<UploadUserFile[]>({ required: true })
 
-/** Log 媒体列表；本地项在发布前以文件名暂存 url */
+/** Log 媒体列表；本地项在发布前暂用文件名作为 url */
 const medias = defineModel<MediaResource[]>('medias', { default: () => [] })
 
 const _fileList = computedFileList(medias, fileList, (file) => ({
   type: file.raw?.type.startsWith('video/') ? 'video' : 'image',
+  name: file.name,
   url: file.name,
 }))
 

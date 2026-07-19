@@ -88,11 +88,20 @@ export const useLogEditor = (log?: Log) => {
         type: f.type.startsWith('video/')
           ? ('video' as const)
           : ('image' as const),
+        name: f.name,
         url: keys[i++]!,
         previewUrl: previews[idx] ? keys[i++] : undefined,
       })),
-      audios: audios.map(() => ({ type: 'audio' as const, url: keys[i++]! })),
-      files: files.map(() => ({ type: 'file' as const, url: keys[i++]! })),
+      audios: audios.map((file) => ({
+        type: 'audio' as const,
+        name: file.name,
+        url: keys[i++]!,
+      })),
+      files: files.map((file) => ({
+        type: 'file' as const,
+        name: file.name,
+        url: keys[i++]!,
+      })),
     }
   }
 

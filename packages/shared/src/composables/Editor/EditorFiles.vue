@@ -1,6 +1,6 @@
 <!--
 文件编辑器：
-- files model 维护 Log 文件列表，本地待上传项暂用文件名作为 url。
+- files model 维护 Log 文件列表，本地待上传项同时保存原始文件名。
 - 默认 model 维护带 raw 的真实本地文件，供最终发布时上传。
 - 新旧文件统一交给 ElUpload 展示和删除，选择或删除后立即同步两个 model。
 - 仅维护编辑状态，不负责上传文件或删除远端资源。
@@ -13,11 +13,12 @@ import { Plus } from '@element-plus/icons-vue'
 /** 真实的本地待上传文件；调用方可从 `raw` 取原始 File */
 const fileList = defineModel<UploadUserFile[]>({ required: true })
 
-/** Log 文件列表；本地项在发布前以文件名暂存 url */
+/** Log 文件列表；本地项在发布前暂用文件名作为 url */
 const files = defineModel<FileResource[]>('files', { default: () => [] })
 
 const _fileList = computedFileList(files, fileList, (file) => ({
   type: 'file',
+  name: file.name,
   url: file.name,
 }))
 </script>

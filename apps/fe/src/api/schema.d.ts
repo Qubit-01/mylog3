@@ -318,6 +318,11 @@ export interface components {
              * @enum {string}
              */
             type: "image" | "video";
+            /**
+             * @description 上传时的原始文件名，用于展示和下载命名
+             * @example 年度总结.pdf
+             */
+            name: string;
             /** @description 资源引用：完整 URL 或 COS object key */
             url: string;
             /**
@@ -335,6 +340,11 @@ export interface components {
              * @enum {string}
              */
             type: "audio";
+            /**
+             * @description 上传时的原始文件名，用于展示和下载命名
+             * @example 年度总结.pdf
+             */
+            name: string;
             /** @description 资源引用：完整 URL 或 COS object key */
             url: string;
             /**
@@ -350,6 +360,11 @@ export interface components {
              * @enum {string}
              */
             type: "file";
+            /**
+             * @description 上传时的原始文件名，用于展示和下载命名
+             * @example 年度总结.pdf
+             */
+            name: string;
             /** @description 资源引用：完整 URL 或 COS object key */
             url: string;
             /**
@@ -420,12 +435,12 @@ export interface components {
              */
             medias: components["schemas"]["LogMediaDto"][];
             /**
-             * @description 音频列表，元素 `{ url }`
+             * @description 音频列表，元素 `{ name, url }`
              * @example []
              */
             audios: components["schemas"]["LogAudioDto"][];
             /**
-             * @description 文件列表，元素 `{ url, name }`
+             * @description 文件列表，元素 `{ name, url }`
              * @example []
              */
             files: components["schemas"]["LogFileDto"][];
