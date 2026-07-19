@@ -41,18 +41,23 @@ const createLogEdit = (log?: Log): LogEdit =>
   cloneDeep({ scope: 'PRIVATE', text: '', ...log })
 
 /**
- * 将列表末尾的本地编辑项替换为上传结果。
+ * 保留既有资源，并将带 raw 的本地编辑项合并为上传结果。
  * @returns 保持编辑顺序的可提交资源列表；编辑项未启用时返回 undefined
  */
-const replaceLocalResources = <T>(
+const replaceLocalResources = <T extends object>(
   /** 按“既有资源 + 本地编辑项”排列的资源列表 */
   resources: T[] | undefined,
   /** 与本地编辑项一一对应的上传结果 */
   uploadedResources: T[],
-) =>
-  resources
-    ?.slice(0, Math.max(0, resources.length - uploadedResources.length))
-    .concat(uploadedResources)
+) => {
+  if (!resources) return
+  const start = Math.max(0, resources.length - uploadedResources.length)
+  return resources.map((resource, index) =>
+    index < start
+      ? resource
+      : { ...resource, ...uploadedResources[index - start] },
+  )
+}
 
 /** 管理 Log 编辑草稿、附件上传清理和保存状态，组件本身只负责渲染 */
 export const useLogEditor = (log?: Log) => {

@@ -1,13 +1,15 @@
 <!--
 图片/视频编辑器：
 - 默认 model 统一维护既有媒体与带 raw 的本地待上传媒体。
-- 新旧媒体统一展示、预览和删除，已上传项显示成功状态标记。
-- 删除操作需先点击卡片聚焦，再点击删除图标，不依赖 hover。
+- 用户选择图片后解析拍摄时间和位置，并写入当前媒体 metadata。
+- 新旧媒体统一展示、预览和删除，既有视频使用 COS 截帧减少流量。
+- 悬停卡片时缩小预览，并在底部显示删除按钮。
 - 仅维护编辑状态和本地预览，不负责上传或删除远端资源。
 -->
 <script lang="ts" setup>
 import type { MediaResource } from './utils'
 import { toResourceUrl } from 'shared/cos'
+import { parseImageMetadata } from 'shared/exifr'
 import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
 import { Check, Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
 
@@ -34,8 +36,8 @@ const revoke = (file: UploadUserFile) => {
   URL.revokeObjectURL(file.url)
 }
 
-/** 选择后校验类型并补充业务类型；类型不符从列表移除 */
-const onChange: UploadProps['onChange'] = (file) => {
+/** 选择后校验类型并补充业务字段；图片同时解析拍摄 metadata */
+const onChange: UploadProps['onChange'] = async (file) => {
   const type = file.raw?.type ?? ''
   if (!type.startsWith('image/') && !type.startsWith('video/')) {
     revoke(file)
@@ -48,6 +50,11 @@ const onChange: UploadProps['onChange'] = (file) => {
     type: type.startsWith('video/') ? 'video' : 'image',
     url: file.url ?? file.name,
   })
+
+  if (!file.raw || !type.startsWith('image/')) return
+  const { takenAt, location } = (await parseImageMetadata(file.raw)) ?? {}
+  if (!takenAt && !location) return
+  Object.assign(file, { metadata: { takenAt, location } })
 }
 
 /** 本地媒体移除时回收预览地址 */
@@ -73,28 +80,33 @@ onBeforeUnmount(() => medias.value.forEach(revoke))
   >
     <ElIcon><Plus /></ElIcon>
     <template #file="{ file }">
-      <div class="item" tabindex="0">
-        <img
-          v-if="!isVideo(file)"
-          class="el-upload-list__item-thumbnail"
-          :src="previewUrl(file)"
-          alt=""
-        />
-        <template v-else>
+      <div class="item">
+        <div class="preview">
           <video
+            v-if="file.raw && isVideo(file)"
             class="el-upload-list__item-thumbnail"
             :src="previewUrl(file)"
             muted
             playsinline
             preload="metadata"
           />
-          <ElIcon class="play"><VideoPlay /></ElIcon>
-        </template>
-        <label class="el-upload-list__item-status-label">
-          <ElIcon class="el-icon--upload-success el-icon--check">
-            <Check />
-          </ElIcon>
-        </label>
+          <img
+            v-else
+            class="el-upload-list__item-thumbnail"
+            :src="
+              isVideo(file)
+                ? `${previewUrl(file)}?ci-process=snapshot&time=0&format=jpg`
+                : previewUrl(file)
+            "
+            alt=""
+          />
+          <ElIcon v-if="isVideo(file)" class="play"><VideoPlay /></ElIcon>
+          <label class="el-upload-list__item-status-label">
+            <ElIcon class="el-icon--upload-success el-icon--check">
+              <Check />
+            </ElIcon>
+          </label>
+        </div>
         <span class="el-upload-list__item-actions">
           <span
             class="el-upload-list__item-delete"
@@ -112,7 +124,7 @@ onBeforeUnmount(() => medias.value.forEach(revoke))
 
 <style lang="scss" scoped>
 .EditorMedias {
-  --size: 72px;
+  --size: 96px;
 
   display: flex;
   max-width: 100%;
@@ -130,24 +142,42 @@ onBeforeUnmount(() => medias.value.forEach(revoke))
 
       > .item {
         display: flex;
+        flex-direction: column;
         flex: 1;
-        outline: none;
 
-        > .el-upload-list__item-thumbnail {
-          object-fit: cover;
+        > .preview {
+          position: relative;
+          display: flex;
+          flex: 1;
+          min-height: 0;
+
+          > .el-upload-list__item-thumbnail {
+            object-fit: cover;
+          }
+
+          > .play {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            color: #fffe;
+          }
         }
 
         > .el-upload-list__item-actions {
-          visibility: hidden;
-        }
-
-        &:focus-within > .el-upload-list__item-actions {
-          visibility: visible;
+          position: static;
+          flex: none;
+          height: 0;
+          overflow: hidden;
           opacity: 1;
+          transition: height var(--el-transition-duration);
 
           > span {
             display: inline-flex;
           }
+        }
+
+        &:hover > .el-upload-list__item-actions {
+          height: 24px;
         }
       }
     }
@@ -158,13 +188,6 @@ onBeforeUnmount(() => medias.value.forEach(revoke))
     height: var(--size);
     flex: none;
     margin: 0;
-  }
-
-  :deep(.play) {
-    position: absolute;
-    bottom: 8px;
-    left: 8px;
-    color: #fffe;
   }
 }
 </style>
