@@ -20,6 +20,18 @@ export interface Resource {
 export interface MediaResource extends Resource {
   /** 媒体类型 */
   type: 'image' | 'video'
+  /** 从媒体文件中解析并归一化的元数据 */
+  metadata?: {
+    /** 媒体拍摄时刻（ISO 8601 UTC 字符串） */
+    takenAt?: string
+    /** 媒体拍摄位置坐标 */
+    location?: {
+      /** 经度 */
+      lng: number
+      /** 纬度 */
+      lat: number
+    }
+  }
 }
 
 /** 音频资源，类型契约跟随后端 `LogAudioDto` */

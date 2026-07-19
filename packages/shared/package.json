@@ -13,6 +13,7 @@
   "dependencies": {
     "@element-plus/icons-vue": "catalog:",
     "@floating-ui/vue": "catalog:",
+    "@modernized/exifr": "catalog:",
     "@vueuse/core": "catalog:",
     "dayjs": "catalog:",
     "element-plus": "catalog:",
