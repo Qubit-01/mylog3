@@ -36,6 +36,7 @@ const onChange: UploadProps['onChange'] = (file, files) => {
     return
   }
   file.url ||= URL.createObjectURL(file.raw)
+  _fileList.value = files
 }
 
 /** 本地音频移除时回收试听地址 */
@@ -62,15 +63,18 @@ onUnmounted(() => {
     <ElButton :icon="Plus">添加音频</ElButton>
     <template #file="{ file }">
       <div class="item">
-        <audio :src="file.url" controls preload="metadata" />
-        <span class="name">{{ file.name }}</span>
-        <ElButton
-          :icon="Delete"
-          text
-          @click.stop="
-            _fileList = _fileList.filter((item) => item.uid !== file.uid)
-          "
-        />
+        <div class="meta">
+          <span class="name">{{ file.name }}</span>
+          <span
+            class="delete"
+            @click.stop="
+              _fileList = _fileList.filter((item) => item.uid !== file.uid)
+            "
+          >
+            <ElIcon><Delete /></ElIcon>
+          </span>
+        </div>
+        <audio :src="file.url" controls preload="none" />
       </div>
     </template>
   </ElUpload>
@@ -93,31 +97,38 @@ onUnmounted(() => {
     margin: 0;
 
     > .el-upload-list__item {
-      height: auto;
       margin: 0;
     }
   }
 
   .item {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+
+    > .meta {
+      display: flex;
+      align-items: center;
+
+      > .name {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      > .delete {
+        flex: none;
+        padding: 4px;
+        cursor: pointer;
+      }
+    }
 
     > audio {
-      height: 28px;
-      max-width: 240px;
-    }
-
-    > .name {
-      overflow: hidden;
-      color: #606266;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    > :deep(.el-button) {
-      flex: none;
+      width: 100%;
+      height: 32px;
     }
   }
 }

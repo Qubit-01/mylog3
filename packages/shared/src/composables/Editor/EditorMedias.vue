@@ -3,6 +3,7 @@
 - medias model 维护 Log 媒体列表，本地待上传项暂用文件名作为 url。
 - 默认 model 维护带 raw 的真实本地媒体，供最终发布时上传。
 - 新旧媒体统一展示、预览和删除，已上传项显示成功状态标记。
+- 删除操作需先点击卡片聚焦，再点击删除图标，不依赖 hover。
 - 选择或删除后立即同步两个 model。
 - 仅维护编辑状态和本地预览，不负责上传或删除远端资源。
 -->
@@ -63,37 +64,39 @@ watch(fileList, (value, oldValue) => {
   >
     <ElIcon><Plus /></ElIcon>
     <template #file="{ file }">
-      <img
-        v-if="!isVideo(file)"
-        class="el-upload-list__item-thumbnail"
-        :src="file.url"
-        alt=""
-      />
-      <template v-else>
-        <video
+      <div class="item" tabindex="0">
+        <img
+          v-if="!isVideo(file)"
           class="el-upload-list__item-thumbnail"
           :src="file.url"
-          muted
-          playsinline
-          preload="metadata"
+          alt=""
         />
-        <ElIcon class="play"><VideoPlay /></ElIcon>
-      </template>
-      <label class="el-upload-list__item-status-label">
-        <ElIcon class="el-icon--upload-success el-icon--check">
-          <Check />
-        </ElIcon>
-      </label>
-      <span class="el-upload-list__item-actions">
-        <span
-          class="el-upload-list__item-delete"
-          @click.stop="
-            _fileList = _fileList.filter((item) => item.uid !== file.uid)
-          "
-        >
-          <ElIcon><Delete /></ElIcon>
+        <template v-else>
+          <video
+            class="el-upload-list__item-thumbnail"
+            :src="file.url"
+            muted
+            playsinline
+            preload="metadata"
+          />
+          <ElIcon class="play"><VideoPlay /></ElIcon>
+        </template>
+        <label class="el-upload-list__item-status-label">
+          <ElIcon class="el-icon--upload-success el-icon--check">
+            <Check />
+          </ElIcon>
+        </label>
+        <span class="el-upload-list__item-actions">
+          <span
+            class="el-upload-list__item-delete"
+            @click.stop="
+              _fileList = _fileList.filter((item) => item.uid !== file.uid)
+            "
+          >
+            <ElIcon><Delete /></ElIcon>
+          </span>
         </span>
-      </span>
+      </div>
     </template>
   </ElUpload>
 </template>
@@ -104,20 +107,39 @@ watch(fileList, (value, oldValue) => {
 
   display: flex;
   max-width: 100%;
-  overflow: auto;
+  overflow: auto hidden;
 
   :deep(.el-upload-list) {
     flex-wrap: nowrap;
     gap: 4px;
 
     > .el-upload-list__item {
+      flex: none;
       width: var(--size);
       height: var(--size);
       margin: 0;
 
-      > img,
-      > video {
-        object-fit: cover;
+      > .item {
+        display: flex;
+        flex: 1;
+        outline: none;
+
+        > .el-upload-list__item-thumbnail {
+          object-fit: cover;
+        }
+
+        > .el-upload-list__item-actions {
+          visibility: hidden;
+        }
+
+        &:focus-within > .el-upload-list__item-actions {
+          visibility: visible;
+          opacity: 1;
+
+          > span {
+            display: inline-flex;
+          }
+        }
       }
     }
   }
