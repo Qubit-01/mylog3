@@ -2,13 +2,14 @@
 图片/视频编辑器：
 - medias model 维护 Log 媒体列表，本地待上传项暂用文件名作为 url。
 - 默认 model 维护带 raw 的真实本地媒体，供最终发布时上传。
-- 新旧媒体统一展示、预览和删除，操作后立即同步两个 model。
+- 新旧媒体统一展示、预览和删除，已上传项显示成功状态标记。
+- 选择或删除后立即同步两个 model。
 - 仅维护编辑状态和本地预览，不负责上传或删除远端资源。
 -->
 <script lang="ts" setup>
 import { computedFileList, type MediaResource } from './utils'
 import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
-import { Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
+import { Check, Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
 
 /** 真实的本地待上传图片 / 视频；调用方可从 `raw` 取原始 File */
 const fileList = defineModel<UploadUserFile[]>({ required: true })
@@ -78,6 +79,11 @@ watch(fileList, (value, oldValue) => {
         />
         <ElIcon class="play"><VideoPlay /></ElIcon>
       </template>
+      <label class="el-upload-list__item-status-label">
+        <ElIcon class="el-icon--upload-success el-icon--check">
+          <Check />
+        </ElIcon>
+      </label>
       <span class="el-upload-list__item-actions">
         <span
           class="el-upload-list__item-delete"
