@@ -1,4 +1,12 @@
-import { createLog, type CreateLog, type Log, updateLog } from '@/api'
+import {
+  createLog,
+  type CreateLog,
+  type Log,
+  type LogAudio,
+  type LogFile,
+  type LogMedia,
+  updateLog,
+} from '@/api'
 import {
   collectCosKeys,
   deleteCosFiles,
@@ -7,7 +15,7 @@ import {
 import { compressImagePreview } from '@/composables/compression'
 import { useLogStore } from '@/stores/log'
 import type { UploadUserFile } from 'element-plus'
-import { cloneDeep } from 'lodash-unified'
+import { cloneDeep, omit } from 'lodash-unified'
 
 /**
  * 编辑器草稿：`text` / `scope` 始终存在，其余字段仅在启用对应编辑组件时才出现（`undefined` 表示未启用）。
@@ -15,7 +23,14 @@ import { cloneDeep } from 'lodash-unified'
  * 编辑时从原 Log 深克隆；新增时可选字段由对应编辑组件按需启用。
  * UI 层用 `v-if="logEdit.xxx !== undefined"` 控制编辑组件的显隐。
  */
-export type LogEdit = CreateLog & Required<Pick<CreateLog, 'text' | 'scope'>>
+export type LogEdit = Omit<CreateLog, 'medias' | 'audios' | 'files'> & {
+  /** 媒体编辑列表；本地待上传项通过 `raw` 保留原始 File */
+  medias?: (UploadUserFile & LogMedia)[]
+  /** 音频编辑列表；本地待上传项通过 `raw` 保留原始 File */
+  audios?: (UploadUserFile & LogAudio)[]
+  /** 文件编辑列表；本地待上传项通过 `raw` 保留原始 File */
+  files?: (UploadUserFile & LogFile)[]
+} & Required<Pick<CreateLog, 'text' | 'scope'>>
 
 /** 生成 COS 目录相对 key，避免用户目录内重名 */
 const cosKey = (name: string, prefix = '') =>
@@ -26,13 +41,13 @@ const createLogEdit = (log?: Log): LogEdit =>
   cloneDeep({ scope: 'PRIVATE', text: '', ...log })
 
 /**
- * 将业务列表末尾的本地占位资源替换为上传后的正式资源。
- * @returns 保持既有资源顺序的可提交列表；原列表未启用时返回 undefined
+ * 将列表末尾的本地编辑项替换为上传结果。
+ * @returns 保持编辑顺序的可提交资源列表；编辑项未启用时返回 undefined
  */
 const replaceLocalResources = <T>(
-  /** 包含既有资源和本地占位项的业务列表 */
+  /** 按“既有资源 + 本地编辑项”排列的资源列表 */
   resources: T[] | undefined,
-  /** 与本地占位项一一对应的上传结果 */
+  /** 与本地编辑项一一对应的上传结果 */
   uploadedResources: T[],
 ) =>
   resources
@@ -43,22 +58,21 @@ const replaceLocalResources = <T>(
 export const useLogEditor = (log?: Log) => {
   const logStore = useLogStore()
   const logEdit = ref(createLogEdit(log))
-  const fileMap = reactive({
-    medias: [] as UploadUserFile[],
-    audios: [] as UploadUserFile[],
-    files: [] as UploadUserFile[],
-  })
   const pending = ref(false)
   /** 当前提交阶段的展示文案；`undefined` 表示空闲 */
   const status = ref<string>()
 
   /** 上传全部本地附件，并转换为 Log 接口需要的三类资源 */
-  const uploadAttachments = async () => {
+  const uploadAttachments = async (
+    /** 本次需要上传的本地图片 / 视频 */
+    medias: File[],
+    /** 本次需要上传的本地音频 */
+    audios: File[],
+    /** 本次需要上传的普通文件 */
+    files: File[],
+  ) => {
     status.value = '压缩图片中…'
-    // 从 Element Plus 上传项里取原始 File；图片额外生成压缩预览，视频对应位置为 undefined
-    const medias = fileMap.medias.flatMap(({ raw }) => (raw ? [raw] : []))
-    const audios = fileMap.audios.flatMap(({ raw }) => (raw ? [raw] : []))
-    const files = fileMap.files.flatMap(({ raw }) => (raw ? [raw] : []))
+    // 图片额外生成压缩预览，视频对应位置为 undefined
     const previews = await Promise.all(medias.map(compressImagePreview))
 
     status.value = '上传文件中…'
@@ -108,13 +122,20 @@ export const useLogEditor = (log?: Log) => {
   /** 提交当前草稿；保存成功后尽力清理不再引用的附件。返回保存后的 Log；未提交或失败返回 undefined */
   const submit = async (): Promise<Log | undefined> => {
     if (!logEdit.value.text.trim() || pending.value) return
-    const _logEdit = cloneDeep(logEdit.value)
+    const { medias, audios, files } = logEdit.value
+    const baseLogEdit = cloneDeep(
+      omit(logEdit.value, ['medias', 'audios', 'files']),
+    )
     pending.value = true
 
     try {
       let uploaded
       try {
-        uploaded = await uploadAttachments()
+        uploaded = await uploadAttachments(
+          medias?.flatMap(({ raw }) => (raw ? [raw] : [])) ?? [],
+          audios?.flatMap(({ raw }) => (raw ? [raw] : [])) ?? [],
+          files?.flatMap(({ raw }) => (raw ? [raw] : [])) ?? [],
+        )
       } catch {
         ElMessage.error('文件上传失败，请稍后重试')
         return
@@ -122,10 +143,10 @@ export const useLogEditor = (log?: Log) => {
 
       // 保留已启用字段中的既有附件，并用本次上传结果替换本地占位项
       const payload: CreateLog = {
-        ..._logEdit,
-        medias: replaceLocalResources(_logEdit.medias, uploaded.medias),
-        audios: replaceLocalResources(_logEdit.audios, uploaded.audios),
-        files: replaceLocalResources(_logEdit.files, uploaded.files),
+        ...baseLogEdit,
+        medias: replaceLocalResources(medias, uploaded.medias),
+        audios: replaceLocalResources(audios, uploaded.audios),
+        files: replaceLocalResources(files, uploaded.files),
       }
       status.value = '提交 Log 中…'
       // 请求可能已落库但响应失败，不能删除可能已被引用的新文件
@@ -149,9 +170,6 @@ export const useLogEditor = (log?: Log) => {
 
       logStore.upsert(saved)
       logEdit.value = log ? createLogEdit(saved) : createLogEdit()
-      fileMap.medias = []
-      fileMap.audios = []
-      fileMap.files = []
       return saved
     } finally {
       pending.value = false
@@ -166,8 +184,6 @@ export const useLogEditor = (log?: Log) => {
     pending,
     /** 当前提交阶段的展示文案；`undefined` 表示空闲 */
     status,
-    /** 按业务类型分组的本地待上传新增文件 */
-    fileMap,
     /** 提交当前草稿 */
     submit,
   }

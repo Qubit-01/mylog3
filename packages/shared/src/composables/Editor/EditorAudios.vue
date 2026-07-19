@@ -1,26 +1,26 @@
 <!--
 音频编辑器：
-- audios model 维护 Log 音频列表，本地待上传项同时保存原始文件名。
-- 默认 model 维护带 raw 的真实本地音频，供最终发布时上传。
-- 新旧音频统一展示、试听和删除，操作后立即同步两个 model。
+- 默认 model 统一维护既有音频与带 raw 的本地待上传音频。
+- 新旧音频统一展示、试听和删除。
 - 仅维护编辑状态和本地试听地址，不负责上传或删除远端资源。
 -->
 <script lang="ts" setup>
-import { computedFileList, type AudioResource } from './utils'
+import type { AudioResource } from './utils'
+import { toResourceUrl } from 'shared/cos'
 import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
 import { Delete, Plus } from '@element-plus/icons-vue'
 
-/** 真实的本地待上传音频；调用方可从 `raw` 取原始 File */
-const fileList = defineModel<UploadUserFile[]>({ required: true })
+/** 音频编辑列表；本地待上传项通过 `raw` 保留原始 File */
+const audios = defineModel<(UploadUserFile & AudioResource)[]>({
+  required: true,
+})
 
-/** Log 音频列表；本地项在发布前暂用文件名作为 url */
-const audios = defineModel<AudioResource[]>('audios', { default: () => [] })
-
-const _fileList = computedFileList(audios, fileList, (file) => ({
-  type: 'audio',
-  name: file.name,
-  url: file.name,
-}))
+/** 获取音频试听地址；既有项解析远端 key，本地项直接使用 blob URL */
+const audioUrl = (file: UploadUserFile) => {
+  if (file.raw) return file.url
+  const audio = audios.value.find((item) => item.uid === file.uid)
+  return toResourceUrl(audio?.url ?? file.url ?? '')
+}
 
 /** 释放本地试听 blob URL，避免反复选文件后残留 */
 const revoke = (file: UploadUserFile) => {
@@ -29,32 +29,34 @@ const revoke = (file: UploadUserFile) => {
   file.url = undefined
 }
 
-/** 选择后校验类型并生成本地试听地址；类型不符直接把它从列表移除 */
-const onChange: UploadProps['onChange'] = (file, files) => {
+/** 选择后校验类型并生成本地试听地址；类型不符直接从列表移除 */
+const onChange: UploadProps['onChange'] = (file) => {
   if (!file.raw?.type.startsWith('audio/')) {
     ElMessage.warning('只能添加音频')
-    _fileList.value = files.filter((item) => item.uid !== file.uid)
+    audios.value = audios.value.filter((item) => item.uid !== file.uid)
     return
   }
-  file.url ||= URL.createObjectURL(file.raw)
-  _fileList.value = files
+
+  Object.assign(file, {
+    type: 'audio',
+    url: file.url ?? URL.createObjectURL(file.raw),
+  })
 }
 
 /** 本地音频移除时回收试听地址 */
-watch(fileList, (value, oldValue) => {
+watch(audios, (value, oldValue) => {
   oldValue
-    ?.filter((old) => !value.some((file) => file.uid === old.uid))
+    .filter((old) => !value.some((file) => file.uid === old.uid))
     .forEach(revoke)
 })
 
-onUnmounted(() => {
-  fileList.value.forEach(revoke)
-})
+/** 组件关闭时回收仍在列表中的本地试听地址 */
+onBeforeUnmount(() => audios.value.forEach(revoke))
 </script>
 
 <template>
   <ElUpload
-    v-model:file-list="_fileList"
+    v-model:file-list="audios"
     class="EditorAudios"
     accept="audio/*"
     multiple
@@ -69,13 +71,13 @@ onUnmounted(() => {
           <span
             class="delete"
             @click.stop="
-              _fileList = _fileList.filter((item) => item.uid !== file.uid)
+              audios = audios.filter((item) => item.uid !== file.uid)
             "
           >
             <ElIcon><Delete /></ElIcon>
           </span>
         </div>
-        <audio :src="file.url" controls preload="none" />
+        <audio :src="audioUrl(file)" controls preload="none" />
       </div>
     </template>
   </ElUpload>
