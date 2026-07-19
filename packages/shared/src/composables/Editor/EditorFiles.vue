@@ -4,8 +4,8 @@
 - 新旧文件合并交给 ElUpload 展示和删除，操作后自动同步拆回各自 model。
 - 仅维护编辑状态，不负责上传文件或删除远端资源。
 -->
-<script lang="ts" setup generic="T extends FileResource">
-import { computedFileList, type FileResource } from './utils'
+<script lang="ts" setup generic="T extends Resource">
+import { computedFileList, type Resource } from './utils'
 import type { UploadUserFile } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 

@@ -5,7 +5,6 @@ import {
   IsIn,
   IsNumber,
   IsOptional,
-  IsString,
   ValidateNested,
 } from 'class-validator';
 import { LogResourceDto } from './log-resource.dto';
@@ -23,7 +22,6 @@ export class LogMediaLocationDto {
 
 /** 媒体文件内嵌元数据 DTO */
 export class LogMediaMetadataDto {
-  /** 媒体拍摄时刻，统一使用 ISO 8601 UTC 字符串 */
   @ApiPropertyOptional({
     type: String,
     format: 'date-time',
@@ -34,7 +32,6 @@ export class LogMediaMetadataDto {
   @IsDateString()
   takenAt?: string;
 
-  /** 媒体拍摄位置坐标 */
   @ApiPropertyOptional({
     type: LogMediaLocationDto,
     description: '媒体拍摄位置坐标',
@@ -56,16 +53,6 @@ export class LogMediaDto extends LogResourceDto {
   @IsIn(['image', 'video'])
   declare type: 'image' | 'video';
 
-  @ApiPropertyOptional({
-    type: String,
-    description: '用于快速展示的轻量媒体 COS object key；没有时省略',
-    example: 'users/1/mylog/preview/uuid-media.jpg',
-  })
-  @IsOptional()
-  @IsString()
-  previewUrl?: string;
-
-  /** 从媒体文件中解析并归一化的元数据 */
   @ApiPropertyOptional({
     type: LogMediaMetadataDto,
     description: '从媒体文件中解析并归一化的元数据',

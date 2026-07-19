@@ -527,7 +527,7 @@
           },
           "previewUrl": {
             "type": "string",
-            "description": "用于快速展示的轻量媒体 COS object key；没有时省略",
+            "description": "用于快速展示的轻量资源 COS object key；没有时省略",
             "example": "users/1/mylog/preview/uuid-media.jpg"
           },
           "metadata": {
@@ -558,6 +558,11 @@
           "url": {
             "type": "string",
             "description": "资源引用：完整 URL 或 COS object key"
+          },
+          "previewUrl": {
+            "type": "string",
+            "description": "用于快速展示的轻量资源 COS object key；没有时省略",
+            "example": "users/1/mylog/preview/uuid-media.jpg"
           }
         },
         "required": [
@@ -579,6 +584,11 @@
           "url": {
             "type": "string",
             "description": "资源引用：完整 URL 或 COS object key"
+          },
+          "previewUrl": {
+            "type": "string",
+            "description": "用于快速展示的轻量资源 COS object key；没有时省略",
+            "example": "users/1/mylog/preview/uuid-media.jpg"
           }
         },
         "required": [

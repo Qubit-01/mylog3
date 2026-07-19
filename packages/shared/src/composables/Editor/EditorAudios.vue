@@ -4,8 +4,8 @@
 - 新旧音频统一展示、试听和删除，操作后自动同步拆回各自 model。
 - 仅维护编辑状态和本地试听地址，不负责上传或删除远端资源。
 -->
-<script lang="ts" setup generic="T extends FileResource">
-import { computedFileList, type FileResource } from './utils'
+<script lang="ts" setup generic="T extends Resource">
+import { computedFileList, type Resource } from './utils'
 import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
 import { Delete, Plus } from '@element-plus/icons-vue'
 

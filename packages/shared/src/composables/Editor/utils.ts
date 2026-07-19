@@ -2,8 +2,13 @@ import { toResourceUrl } from 'shared/cos'
 import type { UploadUserFile } from 'element-plus'
 import { computed, type Ref } from 'vue'
 
-/** 可适配为上传列表项的既有资源 */
-export interface FileResource {
+/**
+ * 可适配为上传列表项的既有资源。
+ * 字段契约跟随后端 `LogResourceDto`，变更时需保持同步。
+ */
+export interface Resource {
+  /** 资源业务类型 */
+  type: 'image' | 'video' | 'audio' | 'file'
   /** 资源 URL 或 COS object key */
   url: string
   /** 优先用于列表展示的轻量预览资源 */
@@ -16,7 +21,7 @@ export interface FileResource {
  * 写入时通过业务字段 `_origin` 将列表同步拆回两个 model。
  * @returns 可直接绑定 `ElUpload` file-list 的可写计算属性
  */
-export const computedFileList = <T extends FileResource>(
+export const computedFileList = <T extends Resource>(
   /** 既有资源，展示地址优先使用 `previewUrl` */
   files: Ref<T[]>,
   /** 本轮新增的本地文件 */

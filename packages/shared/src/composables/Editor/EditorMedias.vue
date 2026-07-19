@@ -7,9 +7,9 @@
 <script
   lang="ts"
   setup
-  generic="T extends FileResource & { type: 'image' | 'video' }"
+  generic="T extends Resource & { type: 'image' | 'video' }"
 >
-import { computedFileList, type FileResource } from './utils'
+import { computedFileList, type Resource } from './utils'
 import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
 import { Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
 

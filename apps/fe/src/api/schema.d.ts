@@ -321,7 +321,7 @@ export interface components {
             /** @description 资源引用：完整 URL 或 COS object key */
             url: string;
             /**
-             * @description 用于快速展示的轻量媒体 COS object key；没有时省略
+             * @description 用于快速展示的轻量资源 COS object key；没有时省略
              * @example users/1/mylog/preview/uuid-media.jpg
              */
             previewUrl?: string;
@@ -337,6 +337,11 @@ export interface components {
             type: "audio";
             /** @description 资源引用：完整 URL 或 COS object key */
             url: string;
+            /**
+             * @description 用于快速展示的轻量资源 COS object key；没有时省略
+             * @example users/1/mylog/preview/uuid-media.jpg
+             */
+            previewUrl?: string;
         };
         LogFileDto: {
             /**
@@ -347,6 +352,11 @@ export interface components {
             type: "file";
             /** @description 资源引用：完整 URL 或 COS object key */
             url: string;
+            /**
+             * @description 用于快速展示的轻量资源 COS object key；没有时省略
+             * @example users/1/mylog/preview/uuid-media.jpg
+             */
+            previewUrl?: string;
         };
         CreateLogDto: {
             /**

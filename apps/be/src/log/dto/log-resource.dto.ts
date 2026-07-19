@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
 
 /** Log 资源基础 DTO */
 export class LogResourceDto {
@@ -13,4 +13,13 @@ export class LogResourceDto {
   })
   @IsString()
   url!: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: '用于快速展示的轻量资源 COS object key；没有时省略',
+    example: 'users/1/mylog/preview/uuid-media.jpg',
+  })
+  @IsOptional()
+  @IsString()
+  previewUrl?: string;
 }
