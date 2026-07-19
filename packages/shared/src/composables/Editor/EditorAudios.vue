@@ -4,8 +4,8 @@
 - 新旧音频统一展示、试听和删除，操作后自动同步拆回各自 model。
 - 仅维护编辑状态和本地试听地址，不负责上传或删除远端资源。
 -->
-<script lang="ts" setup generic="T extends Resource">
-import { computedFileList, type Resource } from './utils'
+<script lang="ts" setup>
+import { computedFileList, type AudioResource } from './utils'
 import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
 import { Delete, Plus } from '@element-plus/icons-vue'
 
@@ -13,7 +13,7 @@ import { Delete, Plus } from '@element-plus/icons-vue'
 const fileList = defineModel<UploadUserFile[]>({ required: true })
 
 /** 编辑前已存在的音频资源；用户点删除会直接从这里剔除 */
-const audios = defineModel<T[]>('audios', { default: () => [] })
+const audios = defineModel<AudioResource[]>('audios', { default: () => [] })
 
 const _fileList = computedFileList(audios, fileList)
 

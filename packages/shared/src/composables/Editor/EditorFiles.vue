@@ -4,8 +4,8 @@
 - 新旧文件合并交给 ElUpload 展示和删除，操作后自动同步拆回各自 model。
 - 仅维护编辑状态，不负责上传文件或删除远端资源。
 -->
-<script lang="ts" setup generic="T extends Resource">
-import { computedFileList, type Resource } from './utils'
+<script lang="ts" setup>
+import { computedFileList, type FileResource } from './utils'
 import type { UploadUserFile } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 
@@ -13,7 +13,7 @@ import { Plus } from '@element-plus/icons-vue'
 const fileList = defineModel<UploadUserFile[]>({ required: true })
 
 /** 编辑前就存在的既有资源；用户点删除会直接从这里剔除 */
-const files = defineModel<T[]>('files', { default: () => [] })
+const files = defineModel<FileResource[]>('files', { default: () => [] })
 
 const _fileList = computedFileList(files, fileList)
 </script>

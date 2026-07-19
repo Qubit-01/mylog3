@@ -15,6 +15,24 @@ export interface Resource {
   previewUrl?: string
 }
 
+/** 图片 / 视频资源，类型契约跟随后端 `LogMediaDto` */
+export interface MediaResource extends Resource {
+  /** 媒体类型 */
+  type: 'image' | 'video'
+}
+
+/** 音频资源，类型契约跟随后端 `LogAudioDto` */
+export interface AudioResource extends Resource {
+  /** 音频类型 */
+  type: 'audio'
+}
+
+/** 普通文件资源，类型契约跟随后端 `LogFileDto` */
+export interface FileResource extends Resource {
+  /** 文件类型 */
+  type: 'file'
+}
+
 /**
  * 创建供 `ElUpload` 使用的统一可写文件列表。
  * 读取时将既有资源适配为成功状态的展示项，并与本地新增文件合并；

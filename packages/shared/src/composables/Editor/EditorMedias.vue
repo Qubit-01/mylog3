@@ -4,12 +4,8 @@
 - 新旧媒体统一展示、预览和删除，操作后自动同步拆回各自 model。
 - 仅维护编辑状态和本地预览，不负责上传或删除远端资源。
 -->
-<script
-  lang="ts"
-  setup
-  generic="T extends Resource & { type: 'image' | 'video' }"
->
-import { computedFileList, type Resource } from './utils'
+<script lang="ts" setup>
+import { computedFileList, type MediaResource } from './utils'
 import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
 import { Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
 
@@ -17,7 +13,7 @@ import { Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
 const fileList = defineModel<UploadUserFile[]>({ required: true })
 
 /** 编辑前已存在的媒体资源；用户点删除会直接从这里剔除 */
-const medias = defineModel<T[]>('medias', { default: () => [] })
+const medias = defineModel<MediaResource[]>('medias', { default: () => [] })
 
 const _fileList = computedFileList(medias, fileList)
 
