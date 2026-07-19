@@ -67,12 +67,12 @@ model Log {
   /// 正文文本，`LongText` 支持长内容
   text      String   @db.LongText
   /// 图片 + 视频列表，按顺序展示用于横滑轮播，缺省 `[]`
-  /// - image: `{ type: 'image', url, previewUrl?, metadata?: { takenAt?, location?: { lng, lat } } }`
-  /// - video: `{ type: 'video', url, metadata?: { takenAt?, location?: { lng, lat } } }`
+  /// - image: `{ type: 'image', name, url, previewUrl?, metadata?: { takenAt?, location?: { lng, lat } } }`
+  /// - video: `{ type: 'video', name, url, metadata?: { takenAt?, location?: { lng, lat } } }`
   medias    Json
-  /// 音频列表，元素 `{ url }`，缺省 `[]`
+  /// 音频列表，元素 `{ type: 'audio', name, url }`，缺省 `[]`
   audios    Json
-  /// 文件列表，元素 `{ url, name }`，缺省 `[]`
+  /// 文件列表，元素 `{ type: 'file', name, url }`，缺省 `[]`
   files     Json
   /// 标签，元素为 string，如 `["生活", "随笔"]`，缺省 `[]`
   tags      Json
