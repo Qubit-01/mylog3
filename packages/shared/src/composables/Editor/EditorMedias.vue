@@ -1,7 +1,8 @@
 <!--
 图片/视频编辑器：
-- 默认 model 维护本轮新增的本地媒体，medias model 可选传入带 url 和 type 的既有媒体。
-- 新旧媒体统一展示、预览和删除，操作后自动同步拆回各自 model。
+- medias model 维护 Log 媒体列表，本地待上传项暂用文件名作为 url。
+- 默认 model 维护带 raw 的真实本地媒体，供最终发布时上传。
+- 新旧媒体统一展示、预览和删除，操作后立即同步两个 model。
 - 仅维护编辑状态和本地预览，不负责上传或删除远端资源。
 -->
 <script lang="ts" setup>
@@ -9,13 +10,16 @@ import { computedFileList, type MediaResource } from './utils'
 import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
 import { Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
 
-/** 本轮新增的图片 / 视频；调用方可从 `raw` 拿原始 File 交给后续流程 */
+/** 真实的本地待上传图片 / 视频；调用方可从 `raw` 取原始 File */
 const fileList = defineModel<UploadUserFile[]>({ required: true })
 
-/** 编辑前已存在的媒体资源；用户点删除会直接从这里剔除 */
+/** Log 媒体列表；本地项在发布前以文件名暂存 url */
 const medias = defineModel<MediaResource[]>('medias', { default: () => [] })
 
-const _fileList = computedFileList(medias, fileList)
+const _fileList = computedFileList(medias, fileList, (file) => ({
+  type: file.raw?.type.startsWith('video/') ? 'video' : 'image',
+  url: file.name,
+}))
 
 /** 当前项是否是视频（既有附件看 _origin.type，新增看 raw.type） */
 const isVideo = (file: (typeof _fileList.value)[number]) =>

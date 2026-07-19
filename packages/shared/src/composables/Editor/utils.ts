@@ -1,6 +1,5 @@
 import { toResourceUrl } from 'shared/cos'
 import type { UploadUserFile } from 'element-plus'
-import { computed, type Ref } from 'vue'
 
 /**
  * 可适配为上传列表项的既有资源。
@@ -35,29 +34,37 @@ export interface FileResource extends Resource {
 
 /**
  * 创建供 `ElUpload` 使用的统一可写文件列表。
- * 读取时将既有资源适配为成功状态的展示项，并与本地新增文件合并；
- * 写入时通过业务字段 `_origin` 将列表同步拆回两个 model。
+ * files 始终按“既有资源 + 本地占位资源”排列，fileList 只保存对应的本地真实文件。
+ * 读取时合并两部分供 ElUpload 展示，写入时再同步回两个 model。
  * @returns 可直接绑定 `ElUpload` file-list 的可写计算属性
  */
 export const computedFileList = <T extends Resource>(
-  /** 既有资源，展示地址优先使用 `previewUrl` */
+  /** 完整业务资源列表，已上传项的展示地址优先使用 `previewUrl` */
   files: Ref<T[]>,
-  /** 本轮新增的本地文件 */
+  /** 本地待上传的真实文件 */
   fileList: Ref<UploadUserFile[]>,
+  /** 将本地文件映射为未上传的业务占位资源 */
+  toResource: (file: UploadUserFile) => T,
 ) =>
   computed<(UploadUserFile & { _origin?: T })[]>({
     get: (list) => [
-      ...files.value.map((item) => ({
-        ...list?.find((file) => file._origin === item),
-        name: item.url,
-        url: toResourceUrl(item.previewUrl ?? item.url),
-        status: 'success' as const,
-        _origin: item,
-      })),
+      ...files.value
+        .slice(0, Math.max(0, files.value.length - fileList.value.length))
+        .map((item) => ({
+          ...list?.find((file) => file._origin === item),
+          name: item.url,
+          url: toResourceUrl(item.previewUrl ?? item.url),
+          status: 'success' as const,
+          _origin: item,
+        })),
       ...fileList.value,
     ],
     set: (list) => {
-      files.value = list.flatMap((item) => (item._origin ? [item._origin] : []))
-      fileList.value = list.filter((item) => !item._origin)
+      const localFiles = list.filter((item) => !item._origin)
+      files.value = [
+        ...list.flatMap((item) => (item._origin ? [item._origin] : [])),
+        ...localFiles.map(toResource),
+      ]
+      fileList.value = localFiles
     },
   })

@@ -1,7 +1,8 @@
 <!--
 音频编辑器：
-- 默认 model 维护本轮新增的本地音频，audios model 可选传入带 url 的既有音频。
-- 新旧音频统一展示、试听和删除，操作后自动同步拆回各自 model。
+- audios model 维护 Log 音频列表，本地待上传项暂用文件名作为 url。
+- 默认 model 维护带 raw 的真实本地音频，供最终发布时上传。
+- 新旧音频统一展示、试听和删除，操作后立即同步两个 model。
 - 仅维护编辑状态和本地试听地址，不负责上传或删除远端资源。
 -->
 <script lang="ts" setup>
@@ -9,13 +10,16 @@ import { computedFileList, type AudioResource } from './utils'
 import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
 import { Delete, Plus } from '@element-plus/icons-vue'
 
-/** 本轮新增的音频；调用方可从 `raw` 拿原始 File 交给后续流程 */
+/** 真实的本地待上传音频；调用方可从 `raw` 取原始 File */
 const fileList = defineModel<UploadUserFile[]>({ required: true })
 
-/** 编辑前已存在的音频资源；用户点删除会直接从这里剔除 */
+/** Log 音频列表；本地项在发布前以文件名暂存 url */
 const audios = defineModel<AudioResource[]>('audios', { default: () => [] })
 
-const _fileList = computedFileList(audios, fileList)
+const _fileList = computedFileList(audios, fileList, (file) => ({
+  type: 'audio',
+  url: file.name,
+}))
 
 /** 释放本地试听 blob URL，避免反复选文件后残留 */
 const revoke = (file: UploadUserFile) => {

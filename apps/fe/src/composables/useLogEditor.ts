@@ -25,6 +25,20 @@ const cosKey = (name: string, prefix = '') =>
 const createLogEdit = (log?: Log): LogEdit =>
   cloneDeep({ scope: 'PRIVATE', text: '', ...log })
 
+/**
+ * 将业务列表末尾的本地占位资源替换为上传后的正式资源。
+ * @returns 保持既有资源顺序的可提交列表；原列表未启用时返回 undefined
+ */
+const replaceLocalResources = <T>(
+  /** 包含既有资源和本地占位项的业务列表 */
+  resources: T[] | undefined,
+  /** 与本地占位项一一对应的上传结果 */
+  uploadedResources: T[],
+) =>
+  resources
+    ?.slice(0, Math.max(0, resources.length - uploadedResources.length))
+    .concat(uploadedResources)
+
 /** 管理 Log 编辑草稿、附件上传清理和保存状态，组件本身只负责渲染 */
 export const useLogEditor = (log?: Log) => {
   const logStore = useLogStore()
@@ -97,12 +111,12 @@ export const useLogEditor = (log?: Log) => {
         return
       }
 
-      // 仅合并已启用字段中的既有附件与本次上传结果
+      // 保留已启用字段中的既有附件，并用本次上传结果替换本地占位项
       const payload: CreateLog = {
         ..._logEdit,
-        medias: _logEdit.medias?.concat(uploaded.medias),
-        audios: _logEdit.audios?.concat(uploaded.audios),
-        files: _logEdit.files?.concat(uploaded.files),
+        medias: replaceLocalResources(_logEdit.medias, uploaded.medias),
+        audios: replaceLocalResources(_logEdit.audios, uploaded.audios),
+        files: replaceLocalResources(_logEdit.files, uploaded.files),
       }
       status.value = '提交 Log 中…'
       // 请求可能已落库但响应失败，不能删除可能已被引用的新文件
