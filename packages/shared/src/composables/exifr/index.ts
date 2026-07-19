@@ -1,4 +1,5 @@
 import { parse, thumbnail } from '@modernized/exifr'
+import { round } from 'lodash-unified'
 
 /**
  * EXIF 解析库返回的目标字段。
@@ -88,12 +89,16 @@ export const parseImageMetadata = async (
   }
 
   const { latitude, longitude } = exif ?? {}
+  // 经纬度最多 3 位整数；保留 12 位小数约等于保留 Number 的 15 位有效数字，仅清理浮点尾噪声
   const location =
     typeof longitude === 'number' &&
     Number.isFinite(longitude) &&
     typeof latitude === 'number' &&
     Number.isFinite(latitude)
-      ? { lng: longitude, lat: latitude }
+      ? {
+          lng: round(longitude, 12),
+          lat: round(latitude, 12),
+        }
       : undefined
 
   if (!takenAt && !_thumbnail && !location) return
