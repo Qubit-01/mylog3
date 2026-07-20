@@ -147,7 +147,7 @@ const toggle = <K extends keyof LogEdit>(
   }
 
   > .status {
-    color: #0009;
+    color: var(--el-text-color-secondary);
     font-size: 13px;
   }
 }

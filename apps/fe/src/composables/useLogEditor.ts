@@ -77,12 +77,14 @@ export const useLogEditor = (log?: Log) => {
     /** 本次需要上传的普通文件 */
     files: File[],
   ) => {
-    status.value = '压缩图片中…'
-    // 图片额外生成压缩预览，视频对应位置为 undefined
-    const previews: (File | undefined)[] = []
-    for (const media of medias) {
-      status.value = `压缩图片中… ${previews.length + 1}/${medias.length}`
-      previews.push(await compressImagePreview(media))
+    const imageIndexes = medias.flatMap((media, index) =>
+      media.type.startsWith('image/') ? [index] : [],
+    )
+    // 预览与媒体使用相同下标，视频对应位置为 undefined
+    const previews: (File | undefined)[] = Array(medias.length)
+    for (const [index, mediaIndex] of imageIndexes.entries()) {
+      status.value = `压缩图片中… ${index + 1}/${imageIndexes.length}`
+      previews[mediaIndex] = await compressImagePreview(medias[mediaIndex]!)
     }
 
     status.value = '上传文件中…'

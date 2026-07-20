@@ -134,6 +134,7 @@ html {
 /* 15. 通用面板 */
 .m-panel {
   background: var(--el-bg-color, #fff);
+  background: color-mix(in srgb, var(--el-bg-color, #fff) 80%, transparent);
   border: 1px solid var(--el-border-color-extra-light, #ebeef5);
   border-radius: 8px;
   box-shadow: 0 2px 8px #00000014;

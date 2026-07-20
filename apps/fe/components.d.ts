@@ -24,6 +24,7 @@ declare module 'vue' {
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     ElSegmented: typeof import('element-plus/es')['ElSegmented']
     ElSkeleton: typeof import('element-plus/es')['ElSkeleton']
+    ElSlider: typeof import('element-plus/es')['ElSlider']
     ElUpload: typeof import('element-plus/es')['ElUpload']
     LogCard: typeof import('./src/components/LogCard.vue')['default']
     LogCardAudios: typeof import('./src/components/LogCardAudios.vue')['default']
