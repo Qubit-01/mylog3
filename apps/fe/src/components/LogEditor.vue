@@ -109,6 +109,7 @@ const toggle = <K extends keyof LogEdit>(
     <EditorMedias
       v-if="logEdit.medias !== undefined"
       v-model="logEdit.medias"
+      class="swiper-no-swiping"
       :on-taken-at="onTakenAt"
     />
     <EditorAudios
