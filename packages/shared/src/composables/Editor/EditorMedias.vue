@@ -64,8 +64,6 @@ watch(medias, (value, oldValue) => {
     .forEach(revoke)
 })
 
-/** 组件关闭时回收仍在列表中的本地预览地址 */
-onBeforeUnmount(() => medias.value.forEach(revoke))
 </script>
 
 <template>

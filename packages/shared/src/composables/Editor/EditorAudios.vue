@@ -50,8 +50,6 @@ watch(audios, (value, oldValue) => {
     .forEach(revoke)
 })
 
-/** 组件关闭时回收仍在列表中的本地试听地址 */
-onBeforeUnmount(() => audios.value.forEach(revoke))
 </script>
 
 <template>
