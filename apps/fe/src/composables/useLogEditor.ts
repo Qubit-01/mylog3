@@ -13,6 +13,7 @@ import {
   uploadCosFiles,
 } from '@/composables/cos'
 import { compressImagePreview } from '@/composables/compression'
+import { stringifyError } from '@/composables/error'
 import { useLogStore } from '@/stores/log'
 import type { UploadUserFile } from 'element-plus'
 import { cloneDeep, omit } from 'lodash-unified'
@@ -150,7 +151,8 @@ export const useLogEditor = (log?: Log) => {
           files?.flatMap(({ raw }) => (raw ? [raw] : [])) ?? [],
         )
       } catch (error) {
-        ElNotification.error(JSON.stringify(error))
+        console.error(error)
+        ElNotification.error({ message: stringifyError(error), duration: 0 })
         return
       }
 

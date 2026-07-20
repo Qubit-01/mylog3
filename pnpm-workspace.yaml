@@ -16,6 +16,7 @@ catalog:
   markdown-it: ^14.3.0
   openapi-fetch: ^0.17.0
   pinia: ^3.0.4
+  serialize-error: ^13.0.1
   swiper: ^14.0.5
   vue: ^3.5.39
   vue-router: ^5.1.0
