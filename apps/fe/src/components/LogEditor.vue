@@ -105,18 +105,21 @@ const toggle = <K extends keyof LogEdit>(
         发送
       </ElButton>
     </div>
-    <EditorTime v-if="logEdit.logAt !== undefined" v-model="logEdit.logAt!" />
-    <EditorMedias
-      v-if="logEdit.medias !== undefined"
-      v-model="logEdit.medias"
-      class="swiper-no-swiping"
-      :on-taken-at="onTakenAt"
-    />
-    <EditorAudios
-      v-if="logEdit.audios !== undefined"
-      v-model="logEdit.audios"
-    />
-    <EditorFiles v-if="logEdit.files !== undefined" v-model="logEdit.files" />
+
+    <template v-if="!pending">
+      <EditorTime v-if="logEdit.logAt !== undefined" v-model="logEdit.logAt!" />
+      <EditorMedias
+        v-if="logEdit.medias !== undefined"
+        v-model="logEdit.medias"
+        class="swiper-no-swiping"
+        :on-taken-at="onTakenAt"
+      />
+      <EditorAudios
+        v-if="logEdit.audios !== undefined"
+        v-model="logEdit.audios"
+      />
+      <EditorFiles v-if="logEdit.files !== undefined" v-model="logEdit.files" />
+    </template>
     <div v-if="status" class="status">{{ status }}</div>
   </section>
 </template>

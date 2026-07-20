@@ -140,6 +140,7 @@ export const useLogEditor = (log?: Log) => {
       omit(logEdit.value, ['medias', 'audios', 'files']),
     )
     pending.value = true
+    await nextTick()
 
     try {
       await requestWakeLock('screen').catch(() => undefined)

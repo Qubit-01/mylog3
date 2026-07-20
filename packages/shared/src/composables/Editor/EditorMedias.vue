@@ -99,6 +99,7 @@ watch(medias, (value, oldValue) => {
           <img
             v-else
             class="el-upload-list__item-thumbnail"
+            loading="lazy"
             :src="
               isVideo(file)
                 ? `${previewUrl(file)}?ci-process=snapshot&time=0&format=jpg`
