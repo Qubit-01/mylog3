@@ -141,8 +141,8 @@ export const useLogEditor = (log?: Log) => {
           audios?.flatMap(({ raw }) => (raw ? [raw] : [])) ?? [],
           files?.flatMap(({ raw }) => (raw ? [raw] : [])) ?? [],
         )
-      } catch {
-        ElMessage.error('文件上传失败，请稍后重试')
+      } catch (error) {
+        ElNotification.error(JSON.stringify(error))
         return
       }
 
