@@ -66,7 +66,7 @@ watch(audios, (value, oldValue) => {
     :on-change="onChange"
   >
     <ElButton :icon="Plus">添加音频</ElButton>
-    <template #file="{ file }: { file: AudioFile }">
+    <template #file="{ file }">
       <div class="item">
         <div class="meta">
           <span class="name">{{ file.name }}</span>

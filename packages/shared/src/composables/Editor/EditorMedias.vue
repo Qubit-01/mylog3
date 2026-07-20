@@ -29,14 +29,13 @@ const medias = defineModel<MediaFile[]>({
 
 /** 当前项是否是视频；新增项读取 MIME，既有项读取业务类型 */
 const isVideo = (file: UploadUserFile) =>
-  file.raw?.type.startsWith('video/') ||
-  medias.value.find((item) => item.uid === file.uid)?.type === 'video'
+  file.raw?.type.startsWith('video/') || (file as MediaFile).type === 'video'
 
 /** 获取媒体展示地址；既有项解析远端 key，本地项直接使用 blob URL */
 const previewUrl = (file: UploadUserFile) => {
   if (file.raw) return file.url
-  const media = medias.value.find((item) => item.uid === file.uid)
-  return toResourceUrl(media?.previewUrl ?? media?.url ?? file.url ?? '')
+  const media = file as MediaFile
+  return toResourceUrl(media.previewUrl ?? media.url ?? file.url ?? '')
 }
 
 /** 释放本地预览 blob URL，避免反复选文件后残留 */
@@ -86,7 +85,7 @@ watch(medias, (value, oldValue) => {
     :on-change="onChange"
   >
     <ElIcon><Plus /></ElIcon>
-    <template #file="{ file }: { file: MediaFile }">
+    <template #file="{ file }">
       <div class="item">
         <div class="preview">
           <video
@@ -118,9 +117,9 @@ watch(medias, (value, oldValue) => {
           <ElButton
             v-if="onTakenAt"
             :icon="Clock"
-            :disabled="!file.metadata?.takenAt"
+            :disabled="!(file as MediaFile).metadata?.takenAt"
             link
-            @click.stop="onTakenAt?.(file)"
+            @click.stop="onTakenAt?.(file as MediaFile)"
           />
           <ElButton
             :icon="Delete"
