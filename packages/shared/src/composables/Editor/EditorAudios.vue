@@ -10,8 +10,11 @@ import { toResourceUrl } from 'shared/cos'
 import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
 import { Delete, Plus } from '@element-plus/icons-vue'
 
+/** 带业务资源字段的音频上传文件 */
+type AudioFile = UploadUserFile & AudioResource
+
 /** 音频编辑列表；本地待上传项通过 `raw` 保留原始 File */
-const audios = defineModel<(UploadUserFile & AudioResource)[]>({
+const audios = defineModel<AudioFile[]>({
   required: true,
 })
 
@@ -63,7 +66,7 @@ watch(audios, (value, oldValue) => {
     :on-change="onChange"
   >
     <ElButton :icon="Plus">添加音频</ElButton>
-    <template #file="{ file }">
+    <template #file="{ file }: { file: AudioFile }">
       <div class="item">
         <div class="meta">
           <span class="name">{{ file.name }}</span>

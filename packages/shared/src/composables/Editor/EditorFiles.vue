@@ -9,8 +9,11 @@ import type { FileResource } from './utils'
 import type { UploadProps, UploadUserFile } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 
+/** 带业务资源字段的普通上传文件 */
+type FileFile = UploadUserFile & FileResource
+
 /** 文件编辑列表；本地待上传项通过 `raw` 保留原始 File */
-const files = defineModel<(UploadUserFile & FileResource)[]>({ required: true })
+const files = defineModel<FileFile[]>({ required: true })
 
 /** 选择后补充业务类型与上传前的占位地址 */
 const onChange: UploadProps['onChange'] = (_file) => {

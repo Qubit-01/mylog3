@@ -14,13 +14,16 @@ import { parseImageMetadata } from 'shared/exifr'
 import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
 import { Check, Clock, Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
 
+/** 带业务资源字段的媒体上传文件 */
+type MediaFile = UploadUserFile & MediaResource
+
 const { onTakenAt } = defineProps<{
   /** 用户选择带拍摄时间的媒体时调用；未传入时不展示时间按钮 */
-  onTakenAt?: (file: UploadUserFile & MediaResource) => void
+  onTakenAt?: (file: MediaFile) => void
 }>()
 
 /** 媒体编辑列表；本地待上传项通过 `raw` 保留原始 File */
-const medias = defineModel<(UploadUserFile & MediaResource)[]>({
+const medias = defineModel<MediaFile[]>({
   required: true,
 })
 
@@ -83,7 +86,7 @@ watch(medias, (value, oldValue) => {
     :on-change="onChange"
   >
     <ElIcon><Plus /></ElIcon>
-    <template #file="{ file }">
+    <template #file="{ file }: { file: MediaFile }">
       <div class="item">
         <div class="preview">
           <video
