@@ -78,7 +78,10 @@ export const useLogEditor = (log?: Log) => {
   ) => {
     status.value = '压缩图片中…'
     // 图片额外生成压缩预览，视频对应位置为 undefined
-    const previews = await Promise.all(medias.map(compressImagePreview))
+    const previews: (File | undefined)[] = []
+    for (const media of medias) {
+      previews.push(await compressImagePreview(media))
+    }
 
     status.value = '上传文件中…'
     const keys = await uploadCosFiles(
