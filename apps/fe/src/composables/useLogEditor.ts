@@ -62,6 +62,7 @@ const replaceLocalResources = <T extends object>(
 /** 管理 Log 编辑草稿、附件上传清理和保存状态，组件本身只负责渲染 */
 export const useLogEditor = (log?: Log) => {
   const logStore = useLogStore()
+  const { request: requestWakeLock, release: releaseWakeLock } = useWakeLock()
   const logEdit = ref(createLogEdit(log))
   const pending = ref(false)
   /** 当前提交阶段的展示文案；`undefined` 表示空闲 */
@@ -80,6 +81,7 @@ export const useLogEditor = (log?: Log) => {
     // 图片额外生成压缩预览，视频对应位置为 undefined
     const previews: (File | undefined)[] = []
     for (const media of medias) {
+      status.value = `压缩图片中… ${previews.length + 1}/${medias.length}`
       previews.push(await compressImagePreview(media))
     }
 
@@ -137,6 +139,7 @@ export const useLogEditor = (log?: Log) => {
     pending.value = true
 
     try {
+      await requestWakeLock('screen').catch(() => undefined)
       let uploaded
       try {
         uploaded = await uploadAttachments(
@@ -180,6 +183,7 @@ export const useLogEditor = (log?: Log) => {
       logEdit.value = log ? createLogEdit(saved) : createLogEdit()
       return saved
     } finally {
+      await releaseWakeLock().catch(() => undefined)
       pending.value = false
       status.value = undefined
     }
