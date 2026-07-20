@@ -30,16 +30,18 @@ const revoke = (file: UploadUserFile) => {
 }
 
 /** 选择后校验类型并生成本地试听地址；类型不符直接从列表移除 */
-const onChange: UploadProps['onChange'] = (file) => {
-  if (!file.raw?.type.startsWith('audio/')) {
+const onChange: UploadProps['onChange'] = (_file) => {
+  if (!_file.raw?.type.startsWith('audio/')) {
     ElMessage.warning('只能添加音频')
-    audios.value = audios.value.filter((item) => item.uid !== file.uid)
+    audios.value = audios.value.filter((item) => item.uid !== _file.uid)
     return
   }
 
-  Object.assign(file, {
+  const audio = audios.value.find((item) => item.uid === _file.uid)
+  if (!audio) return
+  Object.assign(audio, {
     type: 'audio',
-    url: file.url ?? URL.createObjectURL(file.raw),
+    url: audio.url ?? URL.createObjectURL(_file.raw),
   })
 }
 
@@ -49,7 +51,6 @@ watch(audios, (value, oldValue) => {
     .filter((old) => !value.some((file) => file.uid === old.uid))
     .forEach(revoke)
 })
-
 </script>
 
 <template>

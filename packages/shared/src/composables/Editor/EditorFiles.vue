@@ -13,7 +13,9 @@ import { Plus } from '@element-plus/icons-vue'
 const files = defineModel<(UploadUserFile & FileResource)[]>({ required: true })
 
 /** 选择后补充业务类型与上传前的占位地址 */
-const onChange: UploadProps['onChange'] = (file) => {
+const onChange: UploadProps['onChange'] = (_file) => {
+  const file = files.value.find((item) => item.uid === _file.uid)
+  if (!file) return
   Object.assign(file, { type: 'file', url: file.url ?? file.name })
 }
 </script>

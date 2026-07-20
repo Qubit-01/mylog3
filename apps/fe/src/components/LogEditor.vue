@@ -28,6 +28,12 @@ const { logEdit, pending, status, submit } = useLogEditor(props.log)
 /** 包装 submit：成功则带着保存后的 Log 知会宿主 */
 const onSubmit = () => submit().then((saved) => saved && emit('done', saved))
 
+/** 使用媒体拍摄时间覆盖草稿记录时间，并启用记录时间编辑项 */
+const onTakenAt = (file: NonNullable<LogEdit['medias']>[number]) => {
+  const takenAt = file.metadata?.takenAt
+  if (takenAt) logEdit.value.logAt = takenAt
+}
+
 /** 切换草稿字段的启用状态；启用时使用传入的初值 */
 const toggle = <K extends keyof LogEdit>(
   key: K,
@@ -103,6 +109,7 @@ const toggle = <K extends keyof LogEdit>(
     <EditorMedias
       v-if="logEdit.medias !== undefined"
       v-model="logEdit.medias"
+      :on-taken-at="onTakenAt"
     />
     <EditorAudios
       v-if="logEdit.audios !== undefined"
