@@ -2,13 +2,15 @@
 音频编辑器：
 - 默认 model 统一维护既有音频与带 raw 的本地待上传音频。
 - 新旧音频统一展示、试听和删除。
+- 音频项结构与样式尽量跟随 LogCardAudios，编辑态仅额外提供添加与删除能力。
 - 仅维护编辑状态和本地试听地址，不负责上传或删除远端资源。
 -->
 <script lang="ts" setup>
 import type { AudioResource } from './utils'
 import { toResourceUrl } from 'shared/cos'
+import { vEllipsis } from 'shared/ellipsis'
 import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
-import { Delete, Plus } from '@element-plus/icons-vue'
+import { Delete, Headset, Plus } from '@element-plus/icons-vue'
 
 /** 带业务资源字段的音频上传文件 */
 type AudioFile = UploadUserFile & AudioResource
@@ -69,17 +71,20 @@ watch(audios, (value, oldValue) => {
     <template #file="{ file }">
       <div class="item">
         <div class="meta">
-          <span class="name">{{ file.name }}</span>
-          <span
+          <ElIcon class="icon"><Headset /></ElIcon>
+          <span v-ellipsis class="name">{{ file.name }}</span>
+          <ElButton
             class="delete"
+            :icon="Delete"
+            circle
+            size="small"
+            text
             @click.stop="
               audios = audios.filter((item) => item.uid !== file.uid)
             "
-          >
-            <ElIcon><Delete /></ElIcon>
-          </span>
+          />
         </div>
-        <audio :src="audioUrl(file)" controls preload="none" />
+        <audio :src="audioUrl(file)" controls preload="metadata" />
       </div>
     </template>
   </ElUpload>
@@ -102,7 +107,10 @@ watch(audios, (value, oldValue) => {
     margin: 0;
 
     > .el-upload-list__item {
+      height: auto;
+      padding: 0;
       margin: 0;
+      background: transparent;
     }
   }
 
@@ -110,24 +118,29 @@ watch(audios, (value, oldValue) => {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding: 4px;
+    min-width: 0;
+    padding: 8px;
+    background: var(--el-fill-color-lighter);
+    border-radius: 6px;
 
     > .meta {
       display: flex;
       align-items: center;
+      gap: 4px;
+
+      > .icon {
+        flex: none;
+        color: var(--el-text-color-secondary);
+      }
 
       > .name {
         flex: 1;
         min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        color: var(--el-text-color-regular);
       }
 
       > .delete {
         flex: none;
-        padding: 4px;
-        cursor: pointer;
       }
     }
 

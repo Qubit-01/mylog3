@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-/** Log 卡片：最基础的展示形式，显示时间、正文、标签 */
+/** Log 卡片：最基础的展示形式，显示时间、正文、媒体、音频和标签 */
 import type { Log } from '@/api'
 import dayjs from 'dayjs'
 
@@ -29,6 +29,7 @@ const onOpen = () => {
     </div>
     <p class="text">{{ log.text }}</p>
     <LogCardMedias :medias="log.medias" @click.stop />
+    <LogCardAudios :audios="log.audios" @click.stop />
     <div v-if="log.tags.length" class="tags">
       <span v-for="t in log.tags" :key="t">#{{ t }}</span>
     </div>
