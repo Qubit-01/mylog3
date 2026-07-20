@@ -91,7 +91,7 @@ watch(medias, (value, oldValue) => {
           <video
             v-if="file.raw && isVideo(file)"
             class="el-upload-list__item-thumbnail"
-            :src="previewUrl(file)"
+            :src="`${previewUrl(file)}#t=0.001`"
             muted
             playsinline
             preload="metadata"
