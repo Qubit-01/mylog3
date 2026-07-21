@@ -79,11 +79,13 @@ export const useLogEditor = (log?: Log) => {
     /** 本次需要上传的普通文件 */
     files: File[],
   ) => {
+    // 2.2.1 定位图片，并建立与媒体列表下标一致的预览列表
     const imageIndexes = medias.flatMap((media, index) =>
       media.type.startsWith('image/') ? [index] : [],
     )
-    // 预览与媒体使用相同下标，视频对应位置为 undefined
     const previews: (File | undefined)[] = Array(medias.length)
+
+    // 2.2.2 优先使用内嵌缩略图，否则压缩原图生成预览
     for (const [index, mediaIndex] of imageIndexes.entries()) {
       status.value = `生成缩略图中… ${index + 1}/${imageIndexes.length}`
       const media = medias[mediaIndex]!
@@ -96,6 +98,7 @@ export const useLogEditor = (log?: Log) => {
         : await compressImagePreview(media)
     }
 
+    // 2.2.3 按媒体、音频、文件的顺序上传全部本地附件
     status.value = '上传文件中…'
     const keys = await uploadCosFiles(
       [
@@ -116,7 +119,7 @@ export const useLogEditor = (log?: Log) => {
       },
     )
 
-    // 与上方上传项的顺序一致：先 media（可能带 preview），再 audio，最后 file
+    // 2.2.4 按上传顺序将 COS key 转换为三类资源
     let i = 0
     return {
       medias: medias.map((f, idx) => ({
@@ -142,16 +145,23 @@ export const useLogEditor = (log?: Log) => {
 
   /** 提交当前草稿；保存成功后尽力清理不再引用的附件。返回保存后的 Log；未提交或失败返回 undefined */
   const submit = async (): Promise<Log | undefined> => {
+    // 1. 校验并固化本次提交
+    // 1.1 校验草稿内容和提交状态
     if (!logEdit.value.text.trim() || pending.value) return
+    // 1.2 固化附件和基础字段，避免提交期间受编辑状态影响
     const { medias, audios, files } = logEdit.value
     const baseLogEdit = cloneDeep(
       omit(logEdit.value, ['medias', 'audios', 'files']),
     )
+    // 1.3 进入提交状态并等待编辑器销毁
     pending.value = true
     await nextTick()
 
     try {
+      // 2. 准备并上传本地附件
+      // 2.1 尽力保持屏幕唤醒
       await requestWakeLock('screen').catch(() => undefined)
+      // 2.2 生成图片缩略图并上传全部本地附件
       let uploaded
       try {
         uploaded = await uploadAttachments(
@@ -160,12 +170,14 @@ export const useLogEditor = (log?: Log) => {
           files?.flatMap(({ raw }) => (raw ? [raw] : [])) ?? [],
         )
       } catch (error) {
+        // 2.3 展示完整上传错误并终止本次提交
         console.error(error)
         ElNotification.error({ message: stringifyError(error), duration: 0 })
         return
       }
 
-      // 保留已启用字段中的既有附件，并用本次上传结果替换本地占位项
+      // 3. 保存 Log 并同步本地状态
+      // 3.1 保留已启用字段中的既有附件，并用本次上传结果替换本地占位项
       const payload: CreateLog = {
         ...baseLogEdit,
         medias: replaceLocalResources(medias, uploaded.medias),
@@ -173,13 +185,13 @@ export const useLogEditor = (log?: Log) => {
         files: replaceLocalResources(files, uploaded.files),
       }
       status.value = '提交 Log 中…'
-      // 请求可能已落库但响应失败，不能删除可能已被引用的新文件
+      // 3.2 请求可能已落库但响应失败，不能删除可能已被引用的新文件
       const saved = await (
         log ? updateLog({ id: log.id, ...payload }) : createLog(payload)
       ).catch(() => undefined)
       if (!saved) return
 
-      // 编辑成功后：把用户从既有列表里移除的原始附件在 COS 中一并清理
+      // 3.3 编辑成功后，把用户从既有列表里移除的原始附件在 COS 中一并清理
       if (log) {
         const keptKeys = new Set(
           collectCosKeys(saved.medias, saved.audios, saved.files),
@@ -192,11 +204,15 @@ export const useLogEditor = (log?: Log) => {
         await deleteCosFiles(removedKeys).catch(() => undefined)
       }
 
+      // 3.4 同步本地 Store，并重置或刷新草稿
       logStore.upsert(saved)
       logEdit.value = log ? createLogEdit(saved) : createLogEdit()
       return saved
     } finally {
+      // 4. 释放提交期间占用的状态
+      // 4.1 释放屏幕唤醒锁
       await releaseWakeLock().catch(() => undefined)
+      // 4.2 恢复编辑器和空闲状态
       pending.value = false
       status.value = undefined
     }
