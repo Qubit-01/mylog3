@@ -3,9 +3,11 @@
 import type { Log } from '@/api'
 import dayjs from 'dayjs'
 
-const { log } = defineProps<{
+const { log, hideMeta } = defineProps<{
   /** 当前展示的 Log 数据 */
   log: Log
+  /** 是否隐藏用户与时间信息，默认展示 */
+  hideMeta?: boolean
 }>()
 
 const router = useRouter()
@@ -23,7 +25,7 @@ const onOpen = () => {
 
 <template>
   <article class="LogCard m-panel" @click="onOpen">
-    <div class="meta">
+    <div v-if="!hideMeta" class="meta">
       <span>#{{ log.userId }}</span>
       <span>{{ dayjs(log.logAt).format('YYYY-MM-DD HH:mm') }}</span>
     </div>

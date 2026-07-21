@@ -78,7 +78,7 @@ const timelineItems = computed<TimelineEntry[]>(() => {
         :key="key"
         v-bind="props"
       >
-        <LogCard v-if="log" :log="log" />
+        <LogCard v-if="log" :log="log" hide-meta />
       </ElTimelineItem>
     </ElTimeline>
   </ElScrollbar>
