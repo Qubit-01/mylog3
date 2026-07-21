@@ -1,8 +1,9 @@
 /**
- * COS SDK 业务适配层：不改官方方法逻辑，仅补充临时凭证、用户目录、默认参数、空输入保护和失败清理。
+ * COS 业务适配层：不改官方方法逻辑，仅补充临时凭证、用户目录、按原名下载、默认参数、空输入保护和失败清理。
  */
 import COS from 'cos-js-sdk-v5'
-import { createCosCredential } from '@/api'
+import { createCosCredential, createCosDownloadUrl } from '@/api'
+import { toResourceUrl } from 'shared/cos'
 
 /** 创建附带当前用户凭证信息的 COS 客户端，仅供当前适配层使用 */
 const createCosClient = async () => {
@@ -17,6 +18,26 @@ const createCosClient = async () => {
     }),
     credential,
   )
+}
+
+/** 按资源名称下载 COS 对象；完整外链直接打开，不请求 COS 签名 */
+export const downloadResource = async (resource: {
+  name: string
+  url: string
+}) => {
+  if (
+    resource.url.startsWith('http://') ||
+    resource.url.startsWith('https://')
+  ) {
+    window.open(toResourceUrl(resource.url), '_blank', 'noopener')
+    return
+  }
+
+  const { url } = await createCosDownloadUrl({
+    key: resource.url,
+    filename: resource.name,
+  })
+  window.location.assign(url)
 }
 
 /** 收集资源占用的 COS object key，跳过外链 */

@@ -27,6 +27,7 @@ declare module 'vue' {
     ElUpload: typeof import('element-plus/es')['ElUpload']
     LogCard: typeof import('./src/components/LogCard.vue')['default']
     LogCardAudios: typeof import('./src/components/LogCardAudios.vue')['default']
+    LogCardFiles: typeof import('./src/components/LogCardFiles.vue')['default']
     LogCardMedias: typeof import('./src/components/LogCardMedias.vue')['default']
     LogEditor: typeof import('./src/components/LogEditor.vue')['default']
     MediaSwiper: typeof import('./src/components/MediaSwiper.vue')['default']

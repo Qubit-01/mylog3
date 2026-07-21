@@ -88,6 +88,10 @@ export type CosCredential = components['schemas']['CosCredentialDto']
 /** 获取当前用户目录的 COS 临时凭证 */
 export const createCosCredential = () => unwrap(api.POST('/cos/credential', {}))
 
+/** 获取带指定文件名的 COS 短时下载地址 */
+export const createCosDownloadUrl = (payload: Body<'/cos/download-url'>) =>
+  unwrap(api.POST('/cos/download-url', { body: payload }))
+
 /* ─── log ──────────────────────────────────────────── */
 
 /** 单条 Log 的完整类型，从后端 OpenAPI schema 派生，全项目统一使用这个 */
