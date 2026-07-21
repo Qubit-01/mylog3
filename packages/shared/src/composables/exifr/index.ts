@@ -21,6 +21,17 @@ interface ParsedExif {
   longitude?: number
 }
 
+/** EXIF 内嵌缩略图定位字段；两者同时有效时才存在可提取的 JPEG */
+interface ParsedThumbnailExif {
+  /** 缩略图所在的 IFD1 块 */
+  ifd1?: {
+    /** 缩略图相对 TIFF 头的字节偏移 */
+    ThumbnailOffset?: number
+    /** 缩略图字节长度 */
+    ThumbnailLength?: number
+  }
+}
+
 /** 固定选项对象以复用 exifr 内部的解析配置缓存，并保留原始时间字符串 */
 const imageExifOptions = {
   pick: [
@@ -34,6 +45,13 @@ const imageExifOptions = {
     'GPSLongitudeRef',
   ],
   reviveValues: false,
+}
+
+/** 固定选项对象以复用 exifr 内部的解析配置缓存，并只读取缩略图定位字段 */
+const imageThumbnailOptions = {
+  tiff: false,
+  ifd1: { pick: ['ThumbnailOffset', 'ThumbnailLength'] },
+  mergeOutput: false,
 }
 
 /**
@@ -57,9 +75,8 @@ export const parseImageMetadata = async (
     }
   | undefined
 > => {
-  const exif = (await parse(file, imageExifOptions).catch(
-    () => undefined,
-  )) as ParsedExif | undefined
+  const exif = (await parse(file, imageExifOptions).catch(() => undefined)) as
+    ParsedExif | undefined
   if (!exif) return
 
   let takenAt: string | undefined
@@ -102,7 +119,22 @@ export const parseImageMetadata = async (
 
 /**
  * 读取图片内嵌的 EXIF 缩略图。
- * @returns 缩略图字节；没有内嵌缩略图或读取失败时返回 undefined
+ * @returns 缩略图字节；定位字段缺失、无效或读取失败时返回 undefined
  */
-export const parseImageThumbnail = (file: File) =>
-  thumbnail(file).catch(() => undefined)
+export const parseImageThumbnail = async (file: File) => {
+  const exif = (await parse(file, imageThumbnailOptions).catch(
+    () => undefined,
+  )) as ParsedThumbnailExif | undefined
+  const { ThumbnailOffset: offset, ThumbnailLength: length } = exif?.ifd1 ?? {}
+  if (
+    typeof offset !== 'number' ||
+    !Number.isSafeInteger(offset) ||
+    offset <= 0 ||
+    typeof length !== 'number' ||
+    !Number.isSafeInteger(length) ||
+    length <= 0
+  ) {
+    return
+  }
+  return thumbnail(file).catch(() => undefined)
+}
