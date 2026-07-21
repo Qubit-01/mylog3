@@ -51,14 +51,6 @@ const timelineItems = computed<TimelineEntry[]>(() => {
     })
   }
 
-  if (footerText.value) {
-    items.push({
-      key: 'footer',
-      timestamp: footerText.value,
-      placement: 'top',
-    })
-  }
-
   return items
 })
 </script>
@@ -80,6 +72,12 @@ const timelineItems = computed<TimelineEntry[]>(() => {
       >
         <LogCard v-if="log" :log="log" hide-meta />
       </ElTimelineItem>
+
+      <ElTimelineItem
+        v-if="footerText"
+        :timestamp="footerText"
+        placement="top"
+      />
     </ElTimeline>
   </ElScrollbar>
 </template>
