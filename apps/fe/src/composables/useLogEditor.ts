@@ -17,6 +17,7 @@ import { stringifyError } from '@/composables/error'
 import { useLogStore } from '@/stores/log'
 import type { UploadUserFile } from 'element-plus'
 import { cloneDeep, omit } from 'lodash-unified'
+import { parseImageThumbnail } from 'shared/exifr'
 
 /**
  * 编辑器草稿：`text` / `scope` 始终存在，其余字段仅在启用对应编辑组件时才出现（`undefined` 表示未启用）。
@@ -84,8 +85,15 @@ export const useLogEditor = (log?: Log) => {
     // 预览与媒体使用相同下标，视频对应位置为 undefined
     const previews: (File | undefined)[] = Array(medias.length)
     for (const [index, mediaIndex] of imageIndexes.entries()) {
-      status.value = `压缩图片中… ${index + 1}/${imageIndexes.length}`
-      previews[mediaIndex] = await compressImagePreview(medias[mediaIndex]!)
+      status.value = `生成缩略图中… ${index + 1}/${imageIndexes.length}`
+      const media = medias[mediaIndex]!
+      const thumbnail = await parseImageThumbnail(media)
+      previews[mediaIndex] = thumbnail
+        ? new File([new Uint8Array(thumbnail)], `${media.name}.jpg`, {
+            type: 'image/jpeg',
+            lastModified: media.lastModified,
+          })
+        : await compressImagePreview(media)
     }
 
     status.value = '上传文件中…'

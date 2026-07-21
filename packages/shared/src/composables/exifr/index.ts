@@ -37,8 +37,8 @@ const imageExifOptions = {
 }
 
 /**
- * 解析并归一化图片的拍摄时间、位置和内嵌缩略图。
- * @returns 图片 metadata 与内嵌缩略图；没有目标字段或解析失败时返回 undefined
+ * 解析并归一化图片的拍摄时间和位置。
+ * @returns 图片 metadata；没有目标字段或解析失败时返回 undefined
  */
 export const parseImageMetadata = async (
   /** 待解析的原始图片文件 */
@@ -47,8 +47,6 @@ export const parseImageMetadata = async (
   | {
       /** 图片拍摄时刻（ISO 8601 UTC 字符串） */
       takenAt?: string
-      /** 图片内嵌的 EXIF 缩略图 */
-      thumbnail?: Uint8Array
       /** 图片拍摄位置坐标 */
       location?: {
         /** 经度 */
@@ -59,13 +57,10 @@ export const parseImageMetadata = async (
     }
   | undefined
 > => {
-  const [exif, _thumbnail] = await Promise.all([
-    parse(file, imageExifOptions).catch(() => undefined) as Promise<
-      ParsedExif | undefined
-    >,
-    thumbnail(file).catch(() => undefined),
-  ])
-  if (!exif && !_thumbnail) return
+  const exif = (await parse(file, imageExifOptions).catch(
+    () => undefined,
+  )) as ParsedExif | undefined
+  if (!exif) return
 
   let takenAt: string | undefined
   const rawTakenAt = exif?.DateTimeOriginal ?? exif?.CreateDate
@@ -101,6 +96,13 @@ export const parseImageMetadata = async (
         }
       : undefined
 
-  if (!takenAt && !_thumbnail && !location) return
-  return { takenAt, thumbnail: _thumbnail, location }
+  if (!takenAt && !location) return
+  return { takenAt, location }
 }
+
+/**
+ * 读取图片内嵌的 EXIF 缩略图。
+ * @returns 缩略图字节；没有内嵌缩略图或读取失败时返回 undefined
+ */
+export const parseImageThumbnail = (file: File) =>
+  thumbnail(file).catch(() => undefined)
