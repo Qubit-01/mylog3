@@ -45,11 +45,13 @@ const toggle = <K extends keyof LogEdit>(
 </script>
 
 <template>
-  <section class="LogEditor m-panel" :inert="pending">
+  <!-- 不用 inert：会导致 Chromium 下 ElInput autosize 高度测量异常 -->
+  <section class="LogEditor m-panel" :class="{ pending }">
     <ElInput
       v-model.trim="logEdit.text"
       type="textarea"
       :autosize="{ minRows: 3, maxRows: 8 }"
+      :readonly="pending"
       resize="none"
       placeholder="记录生活，记录你"
       @keydown.meta.enter.prevent="onSubmit"
@@ -133,6 +135,10 @@ const toggle = <K extends keyof LogEdit>(
   flex-direction: column;
   gap: 8px;
   padding: 12px;
+
+  &.pending {
+    pointer-events: none;
+  }
 
   > .actions {
     display: flex;
