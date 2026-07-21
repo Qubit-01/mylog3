@@ -1,5 +1,10 @@
+<!--
+DefaultLayout：
+- 使用横向 Swiper 承载主 Tab 和通用附属页。
+- 统一展示全局侧边栏和底部 TabBar。
+-->
 <script lang="ts" setup>
-/** 默认布局：Tab 页走横向 Swiper，非 Tab 页走普通 RouterView，底部统一 TabBar */
+import type { Swiper as SwiperType } from 'swiper/types'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
 import { tabs } from './(default)/tabs'
@@ -7,35 +12,55 @@ import { tabs } from './(default)/tabs'
 const route = useRoute()
 const router = useRouter()
 
-/** 当前路径对应的 Tab 索引，-1 表示不在 Tab 列表里（走 RouterView 分支） */
-const index = computed(() => tabs.findIndex((t) => t.to === route.path))
+/** 当前路由对应的 Slide 索引；非主 Tab 路由统一落到末尾附属页 */
+const index = computed(() => {
+  const i = tabs.findIndex((t) => t.to === route.path)
+  return i < 0 ? tabs.length : i
+})
 
 /** swiper 实例 ref，用于响应路由变化命令式切页 */
-const swiper = shallowRef<{ slideTo: (i: number) => void }>()
-watch(index, (i) => i >= 0 && swiper.value?.slideTo(i))
+const swiper = shallowRef<SwiperType>()
+
+/** 路由变化后等待附属 Slide 增删完成，再更新 Swiper 并切页 */
+watch(index, async (i) => {
+  await nextTick()
+  swiper.value?.update()
+  swiper.value?.slideTo(i)
+})
+
+/**
+ * 手势滑动结束后同步路由；路由驱动的滑动不反向改写路由。
+ * @returns 无返回值，仅同步当前路由
+ */
+const onSlideChange = (instance: SwiperType) => {
+  const to = tabs[instance.activeIndex]?.to
+  if (to && instance.previousIndex === index.value) router.replace(to)
+}
 
 /**
  * 已挂载过的 tab 索引集合，实现按需懒挂载：未访问的 slide 保持空壳，
  * 避免未登录时 `mine` 等受保护页面被提前挂载并触发接口
  */
 const mounted = reactive(new Set<number>())
-watch(index, (i) => i >= 0 && mounted.add(i), { immediate: true })
+watch(index, (i) => i < tabs.length && mounted.add(i), { immediate: true })
 </script>
 
 <template>
   <div class="default">
     <Swiper
-      v-if="index >= 0"
       class="main"
       :initial-slide="index"
       @swiper="(s) => (swiper = s)"
-      @slide-change="(s) => router.replace(tabs[s.activeIndex].to)"
+      @slide-change-transition-end="onSlideChange"
     >
       <SwiperSlide v-for="(t, i) in tabs" :key="t.to" class="page">
         <component :is="t.component" v-if="mounted.has(i)" />
       </SwiperSlide>
+      <!-- 通用附属页：非主 Tab 子路由只需正常跳转，无须修改布局 -->
+      <SwiperSlide v-if="index >= tabs.length" class="page">
+        <RouterView />
+      </SwiperSlide>
     </Swiper>
-    <RouterView v-else class="main page" />
     <!-- 全局侧边栏：布局级单例，独立于各 tab 页面 -->
     <aside class="aside">
       <AsideUser />

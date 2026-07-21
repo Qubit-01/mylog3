@@ -1,5 +1,9 @@
+<!--
+LogCard：
+- 展示 Log 的用户、时间、正文、媒体、音频、文件和标签。
+- 点击非资源区域进入详情附属页；选择文字时不跳转。
+-->
 <script lang="ts" setup>
-/** Log 卡片：最基础的展示形式，显示时间、正文、媒体、音频、文件和标签 */
 import type { Log } from '@/api'
 import dayjs from 'dayjs'
 
@@ -12,14 +16,10 @@ const { log, hideMeta } = defineProps<{
 
 const router = useRouter()
 
-/** 点击卡片外层时在新标签页打开详情；正在选择文字时保留文本选择 */
+/** 点击卡片外层时进入详情附属页；正在选择文字时保留文本选择 */
 const onOpen = () => {
   if (window.getSelection()?.toString()) return
-  window.open(
-    router.resolve({ path: '/log', query: { id: log.id } }).href,
-    '_blank',
-    'noopener',
-  )
+  router.push({ path: '/log', query: { id: log.id } })
 }
 </script>
 
