@@ -65,7 +65,7 @@ watch(index, (i) => i < tabs.length && mounted.add(i), { immediate: true })
     <aside class="aside">
       <AsideUser />
     </aside>
-    <TabBar />
+    <TabBar :extra="index >= tabs.length" />
   </div>
 </template>
 

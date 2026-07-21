@@ -2,18 +2,28 @@
 /** 底部悬浮 Tab 导航栏 */
 import { tabs } from '../pages/(default)/tabs'
 
+const { extra } = defineProps<{
+  /** 是否显示附属页圆形 item */
+  extra: boolean
+}>()
 const route = useRoute()
-/** 当前激活 tab 的索引，-1 表示无匹配 */
-const activeIndex = computed(() => tabs.findIndex((t) => t.to === route.path))
+/** 当前路由对应的 item 索引；附属页固定排在主 Tab 之后 */
+const activeIndex = computed(() => {
+  const index = tabs.findIndex((t) => t.to === route.path)
+  return index < 0 ? tabs.length : index
+})
 </script>
 
 <template>
-  <div class="TabBar">
-    <div v-show="activeIndex >= 0" class="indicator" />
+  <div class="TabBar" :class="{ extra }">
+    <div class="indicator" />
 
     <RouterLink v-for="t in tabs" :key="t.to" :to="t.to" class="item">
       {{ t.label }}
     </RouterLink>
+    <span v-if="extra" class="extra">
+      <span class="dot" />
+    </span>
   </div>
 </template>
 
@@ -29,6 +39,7 @@ const activeIndex = computed(() => tabs.findIndex((t) => t.to === route.path))
   z-index: 10;
   display: flex;
   gap: 4px;
+  width: calc(68px * var(--count) + 8px);
   padding: 6px;
   overflow: hidden;
   border-radius: 999px;
@@ -38,28 +49,42 @@ const activeIndex = computed(() => tabs.findIndex((t) => t.to === route.path))
   box-shadow:
     inset 0 0 0 1px #0001,
     0 6px 24px #0002;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.extra {
+    width: calc(68px * var(--count) + 52px);
+
+    > .indicator {
+      width: 40px;
+    }
+  }
 
   > .indicator {
     position: absolute;
     top: 6px;
     bottom: 6px;
     left: 6px;
-    width: calc((100% - 12px - 4px * (var(--count) - 1)) / var(--count));
-    transform: translateX(calc((100% + 4px) * var(--active)));
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 64px;
+    transform: translateX(calc(68px * var(--active)));
+    transition:
+      width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     background: #07fe;
     border-radius: 999px;
   }
 
-  > .item {
+  > .item,
+  > .extra {
     position: relative;
     z-index: 1;
     display: flex;
-    flex: 1;
     align-items: center;
     justify-content: center;
-    min-width: 64px;
     height: 40px;
+  }
+
+  > .item {
+    flex: 0 0 64px;
     padding: 0 16px;
     color: #000;
     text-shadow: 0 1px 2px #ccc7;
@@ -67,9 +92,21 @@ const activeIndex = computed(() => tabs.findIndex((t) => t.to === route.path))
     font-weight: 700;
     text-decoration: none;
     transition: color 0.25s;
+
     &.router-link-exact-active {
       color: #fff;
       text-shadow: 0 1px 2px #0005;
+    }
+  }
+
+  > .extra {
+    flex: 0 0 40px;
+
+    > .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #fff;
     }
   }
 }
