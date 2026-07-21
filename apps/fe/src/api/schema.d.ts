@@ -212,6 +212,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/cos/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CosController_createDownloadUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -538,6 +554,22 @@ export interface components {
             /** @description 客户端直传使用的临时密钥 */
             credentials: components["schemas"]["CosTemporaryCredentialDto"];
         };
+        CreateDownloadUrlDto: {
+            /**
+             * @description COS object key
+             * @example users/1/mylog/files/uuid-report.pdf
+             */
+            key: string;
+            /**
+             * @description 下载时使用的文件名
+             * @example 年度总结.pdf
+             */
+            filename: string;
+        };
+        DownloadUrlDto: {
+            /** @description 包含下载文件名响应参数的 COS 短时签名 URL */
+            url: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -841,6 +873,30 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CosCredentialDto"];
+                };
+            };
+        };
+    };
+    CosController_createDownloadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDownloadUrlDto"];
+            };
+        };
+        responses: {
+            /** @description 在 COS 配置时长内有效的下载地址 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadUrlDto"];
                 };
             };
         };

@@ -336,6 +336,37 @@
           "cos"
         ]
       }
+    },
+    "/cos/download-url": {
+      "post": {
+        "operationId": "CosController_createDownloadUrl",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDownloadUrlDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "在 COS 配置时长内有效的下载地址",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadUrlDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "cos"
+        ]
+      }
     }
   },
   "info": {
@@ -961,6 +992,37 @@
           "startTime",
           "expiredTime",
           "credentials"
+        ]
+      },
+      "CreateDownloadUrlDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "COS object key",
+            "example": "users/1/mylog/files/uuid-report.pdf"
+          },
+          "filename": {
+            "type": "string",
+            "description": "下载时使用的文件名",
+            "example": "年度总结.pdf"
+          }
+        },
+        "required": [
+          "key",
+          "filename"
+        ]
+      },
+      "DownloadUrlDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "包含下载文件名响应参数的 COS 短时签名 URL"
+          }
+        },
+        "required": [
+          "url"
         ]
       }
     }
