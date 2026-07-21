@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import dayjs from 'dayjs'
 import { listMineLogs, listPublicLogs, type Log } from '@/api'
 
 /** 已注册的列表键；后续新增列表只需在这里加一项 */
@@ -30,7 +31,10 @@ export const useLogStore = defineStore('log', () => {
   /** 合并单条 log，并按可见范围同步当前已知列表 */
   const upsert = (log: Log) => {
     entities[log.id] = log
-    lists.mine = [log.id, ...lists.mine.filter((id) => id !== log.id)]
+    lists.mine = [log.id, ...lists.mine.filter((id) => id !== log.id)].sort(
+      (a, b) =>
+        dayjs(entities[b].logAt).valueOf() - dayjs(entities[a].logAt).valueOf(),
+    )
     lists.public =
       log.scope === 'PUBLIC'
         ? [log.id, ...lists.public.filter((id) => id !== log.id)]
