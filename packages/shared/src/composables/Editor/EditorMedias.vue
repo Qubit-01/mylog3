@@ -3,9 +3,10 @@
 - 默认 model 统一维护既有媒体与带 raw 的本地待上传媒体。
 - 用户选择图片后解析拍摄时间和位置，并写入当前媒体 metadata。
 - 新旧媒体统一展示、预览和删除，既有视频使用 COS 截帧减少流量。
-- 上传列表使用 text 模式，媒体卡片由组件自行展示。
+- 上传列表使用 text 模式，媒体卡片在 file slot 中自行展示。
+- 超过 10 项时只展示前 8 项和后 2 项，中间使用独立省略图标，避免复用媒体 DOM。
 - 可选提供拍摄时间回调；传入时显示时间按钮，无拍摄时间的媒体保持禁用。
-- 悬停卡片时缩小预览，并在底部显示删除按钮。
+- 悬停卡片时在预览底部覆盖显示操作按钮。
 - 仅维护编辑状态和本地预览，不负责上传或删除远端资源。
 -->
 <script lang="ts" setup>
@@ -13,7 +14,14 @@ import type { MediaResource } from './utils'
 import { toResourceUrl } from 'shared/cos'
 import { parseImageMetadata } from 'shared/exifr'
 import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
-import { Check, Clock, Delete, Plus, VideoPlay } from '@element-plus/icons-vue'
+import {
+  Check,
+  Clock,
+  Delete,
+  MoreFilled,
+  Plus,
+  VideoPlay,
+} from '@element-plus/icons-vue'
 
 /** 带业务资源字段的媒体上传文件 */
 type MediaFile = UploadUserFile & MediaResource
@@ -41,11 +49,15 @@ const previewUrl = (file: UploadUserFile) => {
 
 /** 释放本地预览 blob URL，避免反复选文件后残留 */
 const revoke = (file: UploadUserFile) => {
-  if (!file.url?.startsWith('blob:')) return
-  URL.revokeObjectURL(file.url)
+  if (file.url?.startsWith('blob:')) URL.revokeObjectURL(file.url)
+  if (file.raw) file.url = file.name
 }
 
-/** 选择后校验类型、生成本地预览并补充业务字段；图片同时解析拍摄 metadata */
+/** 当前下标是否属于实际展示的前 8 项或后 2 项 */
+const isVisible = (index: number) =>
+  medias.value.length <= 10 || index < 8 || index >= medias.value.length - 2
+
+/** 选择后校验类型并补充业务字段；图片同时解析拍摄 metadata */
 const onChange: UploadProps['onChange'] = async (_file) => {
   const raw = _file.raw
   const type = raw?.type ?? ''
@@ -57,8 +69,7 @@ const onChange: UploadProps['onChange'] = async (_file) => {
 
   Object.assign(_file, {
     type: type.startsWith('video/') ? 'video' : 'image',
-    // text 模式不会像 picture-card 一样自动创建 blob URL，需要在此维护预览地址。
-    url: _file.url ?? URL.createObjectURL(raw),
+    url: _file.url ?? _file.name,
   })
 
   if (!type.startsWith('image/')) return
@@ -68,12 +79,30 @@ const onChange: UploadProps['onChange'] = async (_file) => {
   if (media) media.metadata = { takenAt, location }
 }
 
-/** 本地媒体移除时回收预览地址 */
-watch(medias, (value, oldValue) => {
-  oldValue
-    .filter((old) => !value.some((file) => file.uid === old.uid))
-    .forEach(revoke)
-})
+/** 只为当前展示的本地媒体维护 blob URL，并回收移除或折叠项的地址 */
+watch(
+  medias,
+  (value, oldValue) => {
+    for (const old of oldValue ?? []) {
+      if (!value.some((file) => file.uid === old.uid)) revoke(old)
+    }
+
+    value.forEach((file, index) => {
+      if (!file.raw) return
+      if (!isVisible(index)) {
+        revoke(file)
+        return
+      }
+      if (!file.url?.startsWith('blob:')) {
+        file.url = URL.createObjectURL(file.raw)
+      }
+    })
+  },
+  { immediate: true },
+)
+
+/** 组件销毁前清空 blob URL，保证同一草稿再次挂载时可以重新生成 */
+onBeforeUnmount(() => medias.value.forEach(revoke))
 </script>
 
 <template>
@@ -86,14 +115,19 @@ watch(medias, (value, oldValue) => {
     :auto-upload="false"
     :on-change="onChange"
   >
-    <div class="el-upload--picture-card">
-      <ElIcon><Plus /></ElIcon>
-    </div>
-    <template #file="{ file }">
-      <template v-if="file.url">
+    <template #trigger>
+      <div class="el-upload--picture-card">
+        <ElIcon><Plus /></ElIcon>
+      </div>
+    </template>
+    <ElIcon v-if="medias.length > 10" class="ellipsis">
+      <MoreFilled />
+    </ElIcon>
+    <template #file="{ file, index }">
+      <template v-if="isVisible(index) && file.url">
         <video
           v-if="file.raw && isVideo(file)"
-          class="el-upload-list__item-thumbnail"
+          class="thumbnail"
           :src="`${previewUrl(file)}#t=0.001`"
           muted
           playsinline
@@ -101,7 +135,7 @@ watch(medias, (value, oldValue) => {
         />
         <img
           v-else
-          class="el-upload-list__item-thumbnail"
+          class="thumbnail"
           loading="lazy"
           :src="
             isVideo(file)
@@ -111,26 +145,29 @@ watch(medias, (value, oldValue) => {
           alt=""
         />
         <ElIcon v-if="isVideo(file)" class="play"><VideoPlay /></ElIcon>
+        <label class="el-upload-list__item-status-label">
+          <ElIcon class="check">
+            <Check />
+          </ElIcon>
+        </label>
+        <span class="actions">
+          <ElButton
+            v-if="onTakenAt"
+            :icon="Clock"
+            :disabled="!(file as MediaFile).metadata?.takenAt"
+            link
+            @click.stop="onTakenAt?.(file as MediaFile)"
+          />
+          <ElButton
+            :icon="Delete"
+            link
+            @click.stop="
+              medias = medias.filter((item) => item.uid !== file.uid)
+            "
+          />
+        </span>
       </template>
-      <label class="el-upload-list__item-status-label">
-        <ElIcon class="el-icon--upload-success el-icon--check">
-          <Check />
-        </ElIcon>
-      </label>
-      <span class="el-upload-list__item-actions">
-        <ElButton
-          v-if="onTakenAt"
-          :icon="Clock"
-          :disabled="!(file as MediaFile).metadata?.takenAt"
-          link
-          @click.stop="onTakenAt?.(file as MediaFile)"
-        />
-        <ElButton
-          :icon="Delete"
-          link
-          @click.stop="medias = medias.filter((item) => item.uid !== file.uid)"
-        />
-      </span>
+      <span v-else hidden />
     </template>
   </ElUpload>
 </template>
@@ -145,10 +182,7 @@ watch(medias, (value, oldValue) => {
   overflow: auto hidden;
 
   :deep(.el-upload-list) {
-    display: flex;
-    flex: none;
-    gap: 4px;
-    margin: 0;
+    display: contents;
 
     > .el-upload-list__item {
       display: flex;
@@ -162,7 +196,11 @@ watch(medias, (value, oldValue) => {
       border: 1px solid var(--el-border-color);
       border-radius: 6px;
 
-      > .el-upload-list__item-thumbnail {
+      &:nth-child(n + 9):not(:nth-last-child(-n + 2)) {
+        display: none;
+      }
+
+      > .thumbnail {
         flex: 1;
         width: 100%;
         min-height: 0;
@@ -179,26 +217,28 @@ watch(medias, (value, oldValue) => {
       > .el-upload-list__item-status-label {
         top: -6px;
         right: -15px;
-        align-items: flex-end;
-        justify-content: center;
         width: 40px;
         height: 24px;
-        padding-bottom: 1px;
+        text-align: center;
         background: var(--el-color-success);
         transform: rotate(45deg);
 
-        > .el-icon--check {
+        > .check {
           color: #fff;
+          margin-top: 11px;
           font-size: 12px;
           transform: rotate(-45deg);
         }
       }
 
-      > .el-upload-list__item-actions {
+      > .actions {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
         display: flex;
         align-items: center;
         justify-content: space-evenly;
-        flex: none;
         height: 0;
         overflow: hidden;
         color: #fff;
@@ -215,9 +255,29 @@ watch(medias, (value, oldValue) => {
         }
       }
 
-      &:hover > .el-upload-list__item-actions {
+      &:hover > .actions {
         height: 24px;
       }
+
+      &:hover > .el-upload-list__item-status-label {
+        display: block;
+        opacity: 0;
+      }
+    }
+  }
+
+  > .ellipsis {
+    flex: 0 0 24px;
+    order: 1;
+    height: var(--size);
+    color: var(--el-text-color-secondary);
+    font-size: 24px;
+  }
+
+  // 仅折叠时调整后两项顺序，避免普通新增触发已有卡片重排动画。
+  > .ellipsis ~ :deep(.el-upload-list) {
+    > .el-upload-list__item:nth-last-child(-n + 2) {
+      order: 2;
     }
   }
 
@@ -225,7 +285,7 @@ watch(medias, (value, oldValue) => {
     --el-upload-picture-card-size: var(--size);
 
     flex: none;
-    order: 1;
+    order: 3;
   }
 }
 </style>
