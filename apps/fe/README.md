@@ -41,6 +41,25 @@ cd apps/fe && pnpm gen:api       # openapi.json → schema.d.ts
 
 该结果只代表本组样本，不同设备写入的 EXIF 缩略图尺寸和质量可能不同。
 
+### Android 批量选择兼容性
+
+在小米“安全访问相册”一次选择 100 张图片时，Element Plus `ElUpload` 的 `picture-card` 模式会在选择阶段对每个原始 `File` 立即执行 `URL.createObjectURL(file)`。当这些 Provider-backed 原图引用与后续完整读取或压缩同时存在时，会耗尽当前 Android 浏览器 / 相册 Provider 的底层资源，后续读取统一报 `NotReadableError`。
+
+以同一批文件、刷新后重新选择、延迟 `0 ms` 做单变量对照：
+
+- 原图 `picture-card` 预览 + 串行整块完整读取：从 `27/100` 开始失败，后续全部失败。
+- 原图 `picture-card` 预览 + 串行流式完整读取：从 `40/100` 开始失败，后续全部失败。
+- 文件名列表（不创建 blob URL）+ 串行流式完整读取：`100/100` 成功。
+- 文件名列表（不创建 blob URL）+ 串行 `compressImagePreview`：`100/100` 成功。
+
+因此直接触发条件是“大量原图 blob URL + 完整读取 / 压缩”的资源叠加，不是 `browser-image-compression` 的压缩算法错误，也不是文件权限在选择后立即失效。`loading="lazy"` 只能延迟 `<img>` 解码，不会阻止 `ElUpload` 创建全部 blob URL。
+
+批量导入实现必须遵守：
+
+- 不得直接用 `picture-card` 为全部原图创建预览 URL。
+- 先以文件名 / 状态展示批量选择结果；需要图片预览时，只为受控数量的已压缩缩略图创建 URL。
+- 缩略图替换、文件移除和组件卸载时及时执行 `URL.revokeObjectURL()`。
+
 ## 部署
 
 如果不走 CDN 加载静态资源，可以不传CDN，把 vite.config 里面的 base 配置注释掉
