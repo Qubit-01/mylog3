@@ -28,9 +28,9 @@ cd apps/fe && pnpm gen:api       # openapi.json → schema.d.ts
 
 ## 图片预览策略
 
-日志编辑器优先通过 `parseImageThumbnail` 读取 EXIF 内嵌缩略图；缩略图缺失或结构无效时，再回退到 `compressImagePreview` 重新压缩原图。
+日志编辑器优先通过 `parseImageThumbnail` 读取 EXIF 内嵌缩略图；缩略图缺失或结构无效时，再回退到 `compressImage` 重新压缩原图。
 
-使用 4 张 `4096 × 3072` 的 MVIMG JPEG 实测，`compressImagePreview` 参数为最大 `0.5 MB`、最长边 `512 px`、初始质量 `0.85`：
+使用 4 张 `4096 × 3072` 的 MVIMG JPEG 实测，`compressImage` 参数为最大 `0.5 MB`、最长边 `512 px`、初始质量 `0.85`：
 
 | 方案 | 输出尺寸 | 平均体积 | 单张耗时 | PSNR |
 | --- | --- | ---: | ---: | ---: |
@@ -50,7 +50,7 @@ cd apps/fe && pnpm gen:api       # openapi.json → schema.d.ts
 - 原图 `picture-card` 预览 + 串行整块完整读取：从 `27/100` 开始失败，后续全部失败。
 - 原图 `picture-card` 预览 + 串行流式完整读取：从 `40/100` 开始失败，后续全部失败。
 - 文件名列表（不创建 blob URL）+ 串行流式完整读取：`100/100` 成功。
-- 文件名列表（不创建 blob URL）+ 串行 `compressImagePreview`：`100/100` 成功。
+- 文件名列表（不创建 blob URL）+ 串行 `compressImage`：`100/100` 成功。
 
 因此直接触发条件是“大量原图 blob URL + 完整读取 / 压缩”的资源叠加，不是 `browser-image-compression` 的压缩算法错误，也不是文件权限在选择后立即失效。`loading="lazy"` 只能延迟 `<img>` 解码，不会阻止 `ElUpload` 创建全部 blob URL。
 

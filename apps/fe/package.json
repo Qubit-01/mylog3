@@ -12,7 +12,6 @@
     "@amap/amap-jsapi-loader": "catalog:",
     "@element-plus/icons-vue": "catalog:",
     "@vueuse/core": "catalog:",
-    "browser-image-compression": "catalog:",
     "cos-js-sdk-v5": "catalog:",
     "dayjs": "catalog:",
     "element-plus": "catalog:",
