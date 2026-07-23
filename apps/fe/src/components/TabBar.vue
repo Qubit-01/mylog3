@@ -42,13 +42,13 @@ const activeIndex = computed(() => {
   width: calc(68px * var(--count) + 8px);
   padding: 6px;
   overflow: hidden;
+  border: 1px solid var(--el-border-color, #dcdfe6);
   border-radius: 999px;
-  background: #ccc7;
+  background: var(--el-bg-color, #fff);
+  background: color-mix(in srgb, var(--el-bg-color, #fff) 80%, transparent);
   backdrop-filter: blur(8px) saturate(180%);
   -webkit-backdrop-filter: blur(8px) saturate(180%);
-  box-shadow:
-    inset 0 0 0 1px #0001,
-    0 6px 24px #0002;
+  box-shadow: 0 6px 24px #0002;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.extra {
@@ -69,7 +69,7 @@ const activeIndex = computed(() => {
     transition:
       width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
       transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    background: #07fe;
+    background: var(--el-color-primary, #409eff);
     border-radius: 999px;
   }
 
@@ -86,8 +86,7 @@ const activeIndex = computed(() => {
   > .item {
     flex: 0 0 64px;
     padding: 0 16px;
-    color: #000;
-    text-shadow: 0 1px 2px #ccc7;
+    color: var(--el-text-color-primary, #303133);
     font-size: 14px;
     font-weight: 700;
     text-decoration: none;
@@ -95,7 +94,6 @@ const activeIndex = computed(() => {
 
     &.router-link-exact-active {
       color: #fff;
-      text-shadow: 0 1px 2px #0005;
     }
   }
 
