@@ -175,6 +175,10 @@ onBeforeUnmount(() => {
     display: flex;
     width: 100%;
     height: 100%;
+
+    &:not([src]) {
+      visibility: hidden;
+    }
   }
 }
 </style>
