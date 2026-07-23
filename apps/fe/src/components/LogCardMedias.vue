@@ -31,12 +31,12 @@ useEventListener('keyup', (event: KeyboardEvent) => {
         <PictureImg
           v-if="media.type === 'image'"
           :src="toResourceUrl(media.previewUrl ?? media.url)"
-          lazy
+          :lazy="{ delay: 200 }"
         />
         <template v-else>
           <PictureImg
             :src="`${toResourceUrl(media.previewUrl ?? media.url)}?ci-process=snapshot&time=0&format=jpg`"
-            lazy
+            :lazy="{ delay: 200 }"
           />
           <ElIcon class="play"><VideoPlay /></ElIcon>
         </template>

@@ -28,11 +28,16 @@ const props = defineProps<{
   retry?: number
   /**
    * 懒加载，如果传入true，就用原生 img.loading，若不支持原生懒加载，则使用 IntersectionObserver
-   * 如果传入了配置项，就直接用 IntersectionObserver，可以进行更精细化的控制，如 { rootMargin: '0px 50px 50px 0px' }
+   * 如果传入了配置项，就直接用 IntersectionObserver，可以进行更精细化的控制，如 { rootMargin: '0px 50px 50px 0px', delay: 500 }
    * @see https://developer.mozilla.org/zh-CN/docs/Web/API/HTMLImageElement/loading
    * @see https://developer.mozilla.org/zh-CN/docs/Web/API/IntersectionObserver/IntersectionObserver
    */
-  lazy?: boolean | IntersectionObserverInit
+  lazy?:
+    | boolean
+    | (IntersectionObserverInit & {
+        /** 图片连续进入视口多久后才加载，单位 ms；离开视口会重新计时 */
+        delay?: number
+      })
   /** 直接透传到内部 img 标签上的属性，用于加类名、img事件、原生属性啥的 */
   imgAttrs?: ImgHTMLAttributes
 }>()
@@ -90,33 +95,50 @@ onMounted(() => {
 const supportImgLoading = 'loading' in HTMLImageElement.prototype
 /** 观察者，如果lazy传入对象，才会创建这个 */
 let observer: IntersectionObserver | null = null
+/** 延迟加载计时器，图片提前离开视口时需要取消 */
+let lazyTimer: ReturnType<typeof setTimeout> | undefined
 onMounted(() => {
   const img = $img.value!
   watch(
     [picture, () => props.lazy],
     ([picture, lazy]) => {
       observer?.disconnect() // 先断开之前的观察者，避免内存泄露
+      clearTimeout(lazyTimer)
+      lazyTimer = undefined
       // 2. 懒加载
-      if (!Boolean(lazy)) {
+      if (!lazy) {
         // 2.1 lazy=false: 不懒加载
         baseAttrs.value = { ...picture.img }
-      } else if (lazy === true && supportImgLoading) {
+        return
+      }
+      if (lazy === true && supportImgLoading) {
         // 2.2 lazy=true 且浏览器支持原生懒加载，就用原生懒加载
         baseAttrs.value = { ...picture.img, loading: 'lazy' }
-      } else if (typeof lazy === 'object' || !supportImgLoading) {
-        // 2.3 lazy={}，或者 浏览器不支持原生懒加载，都走 IntersectionObserver
-        observer = new IntersectionObserver(
-          (entries) => {
-            // 如果元素进入视口，则加载图片，isIntersecting 属性为 false 就是退出
-            if (entries[entries.length - 1]?.isIntersecting) {
-              baseAttrs.value = { ...picture.img }
-              img.src += ''
-            }
-          },
-          typeof lazy === 'object' ? lazy : {},
-        )
-        observer.observe(img)
+        return
       }
+
+      // 2.3 lazy={}，或者浏览器不支持原生懒加载，都走 IntersectionObserver
+      const { delay = 0, ...observerOptions } = lazy === true ? {} : lazy
+      observer = new IntersectionObserver((entries) => {
+        // 2.3.1 未持续停留到设定时长就离开视口，不触发图片请求
+        if (!entries[entries.length - 1]?.isIntersecting) {
+          clearTimeout(lazyTimer)
+          lazyTimer = undefined
+          return
+        }
+
+        // 2.3.2 连续可见时长达标后才挂载 src，并停止后续观察
+        if (lazyTimer !== undefined) return
+        lazyTimer = setTimeout(
+          () => {
+            baseAttrs.value = { ...picture.img }
+            observer?.disconnect()
+            lazyTimer = undefined
+          },
+          Math.max(0, delay),
+        )
+      }, observerOptions)
+      observer.observe(img)
     },
     { immediate: true },
   )
@@ -124,6 +146,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   observer?.disconnect()
+  clearTimeout(lazyTimer)
 })
 </script>
 
