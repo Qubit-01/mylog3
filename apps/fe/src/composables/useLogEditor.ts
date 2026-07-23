@@ -12,11 +12,11 @@ import {
   deleteCosFiles,
   uploadCosFiles,
 } from '@/composables/cos'
-import { stringifyError } from '@/composables/error'
 import { useLogStore } from '@/stores/log'
 import type { UploadUserFile } from 'element-plus'
 import { cloneDeep, omit } from 'lodash-unified'
 import { generateImagePreview } from 'shared/compression'
+import { stringifyError } from 'shared/error'
 
 /**
  * 编辑器草稿：`text` / `scope` 始终存在，其余字段仅在启用对应编辑组件时才出现（`undefined` 表示未启用）。

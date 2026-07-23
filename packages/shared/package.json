@@ -21,6 +21,7 @@
     "lodash-unified": "catalog:",
     "markdown-it": "catalog:",
     "pinia": "catalog:",
+    "serialize-error": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:"
   },

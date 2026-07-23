@@ -266,9 +266,6 @@ importers:
       pinia:
         specifier: 'catalog:'
         version: 3.0.4(typescript@6.0.3)(vue@3.5.39(typescript@6.0.3))
-      serialize-error:
-        specifier: 'catalog:'
-        version: 13.0.1
       shared:
         specifier: workspace:*
         version: link:../../packages/shared
@@ -354,6 +351,9 @@ importers:
       pinia:
         specifier: 'catalog:'
         version: 3.0.4(typescript@6.0.3)(vue@3.5.39(typescript@6.0.3))
+      serialize-error:
+        specifier: 'catalog:'
+        version: 13.0.1
       vue:
         specifier: 'catalog:'
         version: 3.5.39(typescript@6.0.3)

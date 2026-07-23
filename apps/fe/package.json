@@ -19,7 +19,6 @@
     "markdown-it": "catalog:",
     "openapi-fetch": "catalog:",
     "pinia": "catalog:",
-    "serialize-error": "catalog:",
     "shared": "workspace:*",
     "swiper": "catalog:",
     "vue": "catalog:",

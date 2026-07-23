@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsString } from 'class-validator';
+import { IsIn } from 'class-validator';
 import { LogResourceDto } from './log-resource.dto';
 
 /** Log 文件 DTO */
