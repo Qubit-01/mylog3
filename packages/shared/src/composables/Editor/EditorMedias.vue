@@ -11,7 +11,7 @@
 - 仅维护编辑状态和本地预览，不负责上传或删除远端资源。
 -->
 <script lang="ts" setup>
-import type { MediaResource } from './utils'
+import type { MediaResource, UploadMediaFile } from './utils'
 import { generateImagePreview } from 'shared/compression'
 import { toResourceUrl } from 'shared/cos'
 import { stringifyError } from 'shared/error'
@@ -32,11 +32,7 @@ import {
 } from '@element-plus/icons-vue'
 
 /** 带业务资源字段和本地派生预览的媒体上传文件 */
-type MediaFile = UploadUserFile &
-  MediaResource & {
-    /** 当前展示图片的轻量预览文件 */
-    previewFile?: File
-  }
+type MediaFile = UploadMediaFile & MediaResource
 
 const { onTakenAt } = defineProps<{
   /** 用户选择带拍摄时间的媒体时调用；未传入时不展示时间按钮 */

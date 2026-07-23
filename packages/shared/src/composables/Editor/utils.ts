@@ -1,3 +1,5 @@
+import type { UploadUserFile } from 'element-plus'
+
 /**
  * 可适配为上传列表项的既有资源。
  * 字段契约跟随后端 `LogResourceDto`，变更时需保持同步。
@@ -41,4 +43,12 @@ export interface AudioResource extends Resource {
 export interface FileResource extends Resource {
   /** 文件类型 */
   type: 'file'
+}
+
+/**
+ * 媒体上传项：在 Element Plus 上传文件上保留编辑阶段生成的轻量预览文件。
+ */
+export interface UploadMediaFile extends UploadUserFile {
+  /** 当前展示图片的轻量预览文件 */
+  previewFile?: File
 }
