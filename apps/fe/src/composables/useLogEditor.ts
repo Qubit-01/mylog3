@@ -15,8 +15,10 @@ import {
 import { useLogStore } from '@/stores/log'
 import type { UploadUserFile } from 'element-plus'
 import { cloneDeep, omit } from 'lodash-unified'
+import type { UploadMediaFile } from 'shared/Editor'
 import { generateImagePreview } from 'shared/compression'
 import { stringifyError } from 'shared/error'
+import { parseImageMetadata } from 'shared/exifr'
 
 /**
  * 编辑器草稿：`text` / `scope` 始终存在，其余字段仅在启用对应编辑组件时才出现（`undefined` 表示未启用）。
@@ -26,7 +28,7 @@ import { stringifyError } from 'shared/error'
  */
 export type LogEdit = Omit<CreateLog, 'medias' | 'audios' | 'files'> & {
   /** 媒体编辑列表；本地待上传项通过 `raw` 保留原始 File */
-  medias?: (UploadUserFile & LogMedia)[]
+  medias?: (UploadMediaFile & LogMedia)[]
   /** 音频编辑列表；本地待上传项通过 `raw` 保留原始 File */
   audios?: (UploadUserFile & LogAudio)[]
   /** 文件编辑列表；本地待上传项通过 `raw` 保留原始 File */
@@ -72,38 +74,46 @@ export const useLogEditor = (log?: Log) => {
   /** 上传全部本地附件，并转换为 Log 接口需要的三类资源 */
   const uploadAttachments = async (
     /** 本次需要上传的本地图片 / 视频 */
-    medias: File[],
+    medias: {
+      /** 原始媒体文件 */
+      raw: File
+      /** 编辑阶段已生成的轻量预览文件 */
+      previewFile?: File
+      /** 编辑阶段已解析的图片 metadata */
+      metadata?: LogMedia['metadata']
+    }[],
     /** 本次需要上传的本地音频 */
     audios: File[],
     /** 本次需要上传的普通文件 */
     files: File[],
   ) => {
-    // 2.2.1 定位图片，并建立与媒体列表下标一致的预览列表
-    const imageIndexes = medias.flatMap((media, index) =>
-      media.type.startsWith('image/') ? [index] : [],
+    // 2.2.1 定位编辑阶段尚未处理的图片
+    const pendingImages = medias.filter(
+      ({ raw, previewFile }) => !previewFile && raw.type.startsWith('image/'),
     )
-    const previews: (File | undefined)[] = Array(medias.length)
 
-    // 2.2.2 优先使用内嵌缩略图，否则压缩原图生成预览
-    for (const [index, mediaIndex] of imageIndexes.entries()) {
-      status.value = `生成缩略图中… ${index + 1}/${imageIndexes.length}`
-      const media = medias[mediaIndex]!
-      previews[mediaIndex] = await generateImagePreview(media)
+    // 2.2.2 串行补齐 EXIF，并优先使用内嵌缩略图生成预览
+    for (const [index, media] of pendingImages.entries()) {
+      status.value = `处理图片中… ${index + 1}/${pendingImages.length}`
+      media.metadata ??= await parseImageMetadata(media.raw)
+      media.previewFile = await generateImagePreview(media.raw)
     }
 
     // 2.2.3 按媒体、音频、文件的顺序上传全部本地附件
     status.value = '上传文件中…'
     const keys = await uploadCosFiles(
       [
-        ...medias.flatMap((f, i) => {
-          const preview = previews[i]
-          return preview
+        ...medias.flatMap(({ raw, previewFile }) =>
+          previewFile
             ? [
-                { Body: f, Key: cosKey(f.name) },
-                { Body: preview, Key: cosKey(preview.name, 'preview/') },
+                { Body: raw, Key: cosKey(raw.name) },
+                {
+                  Body: previewFile,
+                  Key: cosKey(previewFile.name, 'preview/'),
+                },
               ]
-            : [{ Body: f, Key: cosKey(f.name) }]
-        }),
+            : [{ Body: raw, Key: cosKey(raw.name) }],
+        ),
         ...audios.map((f) => ({ Body: f, Key: cosKey(f.name) })),
         ...files.map((f) => ({ Body: f, Key: cosKey(f.name) })),
       ],
@@ -115,13 +125,14 @@ export const useLogEditor = (log?: Log) => {
     // 2.2.4 按上传顺序将 COS key 转换为三类资源
     let i = 0
     return {
-      medias: medias.map((f, idx) => ({
-        type: f.type.startsWith('video/')
+      medias: medias.map(({ raw, previewFile, metadata }) => ({
+        type: raw.type.startsWith('video/')
           ? ('video' as const)
           : ('image' as const),
-        name: f.name,
+        name: raw.name,
         url: keys[i++]!,
-        previewUrl: previews[idx] ? keys[i++] : undefined,
+        previewUrl: previewFile ? keys[i++] : undefined,
+        metadata,
       })),
       audios: audios.map((file) => ({
         type: 'audio' as const,
@@ -143,6 +154,12 @@ export const useLogEditor = (log?: Log) => {
     if (!logEdit.value.text.trim() || pending.value) return
     // 1.2 固化附件和基础字段，避免提交期间受编辑状态影响
     const { medias, audios, files } = logEdit.value
+    const localMedias =
+      medias?.flatMap(({ raw, previewFile, metadata }) =>
+        raw ? [{ raw, previewFile, metadata }] : [],
+      ) ?? []
+    const localAudios = audios?.flatMap(({ raw }) => (raw ? [raw] : [])) ?? []
+    const localFiles = files?.flatMap(({ raw }) => (raw ? [raw] : [])) ?? []
     const baseLogEdit = cloneDeep(
       omit(logEdit.value, ['medias', 'audios', 'files']),
     )
@@ -157,11 +174,7 @@ export const useLogEditor = (log?: Log) => {
       // 2.2 生成图片缩略图并上传全部本地附件
       let uploaded
       try {
-        uploaded = await uploadAttachments(
-          medias?.flatMap(({ raw }) => (raw ? [raw] : [])) ?? [],
-          audios?.flatMap(({ raw }) => (raw ? [raw] : [])) ?? [],
-          files?.flatMap(({ raw }) => (raw ? [raw] : [])) ?? [],
-        )
+        uploaded = await uploadAttachments(localMedias, localAudios, localFiles)
       } catch (error) {
         // 2.3 展示完整上传错误并终止本次提交
         console.error(error)
