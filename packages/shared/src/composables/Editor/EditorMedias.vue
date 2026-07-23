@@ -5,15 +5,23 @@
 - 新旧媒体统一展示、预览和删除，既有视频使用 COS 截帧减少流量。
 - 上传列表使用 text 模式，媒体卡片在 file slot 中自行展示。
 - 超过 10 项时只展示前 8 项和后 2 项，中间使用独立省略图标，避免复用媒体 DOM。
+- 本地图片只为当前展示项生成独立预览，避免批量占用 Android 相册 Provider。
 - 可选提供拍摄时间回调；传入时显示时间按钮，无拍摄时间的媒体保持禁用。
 - 悬停卡片时在预览底部覆盖显示操作按钮。
 - 仅维护编辑状态和本地预览，不负责上传或删除远端资源。
 -->
 <script lang="ts" setup>
 import type { MediaResource } from './utils'
+import { generateImagePreview } from 'shared/compression'
 import { toResourceUrl } from 'shared/cos'
+import { stringifyError } from 'shared/error'
 import { parseImageMetadata } from 'shared/exifr'
-import { ElMessage, type UploadProps, type UploadUserFile } from 'element-plus'
+import {
+  ElMessage,
+  ElNotification,
+  type UploadProps,
+  type UploadUserFile,
+} from 'element-plus'
 import {
   Check,
   Clock,
@@ -23,8 +31,12 @@ import {
   VideoPlay,
 } from '@element-plus/icons-vue'
 
-/** 带业务资源字段的媒体上传文件 */
-type MediaFile = UploadUserFile & MediaResource
+/** 带业务资源字段和本地派生预览的媒体上传文件 */
+type MediaFile = UploadUserFile &
+  MediaResource & {
+    /** 当前展示图片的轻量预览文件 */
+    previewFile?: File
+  }
 
 const { onTakenAt } = defineProps<{
   /** 用户选择带拍摄时间的媒体时调用；未传入时不展示时间按钮 */
@@ -36,29 +48,74 @@ const medias = defineModel<MediaFile[]>({
   required: true,
 })
 
+/** 正在生成预览的本地图片；避免列表连续变化时重复处理 */
+const processingFiles = new WeakSet<MediaFile>()
+
+/** 组件是否已销毁；异步任务结束后据此丢弃结果 */
+let disposed = false
+
 /** 当前项是否是视频；新增项读取 MIME，既有项读取业务类型 */
 const isVideo = (file: UploadUserFile) =>
   file.raw?.type.startsWith('video/') || (file as MediaFile).type === 'video'
 
-/** 获取媒体展示地址；既有项解析远端 key，本地项直接使用 blob URL */
+/** 获取媒体展示地址；既有项解析远端 key，本地项读取已维护的 blob URL */
 const previewUrl = (file: UploadUserFile) => {
-  if (file.raw) return file.url
+  if (file.raw) return file.url?.startsWith('blob:') ? file.url : undefined
   const media = file as MediaFile
   return toResourceUrl(media.previewUrl ?? media.url ?? file.url ?? '')
 }
 
 /** 释放本地预览 blob URL，避免反复选文件后残留 */
-const revoke = (file: UploadUserFile) => {
+const revoke = (file: MediaFile) => {
   if (file.url?.startsWith('blob:')) URL.revokeObjectURL(file.url)
-  if (file.raw) file.url = file.name
+  if (file.raw) {
+    file.url = file.name
+    delete file.previewFile
+  }
 }
 
 /** 当前下标是否属于实际展示的前 8 项或后 2 项 */
 const isVisible = (index: number) =>
   medias.value.length <= 10 || index < 8 || index >= medias.value.length - 2
 
-/** 选择后校验类型并补充业务字段；图片同时解析拍摄 metadata */
-const onChange: UploadProps['onChange'] = async (_file) => {
+/** 当前本地媒体是否仍在展示范围内 */
+const isVisibleLocal = (file: MediaFile) => {
+  const index = medias.value.indexOf(file)
+  return index >= 0 && isVisible(index)
+}
+
+/** 为当前展示的本地图片生成 metadata 和独立预览 */
+const processImage = async (file: MediaFile) => {
+  const { raw } = file
+  if (
+    !raw?.type.startsWith('image/') ||
+    processingFiles.has(file) ||
+    file.url?.startsWith('blob:')
+  ) {
+    return
+  }
+
+  processingFiles.add(file)
+  try {
+    const metadata = await parseImageMetadata(raw)
+    if (metadata) file.metadata = metadata
+    if (disposed || !isVisibleLocal(file)) return
+    const preview = await generateImagePreview(raw)
+    if (!preview || disposed || !isVisibleLocal(file)) return
+    file.previewFile = preview
+    file.url = URL.createObjectURL(preview)
+  } catch (error) {
+    if (!disposed && isVisibleLocal(file)) {
+      console.error(`生成媒体预览失败：${file.name}`, error)
+      ElNotification.error({ message: stringifyError(error), duration: 0 })
+    }
+  } finally {
+    processingFiles.delete(file)
+  }
+}
+
+/** 选择后只校验类型并补充业务字段；图片读取仅交给可见项 */
+const onChange: UploadProps['onChange'] = (_file) => {
   const raw = _file.raw
   const type = raw?.type ?? ''
   if (!raw || (!type.startsWith('image/') && !type.startsWith('video/'))) {
@@ -71,15 +128,9 @@ const onChange: UploadProps['onChange'] = async (_file) => {
     type: type.startsWith('video/') ? 'video' : 'image',
     url: _file.url ?? _file.name,
   })
-
-  if (!type.startsWith('image/')) return
-  const { takenAt, location } = (await parseImageMetadata(raw)) ?? {}
-  if (!takenAt && !location) return
-  const media = medias.value.find((item) => item.uid === _file.uid)
-  if (media) media.metadata = { takenAt, location }
 }
 
-/** 只为当前展示的本地媒体维护 blob URL，并回收移除或折叠项的地址 */
+/** 只处理当前展示的本地媒体，并回收移除或折叠项的地址 */
 watch(
   medias,
   (value, oldValue) => {
@@ -93,7 +144,9 @@ watch(
         revoke(file)
         return
       }
-      if (!file.url?.startsWith('blob:')) {
+      if (file.raw.type.startsWith('image/')) {
+        processImage(file)
+      } else if (!file.url?.startsWith('blob:')) {
         file.url = URL.createObjectURL(file.raw)
       }
     })
@@ -101,8 +154,11 @@ watch(
   { immediate: true },
 )
 
-/** 组件销毁前清空 blob URL，保证同一草稿再次挂载时可以重新生成 */
-onBeforeUnmount(() => medias.value.forEach(revoke))
+/** 组件销毁前停止接收异步结果并清空全部派生预览 URL */
+onBeforeUnmount(() => {
+  disposed = true
+  medias.value.forEach(revoke)
+})
 </script>
 
 <template>
@@ -124,7 +180,7 @@ onBeforeUnmount(() => medias.value.forEach(revoke))
       <MoreFilled />
     </ElIcon>
     <template #file="{ file, index }">
-      <template v-if="isVisible(index) && file.url">
+      <template v-if="isVisible(index) && previewUrl(file)">
         <video
           v-if="file.raw && isVideo(file)"
           class="thumbnail"
