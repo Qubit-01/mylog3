@@ -22,18 +22,21 @@ export const useLogStore = defineStore('log', () => {
   const useList = (key: LogListKey) =>
     computed(() => lists[key].map((id) => entities[id]))
 
-  /** 将一批 log 合并进 entities，并将其 id 追加到指定列表末尾 */
+  /** 将一批 log 合并进 entities，并同步指定列表的完整顺序 */
   const append = (key: LogListKey, logs: Log[]) => {
     for (const log of logs) entities[log.id] = log
     lists[key].push(...logs.map((l) => l.id))
+    if (key === 'mine')
+      lists.mine.sort((a, b) =>
+        dayjs(entities[b].logAt).diff(entities[a].logAt),
+      )
   }
 
   /** 合并单条 log，并按可见范围同步当前已知列表 */
   const upsert = (log: Log) => {
     entities[log.id] = log
     lists.mine = [log.id, ...lists.mine.filter((id) => id !== log.id)].sort(
-      (a, b) =>
-        dayjs(entities[b].logAt).valueOf() - dayjs(entities[a].logAt).valueOf(),
+      (a, b) => dayjs(entities[b].logAt).diff(entities[a].logAt),
     )
     lists.public =
       log.scope === 'PUBLIC'
