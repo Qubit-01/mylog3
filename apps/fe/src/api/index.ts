@@ -1,5 +1,6 @@
 import { ElMessage, ElNotification } from 'element-plus'
 import createClient from 'openapi-fetch'
+import type { Prisma } from 'be/prisma'
 import type { components, paths } from './schema'
 
 /** OpenAPI 类型化 client，走 vite 代理 /api → be */
@@ -113,8 +114,14 @@ export type LogFile = components['schemas']['LogFileDto']
 export const listPublicLogs = (payload: Body<'/log/list-public'> = {}) =>
   unwrap(api.POST('/log/list-public', { body: payload }))
 
+/** 我的 Log 列表请求体：分页来自 OpenAPI，where 复用 Prisma 生成类型 */
+export type ListMineLogs = Omit<Body<'/log/list-mine'>, 'where'> & {
+  /** 完整 Prisma LogWhereInput，数据库 schema 变化后由 prisma generate 自动同步 */
+  where?: Prisma.LogWhereInput
+}
+
 /** 我的 Log 列表（需登录），按 createdAt 倒序，skip/take 分页 */
-export const listMineLogs = (payload: Body<'/log/list-mine'> = {}) =>
+export const listMineLogs = (payload: ListMineLogs = {}) =>
   unwrap(api.POST('/log/list-mine', { body: payload }))
 
 /** 获取单条 Log；公开记录无需登录，私有记录仅本人可见 */

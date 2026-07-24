@@ -497,6 +497,16 @@ export interface components {
             /** @description 取的条数，缺省 20，最大 100 */
             take?: number;
         };
+        LogMineListDto: {
+            /** @description 跳过的条数，缺省 0 */
+            skip?: number;
+            /** @description 取的条数，缺省 20，最大 100 */
+            take?: number;
+            /** @description 完整 Prisma LogWhereInput 筛选条件 */
+            where?: {
+                [key: string]: unknown;
+            };
+        };
         LogIdDto: {
             /** @description 目标 Log id */
             id: number;
@@ -772,7 +782,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LogListDto"];
+                "application/json": components["schemas"]["LogMineListDto"];
             };
         };
         responses: {

@@ -8,7 +8,7 @@ import {
 import { Auth, UserId } from '../auth/auth.guard';
 import { CreateLogDto } from './dto/create-log.dto';
 import { LogIdDto } from './dto/log-id.dto';
-import { LogListDto } from './dto/log-list.dto';
+import { LogListDto, LogMineListDto } from './dto/log-list.dto';
 import { LogDto } from './dto/log.dto';
 import { LogService } from './log.service';
 import { UpdateLogDto } from './dto/update-log.dto';
@@ -38,11 +38,11 @@ export class LogController {
   /** 我的列表：当前用户的全部 log */
   @Auth()
   @Post('list-mine')
-  @ApiBody({ type: LogListDto })
+  @ApiBody({ type: LogMineListDto })
   @ApiOkResponse({ type: [LogDto], description: '我的 Log 列表' })
   listMine(
     @UserId() userId: number,
-    @Body() dto: LogListDto,
+    @Body() dto: LogMineListDto,
   ): Promise<LogDto[]> {
     return this.logService.listMine(userId, dto);
   }

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { LogScope } from '../../generated/prisma/enums.js';
 import { LogRow, PrismaService } from '../prisma/prisma.service';
 import { CreateLogDto } from './dto/create-log.dto';
-import { LogListDto } from './dto/log-list.dto';
+import { LogListDto, LogMineListDto } from './dto/log-list.dto';
 import { LogDto } from './dto/log.dto';
 import { UpdateLogDto } from './dto/update-log.dto';
 
@@ -39,10 +39,15 @@ export class LogService {
     return items as LogDto[];
   }
 
-  /** 我的列表：当前用户的全部 log（PRIVATE + PUBLIC） */
-  async listMine(userId: number, dto: LogListDto): Promise<LogDto[]> {
+  /**
+   * 我的列表：当前用户的全部 log（PRIVATE + PUBLIC）
+   * - 客户端 where 始终与服务端 userId 做 AND，不能覆盖鉴权边界
+   */
+  async listMine(userId: number, dto: LogMineListDto): Promise<LogDto[]> {
     const items = await this.prisma.log.findMany({
-      where: { userId },
+      where: {
+        AND: [{ userId }, ...(dto.where ? [dto.where] : [])],
+      },
       orderBy: { logAt: 'desc' },
       skip: dto.skip ?? 0,
       take: dto.take ?? 20,

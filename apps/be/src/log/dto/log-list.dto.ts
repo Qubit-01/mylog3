@@ -1,7 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsInt, IsObject, IsOptional, Max, Min } from 'class-validator';
+import type { LogWhereInput } from '../../../generated/prisma/models/Log.js';
 
-/** Log 列表请求体：仅分页参数，作者由具体接口语义决定 */
+/** 通用 Log 列表请求体：offset 分页参数，作者由具体接口语义决定 */
 export class LogListDto {
   @ApiPropertyOptional({
     type: Number,
@@ -24,4 +25,16 @@ export class LogListDto {
   @Min(1)
   @Max(100)
   take?: number;
+}
+
+/** 我的 Log 列表请求体：原有 offset 分页 + 完整 Prisma where */
+export class LogMineListDto extends LogListDto {
+  @ApiPropertyOptional({
+    type: Object,
+    additionalProperties: true,
+    description: '完整 Prisma LogWhereInput 筛选条件',
+  })
+  @IsOptional()
+  @IsObject()
+  where?: LogWhereInput;
 }

@@ -3,6 +3,9 @@
   "version": "2026.5.20",
   "description": "",
   "private": true,
+  "exports": {
+    "./prisma": "./generated/prisma/browser.ts"
+  },
   "scripts": {
     "dev": "nest start --watch",
     "start": "nest start",
