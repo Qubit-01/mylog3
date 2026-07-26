@@ -9,9 +9,9 @@ import { Auth, UserId } from '../auth/auth.guard';
 import { CreateLogDto } from './dto/create-log.dto';
 import { LogIdDto } from './dto/log-id.dto';
 import {
+  LogListDto,
+  LogListResultDto,
   LogMineListDto,
-  LogPublicListDto,
-  LogPublicListResultDto,
 } from './dto/log-list.dto';
 import { LogDto } from './dto/log.dto';
 import { LogService } from './log.service';
@@ -33,12 +33,9 @@ export class LogController {
 
   /** 公开列表：所有人可见的 PUBLIC log，无需登录 */
   @Post('list-public')
-  @ApiBody({ type: LogPublicListDto })
-  @ApiOkResponse({
-    type: LogPublicListResultDto,
-    description: '公开 Log 列表',
-  })
-  listPublic(@Body() dto: LogPublicListDto): Promise<LogPublicListResultDto> {
+  @ApiBody({ type: LogListDto })
+  @ApiOkResponse({ type: LogListResultDto, description: '公开 Log 列表' })
+  listPublic(@Body() dto: LogListDto): Promise<LogListResultDto> {
     return this.logService.listPublic(dto);
   }
 
@@ -46,11 +43,11 @@ export class LogController {
   @Auth()
   @Post('list-mine')
   @ApiBody({ type: LogMineListDto })
-  @ApiOkResponse({ type: [LogDto], description: '我的 Log 列表' })
+  @ApiOkResponse({ type: LogListResultDto, description: '我的 Log 列表' })
   listMine(
     @UserId() userId: number,
     @Body() dto: LogMineListDto,
-  ): Promise<LogDto[]> {
+  ): Promise<LogListResultDto> {
     return this.logService.listMine(userId, dto);
   }
 

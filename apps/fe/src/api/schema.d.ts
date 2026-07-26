@@ -492,16 +492,18 @@ export interface components {
             createdAt: string;
         };
         LogListDto: {
-            /** @description 跳过的条数，缺省 0 */
-            skip?: number;
-            /** @description 取的条数，缺省 20，最大 100 */
-            take?: number;
+            /** @description 上一页返回的游标；首次请求不传 */
+            cursor?: number;
+        };
+        LogListResultDto: {
+            /** @description 当前页的 Log 列表 */
+            items: components["schemas"]["LogDto"][];
+            /** @description 下一页游标；null 表示没有更多数据 */
+            cursor: number | null;
         };
         LogMineListDto: {
-            /** @description 跳过的条数，缺省 0 */
-            skip?: number;
-            /** @description 取的条数，缺省 20，最大 100 */
-            take?: number;
+            /** @description 上一页返回的游标；首次请求不传 */
+            cursor?: number;
             /** @description 完整 Prisma LogWhereInput 筛选条件 */
             where?: {
                 [key: string]: unknown;
@@ -768,7 +770,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LogDto"][];
+                    "application/json": components["schemas"]["LogListResultDto"];
                 };
             };
         };
@@ -792,7 +794,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LogDto"][];
+                    "application/json": components["schemas"]["LogListResultDto"];
                 };
             };
         };

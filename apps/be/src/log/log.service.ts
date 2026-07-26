@@ -3,9 +3,9 @@ import { LogScope } from '../../generated/prisma/enums.js';
 import { LogRow, PrismaService } from '../prisma/prisma.service';
 import { CreateLogDto } from './dto/create-log.dto';
 import {
+  LogListDto,
+  LogListResultDto,
   LogMineListDto,
-  LogPublicListDto,
-  LogPublicListResultDto,
 } from './dto/log-list.dto';
 import { LogDto } from './dto/log.dto';
 import { UpdateLogDto } from './dto/update-log.dto';
@@ -36,7 +36,7 @@ export class LogService {
   }
 
   /** 公开列表：全部 PUBLIC log，无需登录 */
-  async listPublic(dto: LogPublicListDto): Promise<LogPublicListResultDto> {
+  async listPublic(dto: LogListDto): Promise<LogListResultDto> {
     const items = await this.prisma.log.findMany({
       where: { scope: LogScope.PUBLIC },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -51,18 +51,22 @@ export class LogService {
 
   /**
    * 我的列表：当前用户的全部 log（PRIVATE + PUBLIC）
-   * - 客户端 where 始终与服务端 userId 做 AND，不能覆盖鉴权边界
+   * - 服务端 userId 覆盖客户端同名筛选，确保鉴权边界
    */
-  async listMine(userId: number, dto: LogMineListDto): Promise<LogDto[]> {
+  async listMine(
+    userId: number,
+    dto: LogMineListDto,
+  ): Promise<LogListResultDto> {
     const items = await this.prisma.log.findMany({
-      where: {
-        AND: [{ userId }, ...(dto.where ? [dto.where] : [])],
-      },
-      orderBy: { logAt: 'desc' },
-      skip: dto.skip ?? 0,
-      take: dto.take ?? 20,
+      where: { ...dto.where, userId },
+      orderBy: [{ logAt: 'desc' }, { id: 'desc' }],
+      take,
+      ...(dto.cursor && { cursor: { id: dto.cursor }, skip: 1 }),
     });
-    return items as LogDto[];
+    return {
+      items: items as LogDto[],
+      cursor: items.at(-1)?.id ?? null,
+    };
   }
 
   /** 获取单条：公开 log 或本人私有 log 可见，鉴权直接写进 where */
