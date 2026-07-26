@@ -5,6 +5,7 @@ LogCard：
 -->
 <script lang="ts" setup>
 import type { Log } from '@/api'
+import { vEllipsis } from 'shared/ellipsis'
 import dayjs from 'dayjs'
 
 const { log, hideMeta } = defineProps<{
@@ -29,7 +30,7 @@ const onOpen = () => {
       <span>#{{ log.userId }}</span>
       <span>{{ dayjs(log.logAt).format('YYYY-MM-DD HH:mm') }}</span>
     </div>
-    <p class="text">{{ log.text }}</p>
+    <p v-ellipsis="3" class="text">{{ log.text }}</p>
     <LogCardMedias :medias="log.medias" @click.stop />
     <LogCardAudios :audios="log.audios" @click.stop />
     <LogCardFiles :files="log.files" @click.stop />
