@@ -11,7 +11,7 @@ const { logs, footerText, fetchMore } = useLogList('public')
     class="index default-scrollbar"
     wrap-class="wrap"
     view-class="view"
-    :distance="80"
+    :distance="720"
     @end-reached="(d) => d === 'bottom' && fetchMore()"
   >
     <LogCard v-for="log in logs" :key="log.id" :log="log" />

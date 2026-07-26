@@ -60,7 +60,7 @@ const timelineItems = computed<TimelineEntry[]>(() => {
     class="mine default-scrollbar"
     wrap-class="wrap"
     view-class="view"
-    :distance="80"
+    :distance="720"
     @end-reached="(d) => d === 'bottom' && fetchMore()"
   >
     <LogEditor />
