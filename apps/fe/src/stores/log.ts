@@ -78,6 +78,9 @@ export const useLogList = (key: LogListKey) => {
   const pending = ref(false)
   const noMore = ref(false)
 
+  /** 每次请求加载的 log 数量 */
+  const take = 40
+
   /** 加载当前列表的下一页；并发加载或已到末页时跳过 */
   const fetchMore = async () => {
     if (pending.value || noMore.value) return
@@ -85,10 +88,10 @@ export const useLogList = (key: LogListKey) => {
     try {
       const rows = await (key === 'public' ? listPublicLogs : listMineLogs)({
         skip: logs.value.length,
-        take: 20,
+        take,
       })
       store.append(key, rows)
-      noMore.value = rows.length < 20
+      noMore.value = rows.length < take
     } finally {
       pending.value = false
     }
