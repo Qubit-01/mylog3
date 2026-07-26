@@ -110,17 +110,17 @@ export type LogAudio = components['schemas']['LogAudioDto']
 /** Log 文件类型，从后端 OpenAPI schema 派生 */
 export type LogFile = components['schemas']['LogFileDto']
 
-/** 公开 Log 列表（无需登录），按 createdAt 倒序，skip/take 分页 */
+/** 公开 Log 列表（无需登录），按 createdAt 倒序游标分页 */
 export const listPublicLogs = (payload: Body<'/log/list-public'> = {}) =>
   unwrap(api.POST('/log/list-public', { body: payload }))
 
-/** 我的 Log 列表请求体：分页来自 OpenAPI，where 复用 Prisma 生成类型 */
+/** 我的 Log 列表请求体：游标来自 OpenAPI，where 复用 Prisma 生成类型 */
 export type ListMineLogs = Omit<Body<'/log/list-mine'>, 'where'> & {
   /** 完整 Prisma LogWhereInput，数据库 schema 变化后由 prisma generate 自动同步 */
   where?: Prisma.LogWhereInput
 }
 
-/** 我的 Log 列表（需登录），按 createdAt 倒序，skip/take 分页 */
+/** 我的 Log 列表（需登录），按 logAt 倒序游标分页 */
 export const listMineLogs = (payload: ListMineLogs = {}) =>
   unwrap(api.POST('/log/list-mine', { body: payload }))
 

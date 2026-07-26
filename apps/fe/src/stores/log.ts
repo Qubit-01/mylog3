@@ -22,26 +22,21 @@ export const useLogStore = defineStore('log', () => {
   const useList = (key: LogListKey) =>
     computed(() => lists[key].map((id) => entities[id]))
 
-  /** 将一批 log 合并进 entities，并同步指定列表的完整顺序 */
+  /** 将一批 log 合并进 entities，并按后端排序去重追加到指定列表 */
   const append = (key: LogListKey, logs: Log[]) => {
     for (const log of logs) entities[log.id] = log
-    lists[key].push(...logs.map((l) => l.id))
-    if (key === 'mine')
-      lists.mine.sort((a, b) =>
-        dayjs(entities[b].logAt).diff(entities[a].logAt),
-      )
+    lists[key] = [...new Set([...lists[key], ...logs.map(({ id }) => id)])]
+    const field = key === 'public' ? 'createdAt' : 'logAt'
+    lists[key].sort(
+      (a, b) => dayjs(entities[b][field]).diff(entities[a][field]) || b - a,
+    )
   }
 
   /** 合并单条 log，并按可见范围同步当前已知列表 */
   const upsert = (log: Log) => {
-    entities[log.id] = log
-    lists.mine = [log.id, ...lists.mine.filter((id) => id !== log.id)].sort(
-      (a, b) => dayjs(entities[b].logAt).diff(entities[a].logAt),
-    )
-    lists.public =
-      log.scope === 'PUBLIC'
-        ? [log.id, ...lists.public.filter((id) => id !== log.id)]
-        : lists.public.filter((id) => id !== log.id)
+    append('mine', [log])
+    if (log.scope === 'PUBLIC') append('public', [log])
+    else lists.public = lists.public.filter((id) => id !== log.id)
   }
 
   /** 移除指定 log：清理实体及所有列表里的引用 */
@@ -75,23 +70,20 @@ export const useLogStore = defineStore('log', () => {
 export const useLogList = (key: LogListKey) => {
   const store = useLogStore()
   const logs = store.useList(key)
+  /** undefined 表示尚未加载，null 表示后端已返回末页 */
+  const cursor = ref<number | null>()
   const pending = ref(false)
-  const noMore = ref(false)
-
-  /** 每次请求加载的 log 数量 */
-  const take = 40
 
   /** 加载当前列表的下一页；并发加载或已到末页时跳过 */
   const fetchMore = async () => {
-    if (pending.value || noMore.value) return
+    if (pending.value || cursor.value === null) return
     pending.value = true
     try {
-      const rows = await (key === 'public' ? listPublicLogs : listMineLogs)({
-        skip: logs.value.length,
-        take,
+      const result = await (key === 'public' ? listPublicLogs : listMineLogs)({
+        cursor: cursor.value,
       })
-      store.append(key, rows)
-      noMore.value = rows.length < take
+      store.append(key, result.items)
+      cursor.value = result.cursor
     } finally {
       pending.value = false
     }
@@ -100,7 +92,7 @@ export const useLogList = (key: LogListKey) => {
   /** 底部提示语；空串表示不展示 */
   const footerText = computed(() => {
     if (pending.value) return '加载中…'
-    if (!noMore.value) return ''
+    if (cursor.value !== null) return ''
     return logs.value.length ? '没有更多了' : '暂无内容'
   })
 
@@ -109,10 +101,6 @@ export const useLogList = (key: LogListKey) => {
   return {
     /** 当前列表数据，编辑任意 log 后自动同步 */
     logs,
-    /** 是否正在请求下一页 */
-    pending,
-    /** 是否已无更多数据 */
-    noMore,
     /** 底部提示语，空串表示不展示 */
     footerText,
     /** 加载当前列表的下一页 */
