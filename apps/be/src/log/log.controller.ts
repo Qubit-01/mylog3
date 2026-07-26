@@ -8,7 +8,11 @@ import {
 import { Auth, UserId } from '../auth/auth.guard';
 import { CreateLogDto } from './dto/create-log.dto';
 import { LogIdDto } from './dto/log-id.dto';
-import { LogListDto, LogMineListDto } from './dto/log-list.dto';
+import {
+  LogMineListDto,
+  LogPublicListDto,
+  LogPublicListResultDto,
+} from './dto/log-list.dto';
 import { LogDto } from './dto/log.dto';
 import { LogService } from './log.service';
 import { UpdateLogDto } from './dto/update-log.dto';
@@ -29,9 +33,12 @@ export class LogController {
 
   /** 公开列表：所有人可见的 PUBLIC log，无需登录 */
   @Post('list-public')
-  @ApiBody({ type: LogListDto })
-  @ApiOkResponse({ type: [LogDto], description: '公开 Log 列表' })
-  listPublic(@Body() dto: LogListDto): Promise<LogDto[]> {
+  @ApiBody({ type: LogPublicListDto })
+  @ApiOkResponse({
+    type: LogPublicListResultDto,
+    description: '公开 Log 列表',
+  })
+  listPublic(@Body() dto: LogPublicListDto): Promise<LogPublicListResultDto> {
     return this.logService.listPublic(dto);
   }
 

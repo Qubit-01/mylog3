@@ -171,7 +171,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LogListDto"
+                "$ref": "#/components/schemas/LogPublicListDto"
               }
             }
           }
@@ -182,10 +182,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/LogDto"
-                  }
+                  "$ref": "#/components/schemas/LogPublicListResultDto"
                 }
               }
             }
@@ -827,21 +824,36 @@
           "createdAt"
         ]
       },
-      "LogListDto": {
+      "LogPublicListDto": {
         "type": "object",
         "properties": {
-          "skip": {
-            "type": "number",
-            "minimum": 0,
-            "description": "跳过的条数，缺省 0"
-          },
-          "take": {
+          "cursor": {
             "type": "number",
             "minimum": 1,
-            "maximum": 100,
-            "description": "取的条数，缺省 20，最大 100"
+            "description": "上一页返回的游标；首次请求不传"
           }
         }
+      },
+      "LogPublicListResultDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "当前页的 Log 列表",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogDto"
+            }
+          },
+          "cursor": {
+            "type": "number",
+            "nullable": true,
+            "description": "下一页游标；null 表示没有更多数据"
+          }
+        },
+        "required": [
+          "items",
+          "cursor"
+        ]
       },
       "LogMineListDto": {
         "type": "object",

@@ -1,6 +1,20 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsInt, IsObject, IsOptional, Max, Min } from 'class-validator';
 import type { LogWhereInput } from '../../../generated/prisma/models/Log.js';
+import { LogDto } from './log.dto';
+
+/** 公开 Log 列表请求体：页大小由服务端统一控制，客户端只回传游标 */
+export class LogPublicListDto {
+  @ApiPropertyOptional({
+    type: Number,
+    minimum: 1,
+    description: '上一页返回的游标；首次请求不传',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  cursor?: number;
+}
 
 /** 通用 Log 列表请求体：offset 分页参数，作者由具体接口语义决定 */
 export class LogListDto {
@@ -37,4 +51,17 @@ export class LogMineListDto extends LogListDto {
   @IsOptional()
   @IsObject()
   where?: LogWhereInput;
+}
+
+/** 公开 Log 列表分页响应：items 为当前页，cursor 为下一页请求凭据 */
+export class LogPublicListResultDto {
+  @ApiProperty({ type: [LogDto], description: '当前页的 Log 列表' })
+  items!: LogDto[];
+
+  @ApiProperty({
+    type: Number,
+    nullable: true,
+    description: '下一页游标；null 表示没有更多数据',
+  })
+  cursor!: number | null;
 }

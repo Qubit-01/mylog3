@@ -2,9 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { LogScope } from '../../generated/prisma/enums.js';
 import { LogRow, PrismaService } from '../prisma/prisma.service';
 import { CreateLogDto } from './dto/create-log.dto';
-import { LogListDto, LogMineListDto } from './dto/log-list.dto';
+import {
+  LogMineListDto,
+  LogPublicListDto,
+  LogPublicListResultDto,
+} from './dto/log-list.dto';
 import { LogDto } from './dto/log.dto';
 import { UpdateLogDto } from './dto/update-log.dto';
+
+/** Log 列表每页固定返回数量 */
+const take = 40;
 
 @Injectable()
 export class LogService {
@@ -29,14 +36,17 @@ export class LogService {
   }
 
   /** 公开列表：全部 PUBLIC log，无需登录 */
-  async listPublic(dto: LogListDto): Promise<LogDto[]> {
+  async listPublic(dto: LogPublicListDto): Promise<LogPublicListResultDto> {
     const items = await this.prisma.log.findMany({
       where: { scope: LogScope.PUBLIC },
-      orderBy: { createdAt: 'desc' },
-      skip: dto.skip ?? 0,
-      take: dto.take ?? 20,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take,
+      ...(dto.cursor && { cursor: { id: dto.cursor }, skip: 1 }),
     });
-    return items as LogDto[];
+    return {
+      items: items as LogDto[],
+      cursor: items.at(-1)?.id ?? null,
+    };
   }
 
   /**
