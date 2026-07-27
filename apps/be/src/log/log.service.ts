@@ -57,6 +57,7 @@ export class LogService {
     userId: number,
     dto: LogMineListDto,
   ): Promise<LogListResultDto> {
+    // where 是前后端共享 Prisma 类型的内部契约，非法条件保留 Prisma 原始 500。
     const items = await this.prisma.log.findMany({
       where: { ...dto.where, userId },
       orderBy: [{ logAt: 'desc' }, { id: 'desc' }],

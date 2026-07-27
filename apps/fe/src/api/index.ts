@@ -98,6 +98,9 @@ export const createCosDownloadUrl = (payload: Body<'/cos/download-url'>) =>
 /** 单条 Log 的完整类型，从后端 OpenAPI schema 派生，全项目统一使用这个 */
 export type Log = components['schemas']['LogDto']
 
+/** “我的 Log”筛选条件；undefined 表示不筛选 */
+export type Where = Prisma.LogWhereInput | undefined
+
 /** 创建 Log 的请求体类型，从后端 OpenAPI schema 派生 */
 export type CreateLog = components['schemas']['CreateLogDto']
 
@@ -114,15 +117,13 @@ export type LogFile = components['schemas']['LogFileDto']
 export const listPublicLogs = (payload: Body<'/log/list-public'> = {}) =>
   unwrap(api.POST('/log/list-public', { body: payload }))
 
-/** 我的 Log 列表请求体：游标来自 OpenAPI，where 复用 Prisma 生成类型 */
-export type ListMineLogs = Omit<Body<'/log/list-mine'>, 'where'> & {
-  /** 完整 Prisma LogWhereInput，数据库 schema 变化后由 prisma generate 自动同步 */
-  where?: Prisma.LogWhereInput
-}
-
 /** 我的 Log 列表（需登录），按 logAt 倒序游标分页 */
-export const listMineLogs = (payload: ListMineLogs = {}) =>
-  unwrap(api.POST('/log/list-mine', { body: payload }))
+export const listMineLogs = (
+  payload: Omit<Body<'/log/list-mine'>, 'where'> & {
+    /** 完整筛选条件，随 Prisma schema 自动同步 */
+    where?: Where
+  } = {},
+) => unwrap(api.POST('/log/list-mine', { body: payload }))
 
 /** 获取单条 Log；公开记录无需登录，私有记录仅本人可见 */
 export const getLog = (payload: Body<'/log/get'>) =>
