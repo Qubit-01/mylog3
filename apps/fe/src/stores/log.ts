@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import dayjs from 'dayjs'
-import { listMineLogs, listPublicLogs, type Log } from '@/api'
+import { listMineLogs, listPublicLogs, type Log, type Where } from '@/api'
 
 /** 已注册的列表键；后续新增列表只需在这里加一项 */
-export type LogListKey = 'public' | 'mine'
+type ListKey = 'public' | 'mine'
 
 /**
  * Log 实体缓存 store
@@ -16,14 +16,14 @@ export const useLogStore = defineStore('log', () => {
   const entities = reactive<Record<number, Log>>({})
 
   /** 各列表的 id 顺序表，key 为列表名 */
-  const lists = reactive<Record<LogListKey, number[]>>({ public: [], mine: [] })
+  const lists = reactive<Record<ListKey, number[]>>({ public: [], mine: [] })
 
   /** 取某个列表当前的完整 Log 数组（响应式） */
-  const useList = (key: LogListKey) =>
+  const useList = (key: ListKey) =>
     computed(() => lists[key].map((id) => entities[id]))
 
   /** 将一批 log 合并进 entities，并按后端排序去重追加到指定列表 */
-  const append = (key: LogListKey, logs: Log[]) => {
+  const append = (key: ListKey, logs: Log[]) => {
     for (const log of logs) entities[log.id] = log
     lists[key] = [...new Set([...lists[key], ...logs.map(({ id }) => id)])]
     const field = key === 'public' ? 'createdAt' : 'logAt'
@@ -41,7 +41,7 @@ export const useLogStore = defineStore('log', () => {
 
   /** 移除指定 log：清理实体及所有列表里的引用 */
   const remove = (id: number) => {
-    for (const key of Object.keys(lists) as LogListKey[]) {
+    for (const key of Object.keys(lists) as ListKey[]) {
       lists[key] = lists[key].filter((item) => item !== id)
     }
     delete entities[id]
@@ -66,27 +66,47 @@ export const useLogStore = defineStore('log', () => {
 /**
  * 连接页面生命周期与指定 Log 列表的分页状态
  * @param key 列表键，决定读取和加载的列表
+ * @param where “我的 Log”筛选条件；变化时重置列表并从第一页重新加载
  */
-export const useLogList = (key: LogListKey) => {
+export const useLogList = (key: ListKey, where?: Ref<Where>) => {
   const store = useLogStore()
   const logs = store.useList(key)
   /** undefined 表示尚未加载，null 表示后端已返回末页 */
   const cursor = ref<number | null>()
-  const pending = ref(false)
+  /** VueUse 只让最新一次执行更新 result，避免旧筛选请求覆盖新列表 */
+  const {
+    state: result,
+    isLoading: pending,
+    execute,
+  } = useAsyncState(
+    () =>
+      key === 'public'
+        ? listPublicLogs({ cursor: cursor.value ?? undefined })
+        : listMineLogs({
+            cursor: cursor.value ?? undefined,
+            where: where?.value,
+          }),
+    undefined,
+    { immediate: false },
+  )
+
+  watch(result, (value) => {
+    if (!value) return
+    store.append(key, value.items)
+    cursor.value = value.cursor
+  })
 
   /** 加载当前列表的下一页；并发加载或已到末页时跳过 */
-  const fetchMore = async () => {
+  const fetchMore = () => {
     if (pending.value || cursor.value === null) return
-    pending.value = true
-    try {
-      const result = await (key === 'public' ? listPublicLogs : listMineLogs)({
-        cursor: cursor.value,
-      })
-      store.append(key, result.items)
-      cursor.value = result.cursor
-    } finally {
-      pending.value = false
-    }
+    return execute()
+  }
+
+  /** 清空当前结果与游标，按最新筛选条件重新加载第一页 */
+  const refresh = () => {
+    store.lists[key] = []
+    cursor.value = undefined
+    return execute()
   }
 
   /** 底部提示语；空串表示不展示 */
@@ -96,7 +116,8 @@ export const useLogList = (key: LogListKey) => {
     return logs.value.length ? '没有更多了' : '暂无内容'
   })
 
-  onMounted(fetchMore)
+  if (where) watch(where, refresh)
+  onMounted(refresh)
 
   return {
     /** 当前列表数据，编辑任意 log 后自动同步 */
@@ -105,5 +126,7 @@ export const useLogList = (key: LogListKey) => {
     footerText,
     /** 加载当前列表的下一页 */
     fetchMore,
+    /** 清空已有结果并按当前条件重新加载 */
+    refresh,
   }
 }

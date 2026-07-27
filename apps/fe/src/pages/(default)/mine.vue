@@ -1,8 +1,13 @@
+<!--
+我的：
+- 新增 Log，并按筛选条件展示当前用户的时间线。
+- 滚动到底部自动加载下一页。
+-->
 <script lang="ts" setup>
-/** 我的：当前用户 Log 竖向列表，滚动到底部自动加载下一页 */
-import type { Log } from '@/api'
+import type { Log, Where } from '@/api'
 import LogCard from '@/components/LogCard.vue'
 import LogEditor from '@/components/LogEditor.vue'
+import LogFilter from '@/components/LogFilter.vue'
 import { useLogList } from '@/stores/log'
 import dayjs from 'dayjs'
 import type { TimelineItemProps } from 'element-plus'
@@ -16,7 +21,11 @@ interface TimelineEntry extends TimelineItemProps {
 
 definePage({ meta: { auth: true, title: '我的' } })
 
-const { logs, footerText, fetchMore } = useLogList('mine')
+/** 0 是全部，-1 是自定义筛选，正数预留给已保存的筛选 */
+const filterId = ref(0)
+const filter = ref<Where>()
+const where = computed(() => (filterId.value === -1 ? filter.value : undefined))
+const { logs, footerText, fetchMore, refresh } = useLogList('mine', where)
 
 /** 将 Log 列表转换为 Element Plus 可直接渲染的扁平时间线节点 */
 const timelineItems = computed<TimelineEntry[]>(() => {
@@ -63,7 +72,17 @@ const timelineItems = computed<TimelineEntry[]>(() => {
     :distance="720"
     @end-reached="(d) => d === 'bottom' && fetchMore()"
   >
-    <LogEditor />
+    <LogEditor @done="refresh" />
+    <ElSegmented
+      v-model="filterId"
+      class="toolbar"
+      :options="[
+        { label: '全部', value: 0 },
+        { label: '筛选', value: -1 },
+      ]"
+      size="small"
+    />
+    <LogFilter v-show="filterId === -1" v-model="filter" />
     <ElTimeline class="timeline">
       <ElTimelineItem
         v-for="{ key, log, ...props } in timelineItems"
@@ -84,6 +103,10 @@ const timelineItems = computed<TimelineEntry[]>(() => {
 
 <style lang="scss" scoped>
 .mine {
+  :deep(> .wrap > .view > .toolbar) {
+    align-self: flex-start;
+  }
+
   :deep(> .wrap > .view > .timeline) {
     width: 100%;
     padding-left: 2px;
