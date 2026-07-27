@@ -1,4 +1,3 @@
-import { defineStore } from 'pinia'
 import { getMe, type User } from '../api'
 
 /**
