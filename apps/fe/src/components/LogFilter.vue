@@ -5,7 +5,6 @@ LogFilter：
 -->
 <script lang="ts" setup>
 import type { Log, Where } from '@/api'
-import dayjs from 'dayjs'
 
 type Mode = 'AND' | 'OR'
 type Filter = {

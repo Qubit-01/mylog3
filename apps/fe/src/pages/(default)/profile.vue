@@ -3,7 +3,6 @@
 import { logout } from '@/api'
 import { getCosUsage } from '@/composables/cos'
 import { useUserStore } from '@/stores/user'
-import dayjs from 'dayjs'
 
 definePage({ meta: { auth: true, title: '个人' } })
 

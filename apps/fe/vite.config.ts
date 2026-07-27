@@ -30,7 +30,14 @@ export default defineConfig({
       },
     }),
     AutoImport({
-      imports: ['vue', VueRouterAutoImports, 'pinia', '@vueuse/core'],
+      imports: [
+        'vue',
+        VueRouterAutoImports,
+        'pinia',
+        '@vueuse/core',
+        { dayjs: [['default', 'dayjs']] },
+      ],
+      vueTemplate: true,
       resolvers: [ElementPlusResolver()],
     }),
     Components({

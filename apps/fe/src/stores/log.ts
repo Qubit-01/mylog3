@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import dayjs from 'dayjs'
 import { listMineLogs, listPublicLogs, type Log, type Where } from '@/api'
 
 /** 已注册的列表键；后续新增列表只需在这里加一项 */

@@ -5,7 +5,6 @@ import { collectCosKeys, deleteCosFiles } from '@/composables/cos'
 import { useLogStore } from '@/stores/log'
 import { useUserStore } from '@/stores/user'
 import { Close, Delete, Edit } from '@element-plus/icons-vue'
-import dayjs from 'dayjs'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 definePage({ meta: { title: '详情' } })

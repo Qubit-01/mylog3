@@ -6,7 +6,6 @@ LogCard：
 <script lang="ts" setup>
 import type { Log } from '@/api'
 import { vEllipsis } from 'shared/ellipsis'
-import dayjs from 'dayjs'
 
 const { log, hideMeta } = defineProps<{
   /** 当前展示的 Log 数据 */

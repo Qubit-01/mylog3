@@ -9,7 +9,6 @@ import LogCard from '@/components/LogCard.vue'
 import LogEditor from '@/components/LogEditor.vue'
 import LogFilter from '@/components/LogFilter.vue'
 import { useLogList } from '@/stores/log'
-import dayjs from 'dayjs'
 import type { TimelineItemProps } from 'element-plus'
 
 interface TimelineEntry extends TimelineItemProps {
