@@ -21,10 +21,22 @@ interface TimelineEntry extends TimelineItemProps {
 definePage({ meta: { auth: true, title: '我的' } })
 
 /** 0 是全部，-1 是自定义筛选，正数预留给已保存的筛选 */
-const filterId = ref(0)
-const filter = ref<Where>()
-const where = computed(() => (filterId.value === -1 ? filter.value : undefined))
-const { logs, footerText, fetchMore, refresh } = useLogList('mine', where)
+const whereId = ref(0)
+/** 自定义筛选编辑中的完整 Prisma where */
+const where = ref<Where>()
+/** 当前实际应用于列表的 where；未选择自定义筛选时不附加条件 */
+const activeWhere = computed(() =>
+  whereId.value < 0 ? where.value : undefined,
+)
+const { logs, footerText, fetchMore, refresh } = useLogList('mine', activeWhere)
+
+/** 将指定 Log ID 直接追加到当前 where 的排除条件 */
+const exclude = ({ id }: Log) => {
+  const excluded =
+    typeof where.value?.id === 'object' ? (where.value.id.notIn ?? []) : []
+  if (excluded.includes(id)) return
+  where.value = { ...where.value, id: { notIn: [...excluded, id] } }
+}
 
 /** 将 Log 列表转换为 Element Plus 可直接渲染的扁平时间线节点 */
 const timelineItems = computed<TimelineEntry[]>(() => {
@@ -73,7 +85,7 @@ const timelineItems = computed<TimelineEntry[]>(() => {
   >
     <LogEditor @done="refresh" />
     <ElSegmented
-      v-model="filterId"
+      v-model="whereId"
       class="toolbar"
       :options="[
         { label: '全部', value: 0 },
@@ -81,14 +93,18 @@ const timelineItems = computed<TimelineEntry[]>(() => {
       ]"
       size="small"
     />
-    <LogFilter v-show="filterId === -1" v-model="filter" />
+    <LogFilter v-show="whereId === -1" v-model="where" />
     <ElTimeline class="timeline">
       <ElTimelineItem
         v-for="{ key, log, ...props } in timelineItems"
         :key="key"
         v-bind="props"
       >
-        <LogCard v-if="log" :log="log" hide-meta />
+        <LogCard v-if="log" :log="log" hide-meta>
+          <template v-if="whereId === -1" #tail="{ log }">
+            <ElButton @click.stop="exclude(log)">排除</ElButton>
+          </template>
+        </LogCard>
       </ElTimelineItem>
 
       <ElTimelineItem
