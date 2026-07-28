@@ -1,6 +1,7 @@
 <!--
 LogCard：
 - 展示 Log 的用户、时间、正文、媒体、音频、文件和标签。
+- 通过 tail 作用域插槽扩展卡片尾部，并向插槽传出当前 Log。
 - 点击非资源区域进入详情附属页；选择文字时不跳转。
 -->
 <script lang="ts" setup>
@@ -12,6 +13,11 @@ const { log, hideMeta } = defineProps<{
   log: Log
   /** 是否隐藏用户与时间信息，默认展示 */
   hideMeta?: boolean
+}>()
+
+defineSlots<{
+  /** 卡片尾部扩展内容；log 为当前卡片数据 */
+  tail?(props: { log: Log }): any
 }>()
 
 const router = useRouter()
@@ -36,6 +42,7 @@ const onOpen = () => {
     <div v-if="log.tags.length" class="tags">
       <span v-for="t in log.tags" :key="t">#{{ t }}</span>
     </div>
+    <slot name="tail" :log />
   </article>
 </template>
 
