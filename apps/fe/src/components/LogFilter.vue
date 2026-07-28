@@ -43,8 +43,8 @@ watch(
   },
 )
 
-/** 根据表单状态持续输出完整 Prisma where */
-watchEffect(() => {
+/** 将筛选表单转换为完整 Prisma where；没有有效条件时返回 undefined */
+const where4Filter = (filter: Filter): Where => {
   const value: NonNullable<Where> = {}
   if (filter.scope) value.scope = filter.scope
   if (filter.logAt.gte || filter.logAt.lte) {
@@ -82,7 +82,12 @@ watchEffect(() => {
   }
   if (groups.length) value[filter.mode] = groups
 
-  where.value = Object.keys(value).length ? value : undefined
+  return Object.keys(value).length ? value : undefined
+}
+
+/** 根据表单状态持续输出完整 Prisma where */
+watchEffect(() => {
+  where.value = where4Filter(filter)
 })
 
 /** 清空自定义条件，但保持筛选面板展开 */
