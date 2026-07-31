@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 /** Log 详情：在默认布局内按 query.id 沉浸式展示单条记录 */
-import { deleteLog, getLog, type Log } from '@/api'
+import { deleteLog, getLog, type Log, updateLog } from '@/api'
 import { collectCosKeys, deleteCosFiles } from '@/composables/cos'
 import { useLogStore } from '@/stores/log'
 import { useUserStore } from '@/stores/user'
-import { Close, Delete, Edit } from '@element-plus/icons-vue'
+import { Close, Delete, Edit, Hide, View } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 definePage({ meta: { title: '详情' } })
@@ -15,6 +15,8 @@ const logStore = useLogStore()
 const userStore = useUserStore()
 const pending = ref(false)
 const deleting = ref(false)
+/** 当前 Log 的公开状态是否正在更新 */
+const scopeLoading = ref(false)
 /** 是否处于编辑态；编辑器在 article 下方展开，保存成功或点关闭回到只读 */
 const editing = ref(false)
 /** 当前 query 中的正整数 Log id；格式无效时返回 undefined */
@@ -45,6 +47,23 @@ watch(
 const onSaved = (saved: Log) => {
   log.value = saved
   editing.value = false
+}
+
+/** 切换公开状态；请求成功后同步当前详情与已加载的列表缓存 */
+const onScopeChange = async () => {
+  const target = log.value
+  if (!target) return
+  scopeLoading.value = true
+  try {
+    const saved = await updateLog({
+      id: target.id,
+      scope: target.scope === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC',
+    })
+    log.value = saved
+    logStore.upsert(saved)
+  } finally {
+    scopeLoading.value = false
+  }
 }
 
 /** 确认后先删除记录，再尽力清理 COS 附件、列表缓存并返回我的 Log */
@@ -107,17 +126,29 @@ const onDelete = async () => {
         />
       </article>
 
-      <div v-if="userStore.user?.id === log.userId" class="actions m-panel">
+      <div v-if="userStore.user?.id === log.userId" class="actions">
+        <ElButton
+          v-if="!editing"
+          :icon="log.scope === 'PUBLIC' ? View : Hide"
+          :loading="scopeLoading"
+          :type="log.scope === 'PUBLIC' ? 'primary' : 'default'"
+          title="公开"
+          circle
+          @click="onScopeChange"
+        />
         <ElButton
           :icon="editing ? Close : Edit"
-          text
+          type="primary"
+          plain
+          circle
           @click="editing = !editing"
         />
         <ElButton
           :icon="Delete"
           :loading="deleting"
           type="danger"
-          text
+          plain
+          circle
           @click="onDelete"
         />
       </div>
