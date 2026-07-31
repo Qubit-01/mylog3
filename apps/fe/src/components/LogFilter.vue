@@ -21,6 +21,18 @@ const where = defineModel<Where>({ required: true })
 /** where 的表单投影；仅供模板组件编辑 */
 const filter = ref(toFilter(where.value))
 
+/** 将数字 Log ID 适配为 ElInputTag 使用的字符串，并在写回时校验 */
+const exclude = computed<string[]>({
+  get: () => filter.value.exclude.map(String),
+  set: (value) => {
+    if (value.some((id) => !/^[1-9]\d*$/.test(id))) {
+      ElMessage('Log ID 必须为正整数')
+      return
+    }
+    filter.value.exclude = value.map(Number)
+  },
+})
+
 /**
  * 双向同步主状态 where 与表单投影
  * - filter 的深层编辑转换为完整 where。
@@ -145,16 +157,13 @@ const reset = () => {
       />
     </div>
 
-    <div v-if="filter.exclude.length" class="item">
+    <div class="item">
       <span class="label">排除</span>
-      <ElTag
-        v-for="id in filter.exclude"
-        :key="id"
-        closable
-        @close="filter.exclude.splice(filter.exclude.indexOf(id), 1)"
-      >
-        {{ id }}
-      </ElTag>
+      <ElInputTag
+        v-model="exclude"
+        placeholder="输入 LogID 后回车"
+        clearable
+      />
     </div>
 
     <ElButton
