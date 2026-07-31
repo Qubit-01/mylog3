@@ -48,6 +48,7 @@ const onOpen = () => {
 
 <style lang="scss" scoped>
 .LogCard {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;

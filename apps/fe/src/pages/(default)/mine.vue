@@ -102,7 +102,13 @@ const timelineItems = computed<TimelineEntry[]>(() => {
       >
         <LogCard v-if="log" :log="log" hide-meta>
           <template v-if="whereId === -1" #tail="{ log }">
-            <ElButton @click.stop="exclude(log)">排除</ElButton>
+            <ElButton
+              class="exclude"
+              size="small"
+              @click.stop="exclude(log)"
+            >
+              排除
+            </ElButton>
           </template>
         </LogCard>
       </ElTimelineItem>
@@ -128,6 +134,12 @@ const timelineItems = computed<TimelineEntry[]>(() => {
 
     > .el-timeline-item {
       padding-bottom: 8px;
+
+      .LogCard > .exclude {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+      }
     }
   }
 }
