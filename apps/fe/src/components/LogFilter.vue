@@ -99,6 +99,7 @@ const reset = () => {
       <ElInputTag
         v-model="filter.text.contains"
         placeholder="输入关键词后回车"
+        enterkeyhint="enter"
         clearable
       />
       <ElSwitch
@@ -116,6 +117,7 @@ const reset = () => {
       <ElInputTag
         v-model="filter.people.contains"
         placeholder="输入姓名后回车"
+        enterkeyhint="enter"
         clearable
       />
       <ElSwitch
@@ -133,6 +135,7 @@ const reset = () => {
       <ElInputTag
         v-model="filter.tags.contains"
         placeholder="输入标签后回车"
+        enterkeyhint="enter"
         clearable
       />
       <ElSwitch
@@ -162,6 +165,7 @@ const reset = () => {
       <ElInputTag
         v-model="exclude"
         placeholder="输入 LogID 后回车"
+        enterkeyhint="enter"
         clearable
       />
     </div>
