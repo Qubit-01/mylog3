@@ -151,15 +151,16 @@ const reset = () => {
       </ElTag>
     </div>
 
-    <ElButton class="reset" text @click="reset">重置</ElButton>
+    <ElButton class="reset" size="small" @click="reset">重置</ElButton>
   </section>
 </template>
 
 <style lang="scss" scoped>
 .LogFilter {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   padding: 12px;
 
   > .item {
@@ -181,7 +182,9 @@ const reset = () => {
   }
 
   > .reset {
-    align-self: flex-end;
+    position: absolute;
+    top: 8px;
+    right: 8px;
   }
 }
 </style>

@@ -64,7 +64,7 @@ export const useLogStore = defineStore('log', () => {
 /**
  * 连接页面生命周期与指定 Log 列表的分页状态
  * @param key 列表键，决定读取和加载的列表
- * @param where “我的 Log”筛选条件；变化时重置列表并从第一页重新加载
+ * @param where “我的 Log”筛选条件；变化时保留旧列表并重新加载第一页
  */
 export const useLogList = (key: ListKey, where?: Ref<Where>) => {
   const store = useLogStore()
@@ -90,6 +90,7 @@ export const useLogList = (key: ListKey, where?: Ref<Where>) => {
 
   watch(result, (value) => {
     if (!value) return
+    if (cursor.value === undefined) store.lists[key] = []
     store.append(key, value.items)
     cursor.value = value.cursor
   })
@@ -100,9 +101,8 @@ export const useLogList = (key: ListKey, where?: Ref<Where>) => {
     return execute()
   }
 
-  /** 清空当前结果与游标，按最新筛选条件重新加载第一页 */
+  /** 保留当前结果并重置游标，按最新筛选条件重新加载第一页 */
   const refresh = () => {
-    store.lists[key] = []
     cursor.value = undefined
     return execute()
   }
@@ -124,7 +124,7 @@ export const useLogList = (key: ListKey, where?: Ref<Where>) => {
     footerText,
     /** 加载当前列表的下一页 */
     fetchMore,
-    /** 清空已有结果并按当前条件重新加载 */
+    /** 保留已有结果并按当前条件重新加载 */
     refresh,
   }
 }
