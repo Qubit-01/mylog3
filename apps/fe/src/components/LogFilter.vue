@@ -6,8 +6,14 @@ LogFilter：
 -->
 <script lang="ts" setup>
 import type { Where } from '@/api'
+import { RefreshRight } from '@element-plus/icons-vue'
 import { toFilter, toWhere } from './filter'
 import { isEqual } from 'lodash-unified'
+
+const { loading } = defineProps<{
+  /** 当前筛选结果是否正在加载 */
+  loading?: boolean
+}>()
 
 /** 输出的 Prisma where；undefined 表示没有有效筛选条件 */
 const where = defineModel<Where>({ required: true })
@@ -151,7 +157,15 @@ const reset = () => {
       </ElTag>
     </div>
 
-    <ElButton class="reset" size="small" @click="reset">重置</ElButton>
+    <ElButton
+      class="reset"
+      :icon="RefreshRight"
+      :loading
+      :loading-icon="RefreshRight"
+      size="small"
+      circle
+      @click="reset"
+    />
   </section>
 </template>
 
@@ -183,8 +197,8 @@ const reset = () => {
 
   > .reset {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 12px;
+    right: 12px;
   }
 }
 </style>

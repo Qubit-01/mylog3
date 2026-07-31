@@ -74,7 +74,7 @@ export const useLogList = (key: ListKey, where?: Ref<Where>) => {
   /** VueUse 只让最新一次执行更新 result，避免旧筛选请求覆盖新列表 */
   const {
     state: result,
-    isLoading: pending,
+    isLoading: loading,
     execute,
   } = useAsyncState(
     () =>
@@ -97,7 +97,7 @@ export const useLogList = (key: ListKey, where?: Ref<Where>) => {
 
   /** 加载当前列表的下一页；并发加载或已到末页时跳过 */
   const fetchMore = () => {
-    if (pending.value || cursor.value === null) return
+    if (loading.value || cursor.value === null) return
     return execute()
   }
 
@@ -109,7 +109,7 @@ export const useLogList = (key: ListKey, where?: Ref<Where>) => {
 
   /** 底部提示语；空串表示不展示 */
   const footerText = computed(() => {
-    if (pending.value) return '加载中…'
+    if (loading.value) return '加载中…'
     if (cursor.value !== null) return ''
     return logs.value.length ? '没有更多了' : '暂无内容'
   })
@@ -122,6 +122,8 @@ export const useLogList = (key: ListKey, where?: Ref<Where>) => {
     logs,
     /** 底部提示语，空串表示不展示 */
     footerText,
+    /** 当前是否正在加载列表 */
+    loading,
     /** 加载当前列表的下一页 */
     fetchMore,
     /** 保留已有结果并按当前条件重新加载 */

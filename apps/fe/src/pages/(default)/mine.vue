@@ -28,7 +28,10 @@ const where = ref<Where>()
 const activeWhere = computed(() =>
   whereId.value < 0 ? where.value : undefined,
 )
-const { logs, footerText, fetchMore, refresh } = useLogList('mine', activeWhere)
+const { logs, footerText, loading, fetchMore, refresh } = useLogList(
+  'mine',
+  activeWhere,
+)
 
 /** 将指定 Log ID 直接追加到当前 where 的排除条件 */
 const exclude = ({ id }: Log) => {
@@ -93,7 +96,7 @@ const timelineItems = computed<TimelineEntry[]>(() => {
       ]"
       size="small"
     />
-    <LogFilter v-show="whereId === -1" v-model="where" />
+    <LogFilter v-show="whereId === -1" v-model="where" :loading />
     <ElTimeline class="timeline">
       <ElTimelineItem
         v-for="{ key, log, ...props } in timelineItems"
@@ -102,11 +105,7 @@ const timelineItems = computed<TimelineEntry[]>(() => {
       >
         <LogCard v-if="log" :log="log" hide-meta>
           <template v-if="whereId === -1" #tail="{ log }">
-            <ElButton
-              class="exclude"
-              size="small"
-              @click.stop="exclude(log)"
-            >
+            <ElButton class="exclude" size="small" @click.stop="exclude(log)">
               排除
             </ElButton>
           </template>
