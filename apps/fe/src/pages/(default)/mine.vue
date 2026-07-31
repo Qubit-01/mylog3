@@ -94,7 +94,6 @@ const timelineItems = computed<TimelineEntry[]>(() => {
         { label: '全部', value: 0 },
         { label: '筛选', value: -1 },
       ]"
-      size="small"
     />
     <LogFilter v-show="whereId === -1" v-model="where" :loading />
     <ElTimeline class="timeline">
@@ -125,6 +124,8 @@ const timelineItems = computed<TimelineEntry[]>(() => {
 .mine {
   :deep(> .wrap > .view > .toolbar) {
     align-self: flex-start;
+    --el-border-radius-base: 16px;
+    box-shadow: 0 2px 8px #0001;
   }
 
   :deep(> .wrap > .view > .timeline) {

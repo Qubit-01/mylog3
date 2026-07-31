@@ -137,7 +137,7 @@ html {
   background: color-mix(in srgb, var(--el-bg-color, #fff) 80%, transparent);
   border: 1px solid var(--el-border-color-extra-light, #ebeef5);
   border-radius: 8px;
-  box-shadow: 0 2px 8px #00000014;
+  box-shadow: 0 2px 8px #0001;
   backdrop-filter: blur(8px) saturate(2);
   -webkit-backdrop-filter: blur(8px) saturate(2);
 }
