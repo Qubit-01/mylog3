@@ -150,3 +150,7 @@ export const createShare = (
     where?: Where
   },
 ) => unwrap(api.POST('/share/create', { body: payload }))
+
+/** 匿名分页读取分享中的 Log */
+export const listSharedLogs = (payload: Body<'/share/list'>) =>
+  unwrap(api.POST('/share/list', { body: payload }))
