@@ -310,6 +310,68 @@
         ]
       }
     },
+    "/share/create": {
+      "post": {
+        "operationId": "ShareController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShareDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "创建成功，返回加密分享凭证",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareTokenDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "share"
+        ]
+      }
+    },
+    "/share/list": {
+      "post": {
+        "operationId": "ShareController_list",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareListDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "分享 Log 列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogListResultDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "share"
+        ]
+      }
+    },
     "/cos/credential": {
       "post": {
         "operationId": "CosController_createCredential",
@@ -953,6 +1015,49 @@
         },
         "required": [
           "id"
+        ]
+      },
+      "CreateShareDto": {
+        "type": "object",
+        "properties": {
+          "dynamic": {
+            "type": "boolean",
+            "description": "是否动态分享；不传或 false 时固定当前全部匹配 Log ID"
+          },
+          "where": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "当前完整 Prisma LogWhereInput 筛选条件"
+          }
+        }
+      },
+      "ShareTokenDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "加密 Share id 得到的分享凭证"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "ShareListDto": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "number",
+            "minimum": 1,
+            "description": "上一页返回的游标；首次请求不传"
+          },
+          "token": {
+            "type": "string",
+            "description": "创建分享时返回的加密凭证"
+          }
+        },
+        "required": [
+          "token"
         ]
       },
       "CosTemporaryCredentialDto": {

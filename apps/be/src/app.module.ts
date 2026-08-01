@@ -7,6 +7,7 @@ import { AppLoggerModule } from './logger/logger.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UserModule } from './user/user.module';
 import { LogModule } from './log/log.module';
+import { ShareModule } from './share/share.module';
 import { CosModule } from './cos/cos.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { CosModule } from './cos/cos.module';
     AuthModule,
     UserModule,
     LogModule,
+    ShareModule,
     CosModule,
   ],
   controllers: [AppController],

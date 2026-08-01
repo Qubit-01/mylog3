@@ -196,6 +196,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/share/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ShareController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/share/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ShareController_list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/cos/credential": {
         parameters: {
             query?: never;
@@ -544,6 +576,24 @@ export interface components {
             /** @description 要更新的 Log id */
             id: number;
         };
+        CreateShareDto: {
+            /** @description 是否动态分享；不传或 false 时固定当前全部匹配 Log ID */
+            dynamic?: boolean;
+            /** @description 当前完整 Prisma LogWhereInput 筛选条件 */
+            where?: {
+                [key: string]: unknown;
+            };
+        };
+        ShareTokenDto: {
+            /** @description 加密 Share id 得到的分享凭证 */
+            token: string;
+        };
+        ShareListDto: {
+            /** @description 上一页返回的游标；首次请求不传 */
+            cursor?: number;
+            /** @description 创建分享时返回的加密凭证 */
+            token: string;
+        };
         CosTemporaryCredentialDto: {
             /** @description 临时密钥 SecretId */
             tmpSecretId: string;
@@ -866,6 +916,54 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    ShareController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateShareDto"];
+            };
+        };
+        responses: {
+            /** @description 创建成功，返回加密分享凭证 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareTokenDto"];
+                };
+            };
+        };
+    };
+    ShareController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShareListDto"];
+            };
+        };
+        responses: {
+            /** @description 分享 Log 列表 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogListResultDto"];
+                };
             };
         };
     };

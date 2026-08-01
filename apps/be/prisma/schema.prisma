@@ -48,8 +48,9 @@ model User {
   updatedAt DateTime @updatedAt
   /// 创建时间
   createdAt DateTime @default(now())
-  logs      Log[]
-  auth      Auth     @relation(fields: [authId], references: [id], onDelete: Cascade)
+  logs   Log[]
+  shares Share[]
+  auth   Auth    @relation(fields: [authId], references: [id], onDelete: Cascade)
 
   @@index([authId])
 }
@@ -91,6 +92,23 @@ model Log {
   @@unique([id, userId])
   @@index([userId])
   @@index([createdAt])
+}
+
+/// 分享：由创建者管理，where 是服务端生成的完整 Log 内容边界
+model Share {
+  /// 主键，同时是加密分享凭证中的明文载荷
+  id        Int      @id @default(autoincrement()) @db.UnsignedInt
+  /// 分享创建者 / 管理者，不限制分享内容必须属于该用户
+  userId    Int      @db.UnsignedInt
+  /// 服务端生成的完整 Prisma LogWhereInput，业务层 create 时显式传入
+  where     Json
+  /// 更新时间；未来扩展分享内容时自动刷新
+  updatedAt DateTime @updatedAt
+  /// 创建时间
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 /// Log 可见范围

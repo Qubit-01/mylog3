@@ -49,6 +49,15 @@ export interface LogRow {
   createdAt: Date;
 }
 
+/** Share 行类型 */
+export interface ShareRow {
+  id: number;
+  userId: number;
+  where: unknown;
+  updatedAt: Date;
+  createdAt: Date;
+}
+
 /** 通用 delegate 类型（参数与返回类型尽量宽松，避免 Prisma 内部类型噪音） */
 interface Delegate<TRow> {
   findUnique(args: {
@@ -83,6 +92,7 @@ export interface PrismaTx {
   auth: Delegate<AuthRow>;
   user: Delegate<UserRow>;
   log: Delegate<LogRow>;
+  share: Delegate<ShareRow>;
 }
 
 /** PrismaService 对外暴露的形态 */
@@ -124,6 +134,11 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   /** log delegate */
   get log() {
     return this.client.log;
+  }
+
+  /** share delegate */
+  get share() {
+    return this.client.share;
   }
 
   /** 事务包裹器 */
