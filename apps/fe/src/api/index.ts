@@ -140,3 +140,13 @@ export const updateLog = (payload: Body<'/log/update'>) =>
 /** 删除指定 Log（仅本人可删），成功时后端返回 204 无正文 */
 export const deleteLog = (payload: Body<'/log/delete'>) =>
   unwrap(api.POST('/log/delete', { body: payload }))
+
+/* ─── share ────────────────────────────────────────── */
+
+/** 创建当前 Log 筛选的分享，并返回用于拼接公开链接的加密凭证 */
+export const createShare = (
+  payload: Omit<Body<'/share/create'>, 'where'> & {
+    /** 当前完整 Prisma LogWhereInput；undefined 表示分享全部 Log */
+    where?: Where
+  },
+) => unwrap(api.POST('/share/create', { body: payload }))

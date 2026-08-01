@@ -15,7 +15,7 @@ const encryptionKey = Buffer.from(
 
 /**
  * 使用项目对称密钥加密文本，并封装解密所需的随机 IV 与认证标签。
- * @returns Base64URL 编码的密文凭证
+ * @returns Base64URL 编码的密文
  */
 export const encrypt = (plaintext: string): string => {
   const iv = randomBytes(12);
@@ -32,14 +32,12 @@ export const encrypt = (plaintext: string): string => {
 };
 
 /**
- * 解密由 encrypt 生成的凭证，并校验内容未被篡改。
- * @returns 原始明文；凭证格式错误、密钥不匹配或内容被篡改时抛出异常
+ * 解密由 encrypt 生成的密文，并校验内容未被篡改。
+ * @returns 原始明文；密文格式错误、密钥不匹配或内容被篡改时抛出异常
  */
-export const decrypt = (token: string): string => {
-  // token 布局固定为 12 字节 IV + 16 字节 authTag + 至少 1 字节密文。
-  const payload = Buffer.from(token, 'base64url');
-  if (payload.length <= 28) throw new Error('加密凭证长度错误');
-
+export const decrypt = (ciphertext: string): string => {
+  // 编码内容固定为 12 字节 IV + 16 字节 authTag + 密文。
+  const payload = Buffer.from(ciphertext, 'base64url');
   const decipher = createDecipheriv(
     'aes-256-gcm',
     encryptionKey,

@@ -53,13 +53,13 @@ export class ShareService {
       throw new NotFoundException('分享不存在');
     }
 
-    // 2. userId 只表示分享管理者；内容边界已经完整编码在 share.where 中。
+    // 1. userId 只表示分享管理者；内容边界已经完整编码在 share.where 中。
     const share = await this.prisma.share.findUnique({
       where: { id: shareId },
     });
     if (!share) throw new NotFoundException('分享不存在');
 
-    // 3. 两种创建模式统一执行 where，并沿用“我的 Log”分页顺序。
+    // 2. 两种创建模式统一执行 where，并沿用“我的 Log”分页顺序。
     const items = await this.prisma.log.findMany({
       where: share.where as LogWhereInput,
       orderBy: [{ logAt: 'desc' }, { id: 'desc' }],
