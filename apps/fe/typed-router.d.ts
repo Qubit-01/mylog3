@@ -41,6 +41,7 @@ declare module 'vue-router/auto-routes' {
       | '/(default)/map'
       | '/(default)/mine'
       | '/(default)/profile'
+      | '/(default)/share'
     >,
     '/(default)/': RouteRecordInfo<
       '/(default)/',
@@ -73,6 +74,13 @@ declare module 'vue-router/auto-routes' {
     '/(default)/profile': RouteRecordInfo<
       '/(default)/profile',
       '/profile',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/(default)/share': RouteRecordInfo<
+      '/(default)/share',
+      '/share',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -112,6 +120,7 @@ declare module 'vue-router/auto-routes' {
         | '/(default)/map'
         | '/(default)/mine'
         | '/(default)/profile'
+        | '/(default)/share'
       views:
         | 'default'
       pathParamNames:
@@ -152,6 +161,14 @@ declare module 'vue-router/auto-routes' {
     'src/pages/(default)/profile.vue': {
       routes:
         | '/(default)/profile'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/(default)/share.vue': {
+      routes:
+        | '/(default)/share'
       views:
         | never
       pathParamNames:
