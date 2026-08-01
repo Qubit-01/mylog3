@@ -12,10 +12,8 @@ import 'dayjs/locale/zh-cn'
 import * as ElementIcons from '@element-plus/icons-vue'
 
 const app = createApp(App)
+app.use(createPinia())
 app.use(router)
-
-const pinia = createPinia()
-app.use(pinia)
 
 app.use(ElementPlus, { locale: zhCn })
 for (const [k, c] of Object.entries(ElementIcons)) {
