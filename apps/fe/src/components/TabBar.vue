@@ -5,15 +5,9 @@ TabBar：
 <script lang="ts" setup>
 import { useTabs } from '../pages/(default)/tabs'
 
-const route = useRoute()
-const tabs = useTabs()
-/** 当前路由对应的 item 索引；附属页位于所有 Tab 之后 */
-const activeIndex = computed(() => {
-  const index = tabs.value.findIndex((t) => t.to.path === route.path)
-  return index < 0 ? tabs.value.length : index
-})
+const { tabs, index } = useTabs()
 /** 当前是否为 Tab 之外的通用附属页 */
-const extra = computed(() => activeIndex.value >= tabs.value.length)
+const extra = computed(() => index.value >= tabs.value.length)
 </script>
 
 <template>
@@ -37,7 +31,7 @@ const extra = computed(() => activeIndex.value >= tabs.value.length)
 
 <style lang="scss" scoped>
 .TabBar {
-  --active: v-bind(activeIndex);
+  --active: v-bind(index);
   --count: v-bind('tabs.length');
 
   position: fixed;

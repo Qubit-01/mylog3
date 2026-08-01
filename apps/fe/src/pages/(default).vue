@@ -1,27 +1,21 @@
 <!--
 DefaultLayout：
-- 使用横向 Swiper 承载主 Tab 和通用附属页。
+- 使用横向 Swiper 承载当前可见 Tab 和通用附属页。
 - 统一展示全局侧边栏和底部 TabBar。
 -->
 <script lang="ts" setup>
 import type { Swiper as SwiperType } from 'swiper/types'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
-import { tabs } from './(default)/tabs'
+import { useTabs } from './(default)/tabs'
 
-const route = useRoute()
 const router = useRouter()
-
-/** 当前路由对应的 Slide 索引；非主 Tab 路由统一落到末尾附属页 */
-const index = computed(() => {
-  const i = tabs.findIndex((t) => t.to === route.path)
-  return i < 0 ? tabs.length : i
-})
+const { tabs, index } = useTabs()
 
 /** swiper 实例 ref，用于响应路由变化命令式切页 */
 const swiper = shallowRef<SwiperType>()
 
-/** 路由变化后等待附属 Slide 增删完成，再更新 Swiper 并切页 */
+/** 路由变化后等待分享 / 附属 Slide 增删完成，再更新 Swiper 并切页 */
 watch(index, async (i) => {
   await nextTick()
   swiper.value?.update()
@@ -33,7 +27,7 @@ watch(index, async (i) => {
  * @returns 无返回值，仅同步当前路由
  */
 const onSlideChange = (instance: SwiperType) => {
-  const to = tabs[instance.activeIndex]?.to
+  const to = tabs.value[instance.activeIndex]?.to
   if (to && instance.previousIndex === index.value) router.replace(to)
 }
 
@@ -42,7 +36,9 @@ const onSlideChange = (instance: SwiperType) => {
  * 避免未登录时 `mine` 等受保护页面被提前挂载并触发接口
  */
 const mounted = reactive(new Set<number>())
-watch(index, (i) => i < tabs.length && mounted.add(i), { immediate: true })
+watch(index, (i) => i < tabs.value.length && mounted.add(i), {
+  immediate: true,
+})
 </script>
 
 <template>
@@ -53,7 +49,7 @@ watch(index, (i) => i < tabs.length && mounted.add(i), { immediate: true })
       @swiper="(s) => (swiper = s)"
       @slide-change-transition-end="onSlideChange"
     >
-      <SwiperSlide v-for="(t, i) in tabs" :key="t.to" class="page">
+      <SwiperSlide v-for="(t, i) in tabs" :key="t.to.path" class="page">
         <component :is="t.component" v-if="mounted.has(i)" />
       </SwiperSlide>
       <!-- 通用附属页：非主 Tab 子路由只需正常跳转，无须修改布局 -->
@@ -65,7 +61,7 @@ watch(index, (i) => i < tabs.length && mounted.add(i), { immediate: true })
     <aside class="aside">
       <AsideUser />
     </aside>
-    <TabBar :extra="index >= tabs.length" />
+    <TabBar />
   </div>
 </template>
 

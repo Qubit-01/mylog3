@@ -30,7 +30,8 @@ export const useTabs = () => {
   const route = useRoute()
   const share = useShareStore()
 
-  return computed<Tab[]>(() => [
+  /** 当前可见的 Tab 列表 */
+  const tabs = computed<Tab[]>(() => [
     ...mainTabs,
     ...(share.token || route.path === '/share'
       ? [
@@ -42,4 +43,16 @@ export const useTabs = () => {
         ]
       : []),
   ])
+  /** 当前路由对应的 Tab 索引；附属页位于列表之后 */
+  const index = computed(() => {
+    const i = tabs.value.findIndex(({ to }) => to.path === route.path)
+    return i < 0 ? tabs.value.length : i
+  })
+
+  return {
+    /** 当前可见的 Tab 列表 */
+    tabs,
+    /** 当前路由对应的 Tab 索引 */
+    index,
+  }
 }
