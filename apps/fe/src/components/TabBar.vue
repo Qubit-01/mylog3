@@ -20,7 +20,13 @@ const extra = computed(() => activeIndex.value >= tabs.value.length)
   <div class="TabBar" :class="{ extra }">
     <div class="indicator" />
 
-    <RouterLink v-for="t in tabs" :key="t.to.path" :to="t.to" class="item">
+    <RouterLink
+      v-for="t in tabs"
+      :key="t.to.path"
+      :to="t.to"
+      class="item"
+      replace
+    >
       {{ t.label }}
     </RouterLink>
     <span v-if="extra" class="extra">
