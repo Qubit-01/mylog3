@@ -1,24 +1,26 @@
+<!--
+TabBar：
+- 展示默认布局当前可见的 Tab 及附属页状态。
+-->
 <script lang="ts" setup>
-/** 底部悬浮 Tab 导航栏 */
-import { tabs } from '../pages/(default)/tabs'
+import { useTabs } from '../pages/(default)/tabs'
 
-const { extra } = defineProps<{
-  /** 是否显示附属页圆形 item */
-  extra: boolean
-}>()
 const route = useRoute()
-/** 当前路由对应的 item 索引；附属页固定排在主 Tab 之后 */
+const tabs = useTabs()
+/** 当前路由对应的 item 索引；附属页位于所有 Tab 之后 */
 const activeIndex = computed(() => {
-  const index = tabs.findIndex((t) => t.to === route.path)
-  return index < 0 ? tabs.length : index
+  const index = tabs.value.findIndex((t) => t.to.path === route.path)
+  return index < 0 ? tabs.value.length : index
 })
+/** 当前是否为 Tab 之外的通用附属页 */
+const extra = computed(() => activeIndex.value >= tabs.value.length)
 </script>
 
 <template>
   <div class="TabBar" :class="{ extra }">
     <div class="indicator" />
 
-    <RouterLink v-for="t in tabs" :key="t.to" :to="t.to" class="item">
+    <RouterLink v-for="t in tabs" :key="t.to.path" :to="t.to" class="item">
       {{ t.label }}
     </RouterLink>
     <span v-if="extra" class="extra">
