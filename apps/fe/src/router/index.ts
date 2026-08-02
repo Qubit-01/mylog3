@@ -20,7 +20,12 @@ router.beforeEach(async (to) => {
   await userStore.fetchMe()
   if (userStore.logged) return
   ElMessage.warning('请先登录')
-  return { path: '/login', query: { redirect: to.fullPath } }
+  return {
+    path: '/login',
+    query: { redirect: to.fullPath },
+    // Tab 导航使用 replace；此处显式恢复 push，避免登录页覆盖进入前的页面。
+    replace: false,
+  }
 })
 
 // 路由热更新，无需刷新页面
