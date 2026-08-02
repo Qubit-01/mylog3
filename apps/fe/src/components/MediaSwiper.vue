@@ -1,12 +1,19 @@
 <script lang="ts" setup>
-/** 媒体轮播：按结构类型展示图片与视频，并控制相邻资源加载 */
-import { Keyboard, Mousewheel, Navigation, Pagination } from 'swiper/modules'
+/** 媒体轮播：按结构类型展示图片与视频，支持图片缩放并控制相邻资源加载 */
+import {
+  Keyboard,
+  Mousewheel,
+  Navigation,
+  Pagination,
+  Zoom,
+} from 'swiper/modules'
 import type { Swiper as SwiperInstance } from 'swiper/types'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { toResourceUrl } from 'shared/cos'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
+import 'swiper/css/zoom'
 
 const { medias, initialSlide = 0 } = defineProps<{
   /** 图片与视频混排列表；previewUrl 可用于生成视频封面 */
@@ -27,8 +34,8 @@ const emit = defineEmits<{
   backgroundClick: []
 }>()
 
-/** Swiper 键盘、横向滚动、导航与分页模块 */
-const modules = [Keyboard, Mousewheel, Navigation, Pagination]
+/** Swiper 键盘、横向滚动、导航、分页与图片缩放模块 */
+const modules = [Keyboard, Mousewheel, Navigation, Pagination, Zoom]
 /** 当前展示项下标，用于限制原图与视频的加载范围 */
 const current = ref(initialSlide)
 
@@ -47,10 +54,12 @@ const onSlideChange = (swiper: SwiperInstance) => {
     class="MediaSwiper"
     :modules="modules"
     :initial-slide="initialSlide"
+    nested
     keyboard
     :mousewheel="{ forceToAxis: true }"
     :navigation="medias.length > 1"
     :pagination="medias.length > 1 ? { clickable: true } : false"
+    zoom
     @slide-change="onSlideChange"
   >
     <SwiperSlide
@@ -59,10 +68,13 @@ const onSlideChange = (swiper: SwiperInstance) => {
       class="slide"
       @click.self="emit('backgroundClick')"
     >
-      <img
+      <div
         v-if="media.type === 'image' && shouldLoad(i)"
-        :src="toResourceUrl(media.url)"
-      />
+        class="swiper-zoom-container"
+        @click.self="emit('backgroundClick')"
+      >
+        <img :src="toResourceUrl(media.url)" />
+      </div>
       <video
         v-else-if="shouldLoad(i)"
         :src="toResourceUrl(media.url)"
@@ -86,7 +98,7 @@ const onSlideChange = (swiper: SwiperInstance) => {
     justify-content: center;
     padding: var(--media-swiper-padding, 0);
 
-    > img,
+    .swiper-zoom-container > img,
     > video {
       max-width: 100%;
       max-height: 100%;
