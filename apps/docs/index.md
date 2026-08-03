@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: '多元记'
-  text: '把生活放回时间里'
+  text: '记录生活，记录你'
   tagline: 有些日子值得讲给别人听，有些只想留给自己。用文字、影像和声音，保存你真正经历过的生活。
   image:
     src: /logo.svg
