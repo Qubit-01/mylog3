@@ -4,6 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   // 文档部署在主站子路径下，VitePress 会自动为站内链接和静态资源补此前缀
   base: '/docs/',
+  cleanUrls: true,
   title: 'Mylog',
   description: '记录生活,记录你',
   themeConfig: {
