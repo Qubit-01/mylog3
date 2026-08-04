@@ -4,11 +4,13 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
+
+/** QQ 互联公开应用 ID */
+const QQ_APP_ID = '102099147';
 
 @Injectable()
 export class QqAuthService {
@@ -66,10 +68,6 @@ export class QqAuthService {
 
   /** 验证 QQ Access Token 并返回可信 UnionID */
   private async getUnionid(accessToken: string): Promise<string> {
-    const appId = process.env.QQ_APP_ID?.trim();
-    if (!appId) {
-      throw new ServiceUnavailableException('QQ 登录服务尚未配置');
-    }
     const identityUrl = new URL('https://graph.qq.com/oauth2.0/me');
     identityUrl.searchParams.set('access_token', accessToken);
     identityUrl.searchParams.set('unionid', '1');
@@ -86,7 +84,7 @@ export class QqAuthService {
         identity.error_description || 'QQ 登录状态无效，请重新登录',
       );
     }
-    if (identity.client_id !== appId) {
+    if (identity.client_id !== QQ_APP_ID) {
       throw new UnauthorizedException('QQ 用户身份与本站应用不匹配');
     }
     if (!identity.unionid) {
