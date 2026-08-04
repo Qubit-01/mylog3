@@ -64,6 +64,10 @@ export const register = (payload: Body<'/auth/register'>) =>
 export const login = (payload: Body<'/auth/login'>) =>
   unwrap(api.POST('/auth/login', { body: payload }))
 
+/** 使用 QQ Access Token 登录，token 写入 httpOnly cookie */
+export const loginQq = (payload: Body<'/auth/qq/login'>) =>
+  unwrap(api.POST('/auth/qq/login', { body: payload }))
+
 /** 登出，清除认证 cookie */
 export const logout = () => unwrap(api.POST('/auth/logout', {}))
 
