@@ -81,7 +81,7 @@ interface Delegate<TRow> {
     where: Partial<TRow> | Record<string, unknown>;
   }): Promise<TRow>;
   updateMany(args: {
-    where: Partial<TRow>;
+    where: Partial<TRow> | Record<string, unknown>;
     data: Partial<TRow>;
   }): Promise<{ count: number }>;
   deleteMany(args: { where: Partial<TRow> }): Promise<{ count: number }>;

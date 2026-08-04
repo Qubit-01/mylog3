@@ -84,6 +84,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/qq/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["QqAuthController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/qq/bind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["QqAuthController_bind"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/user/me": {
         parameters: {
             query?: never;
@@ -294,6 +326,10 @@ export interface components {
             name: string;
             /** @description 登录密码，明文传入 */
             pswd: string;
+        };
+        QqAccessTokenDto: {
+            /** @description QQ JS SDK 返回的 Access Token */
+            accessToken: string;
         };
         PublicUserDto: {
             /**
@@ -749,6 +785,50 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description 登出，清除认证 cookie */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    QqAuthController_login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QqAccessTokenDto"];
+            };
+        };
+        responses: {
+            /** @description QQ 已绑定，本站登录成功 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    QqAuthController_bind: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QqAccessTokenDto"];
+            };
+        };
+        responses: {
+            /** @description QQ 已绑定到当前账号 */
             204: {
                 headers: {
                     [name: string]: unknown;

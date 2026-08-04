@@ -37,6 +37,7 @@ const isProd = process.env.NODE_ENV === 'production';
           paths: [
             'req.headers.authorization',
             'req.headers.cookie',
+            'req.body.accessToken',
             'req.body.pswd',
             'req.body.password',
           ],

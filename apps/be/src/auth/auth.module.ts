@@ -4,6 +4,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
+import { QqAuthController } from './qq-auth.controller';
+import { QqAuthService } from './qq-auth.service';
 
 /**
  * 认证模块
@@ -18,7 +20,11 @@ import { AuthService } from './auth.service';
       signOptions: { expiresIn: '60d' },
     }),
   ],
-  controllers: [AuthController],
-  providers: [AuthService, { provide: APP_GUARD, useClass: AuthGuard }],
+  controllers: [AuthController, QqAuthController],
+  providers: [
+    AuthService,
+    QqAuthService,
+    { provide: APP_GUARD, useClass: AuthGuard },
+  ],
 })
 export class AuthModule {}

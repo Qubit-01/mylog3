@@ -110,6 +110,54 @@
         ]
       }
     },
+    "/auth/qq/login": {
+      "post": {
+        "operationId": "QqAuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QqAccessTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "QQ 已绑定，本站登录成功"
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/qq/bind": {
+      "post": {
+        "operationId": "QqAuthController_bind",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QqAccessTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "QQ 已绑定到当前账号"
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/user/me": {
       "get": {
         "operationId": "UserController_me",
@@ -500,6 +548,18 @@
         "required": [
           "name",
           "pswd"
+        ]
+      },
+      "QqAccessTokenDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "QQ JS SDK 返回的 Access Token"
+          }
+        },
+        "required": [
+          "accessToken"
         ]
       },
       "PublicUserDto": {
