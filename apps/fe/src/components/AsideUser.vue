@@ -28,7 +28,7 @@ const { user } = storeToRefs(useUserStore())
     <template v-else>
       <ElAvatar :size="56">?</ElAvatar>
       <div class="name">未登录</div>
-      <ElButton type="primary" round @click="router.push('/login')">
+      <ElButton type="primary" round @click="router.push('/sign-in')">
         去登录
       </ElButton>
     </template>

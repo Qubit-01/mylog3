@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 /** 个人页：集中展示当前用户身份信息与账户操作 */
-import { logout } from '@/api'
+import { signOut } from '@/api'
 import { getCosUsage } from '@/composables/cos'
 import { useUserStore } from '@/stores/user'
 
@@ -41,11 +41,11 @@ const formatBytes = (bytes: number) => {
 }
 
 /** 退出当前账号并刷新应用登录态 */
-const onLogout = async () => {
+const onSignOut = async () => {
   if (pending.value) return
   pending.value = true
   try {
-    await logout()
+    await signOut()
     location.href = '/'
   } finally {
     pending.value = false
@@ -157,7 +157,7 @@ const onLogout = async () => {
     </ElCollapse>
 
     <footer class="actions m-panel">
-      <ElButton type="danger" text :loading="pending" @click="onLogout">
+      <ElButton type="danger" text :loading="pending" @click="onSignOut">
         退出登录
       </ElButton>
     </footer>

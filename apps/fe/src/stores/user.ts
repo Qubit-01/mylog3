@@ -9,7 +9,7 @@ export const useUserStore = defineStore('user', () => {
   /** 当前用户，undefined = 未登录 */
   const user = ref<User>()
   /** 是否已登录 */
-  const logged = computed(() => !!user.value)
+  const signed = computed(() => !!user.value)
 
   /** 首次探测 Promise 缓存，做并发去重 */
   let pending: Promise<void>
@@ -23,7 +23,7 @@ export const useUserStore = defineStore('user', () => {
     /** 当前登录用户，undefined 表示未登录 */
     user,
     /** 是否已登录 */
-    logged,
+    signed,
     /** 探测当前登录态；重复调用共享同一次请求 */
     fetchMe,
   }

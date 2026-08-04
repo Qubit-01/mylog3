@@ -115,7 +115,7 @@ Cookie 配置：`httpOnly + sameSite=lax + path=/`，生产带 `secure`，`maxAg
 ### 通用 DTO
 
 - `PublicUserDto` — `{ id: number, name: string, avatar: string | null }`
-- `SignUpDto` — `{ name (2-20), pswd (>=8), captchaId, captcha }`
+- `SignUpDto` — `{ name (2-20), pswd (>=6), captchaId, captcha }`
 - `SignInDto` — `{ name, pswd }`，只 `@IsString()`，错误统一"账号或密码错误"
 - `CaptchaCreateDto` — `{ id: string, svg: string }`
 
