@@ -48,16 +48,16 @@
         ]
       }
     },
-    "/auth/register": {
+    "/auth/sign-up": {
       "post": {
-        "operationId": "AuthController_register",
+        "operationId": "AuthController_signUp",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterDto"
+                "$ref": "#/components/schemas/SignUpDto"
               }
             }
           }
@@ -72,16 +72,16 @@
         ]
       }
     },
-    "/auth/login": {
+    "/auth/sign-in": {
       "post": {
-        "operationId": "AuthController_login",
+        "operationId": "AuthController_signIn",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginDto"
+                "$ref": "#/components/schemas/SignInDto"
               }
             }
           }
@@ -96,9 +96,9 @@
         ]
       }
     },
-    "/auth/logout": {
+    "/auth/sign-out": {
       "post": {
-        "operationId": "AuthController_logout",
+        "operationId": "AuthController_signOut",
         "parameters": [],
         "responses": {
           "204": {
@@ -110,9 +110,9 @@
         ]
       }
     },
-    "/auth/qq/login": {
+    "/auth/qq/sign-in": {
       "post": {
-        "operationId": "QqAuthController_login",
+        "operationId": "QqAuthController_signIn",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -501,7 +501,7 @@
           "svg"
         ]
       },
-      "RegisterDto": {
+      "SignUpDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -532,7 +532,7 @@
           "captcha"
         ]
       },
-      "LoginDto": {
+      "SignInDto": {
         "type": "object",
         "properties": {
           "name": {

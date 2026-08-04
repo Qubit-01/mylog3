@@ -5,7 +5,7 @@ import { IsString, Length, MinLength } from 'class-validator';
  * 注册请求体 —— 运行时校验 + OpenAPI schema 双重职责
  * 类型契约由 openapi-typescript 从此 class 生成，fe 通过生成的 schema.d.ts 使用
  */
-export class RegisterDto {
+export class SignUpDto {
   @ApiProperty({
     type: String,
     minLength: 2,

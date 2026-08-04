@@ -36,7 +36,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/register": {
+    "/auth/sign-up": {
         parameters: {
             query?: never;
             header?: never;
@@ -45,14 +45,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["AuthController_register"];
+        post: operations["AuthController_signUp"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/auth/login": {
+    "/auth/sign-in": {
         parameters: {
             query?: never;
             header?: never;
@@ -61,14 +61,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["AuthController_login"];
+        post: operations["AuthController_signIn"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/auth/logout": {
+    "/auth/sign-out": {
         parameters: {
             query?: never;
             header?: never;
@@ -77,14 +77,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["AuthController_logout"];
+        post: operations["AuthController_signOut"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/auth/qq/login": {
+    "/auth/qq/sign-in": {
         parameters: {
             query?: never;
             header?: never;
@@ -93,7 +93,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["QqAuthController_login"];
+        post: operations["QqAuthController_signIn"];
         delete?: never;
         options?: never;
         head?: never;
@@ -305,7 +305,7 @@ export interface components {
             /** @description SVG 文本，前端 v-html 或转 dataURL 直接用 */
             svg: string;
         };
-        RegisterDto: {
+        SignUpDto: {
             /**
              * @description 用户昵称，全局唯一
              * @example alice
@@ -318,7 +318,7 @@ export interface components {
             /** @description 图形验证码用户输入 */
             captcha: string;
         };
-        LoginDto: {
+        SignInDto: {
             /**
              * @description 用户昵称
              * @example alice
@@ -731,7 +731,7 @@ export interface operations {
             };
         };
     };
-    AuthController_register: {
+    AuthController_signUp: {
         parameters: {
             query?: never;
             header?: never;
@@ -740,7 +740,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RegisterDto"];
+                "application/json": components["schemas"]["SignUpDto"];
             };
         };
         responses: {
@@ -753,7 +753,7 @@ export interface operations {
             };
         };
     };
-    AuthController_login: {
+    AuthController_signIn: {
         parameters: {
             query?: never;
             header?: never;
@@ -762,7 +762,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LoginDto"];
+                "application/json": components["schemas"]["SignInDto"];
             };
         };
         responses: {
@@ -775,7 +775,7 @@ export interface operations {
             };
         };
     };
-    AuthController_logout: {
+    AuthController_signOut: {
         parameters: {
             query?: never;
             header?: never;
@@ -793,7 +793,7 @@ export interface operations {
             };
         };
     };
-    QqAuthController_login: {
+    QqAuthController_signIn: {
         parameters: {
             query?: never;
             header?: never;

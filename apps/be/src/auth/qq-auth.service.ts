@@ -20,7 +20,7 @@ export class QqAuthService {
   ) {}
 
   /** 使用 QQ 身份查找已绑定账号并返回本站 JWT */
-  async login(accessToken: string): Promise<string> {
+  async signIn(accessToken: string): Promise<string> {
     const unionid = await this.getUnionid(accessToken);
     const auth = await this.prisma.auth.findUnique({
       where: { unionidQq: unionid },

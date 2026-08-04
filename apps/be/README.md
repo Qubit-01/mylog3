@@ -85,15 +85,15 @@ pm2 reload ecosystem.config.cjs   # 首次用 start，之后一律 reload 做零
 
 ### `auth` — 登录态管理
 
-- `POST /auth/register`
-  - body: `RegisterDto { name, pswd, captchaId, captcha }`
+- `POST /auth/sign-up`
+  - body: `SignUpDto { name, pswd, captchaId, captcha }`
   - resp: `204`
   - 校验验证码 → 事务创建 `Auth + User` → Set-Cookie(`token`)
-- `POST /auth/login`
-  - body: `LoginDto { name, pswd }`
+- `POST /auth/sign-in`
+  - body: `SignInDto { name, pswd }`
   - resp: `204`
   - bcrypt 比对 → Set-Cookie(`token`)
-- `POST /auth/logout`
+- `POST /auth/sign-out`
   - resp: `204`
   - 幂等清 cookie，未登录调用也不报错
 
@@ -115,8 +115,8 @@ Cookie 配置：`httpOnly + sameSite=lax + path=/`，生产带 `secure`，`maxAg
 ### 通用 DTO
 
 - `PublicUserDto` — `{ id: number, name: string, avatar: string | null }`
-- `RegisterDto` — `{ name (2-20), pswd (>=8), captchaId, captcha }`
-- `LoginDto` — `{ name, pswd }`，只 `@IsString()`，错误统一"账号或密码错误"
+- `SignUpDto` — `{ name (2-20), pswd (>=8), captchaId, captcha }`
+- `SignInDto` — `{ name, pswd }`，只 `@IsString()`，错误统一"账号或密码错误"
 - `CaptchaCreateDto` — `{ id: string, svg: string }`
 
 ### 健康检查（`AppController`，非模块）

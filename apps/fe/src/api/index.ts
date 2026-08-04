@@ -57,19 +57,19 @@ const unwrap = async <T>(
 /* ─── auth ─────────────────────────────────────────── */
 
 /** 注册账号，注册即登录（token 已写入 httpOnly cookie） */
-export const register = (payload: Body<'/auth/register'>) =>
-  unwrap(api.POST('/auth/register', { body: payload }))
+export const signUp = (payload: Body<'/auth/sign-up'>) =>
+  unwrap(api.POST('/auth/sign-up', { body: payload }))
 
 /** 登录，token 写入 httpOnly cookie */
-export const login = (payload: Body<'/auth/login'>) =>
-  unwrap(api.POST('/auth/login', { body: payload }))
+export const signIn = (payload: Body<'/auth/sign-in'>) =>
+  unwrap(api.POST('/auth/sign-in', { body: payload }))
 
 /** 使用 QQ Access Token 登录，token 写入 httpOnly cookie */
-export const loginQq = (payload: Body<'/auth/qq/login'>) =>
-  unwrap(api.POST('/auth/qq/login', { body: payload }))
+export const signInQq = (payload: Body<'/auth/qq/sign-in'>) =>
+  unwrap(api.POST('/auth/qq/sign-in', { body: payload }))
 
 /** 登出，清除认证 cookie */
-export const logout = () => unwrap(api.POST('/auth/logout', {}))
+export const signOut = () => unwrap(api.POST('/auth/sign-out', {}))
 
 /* ─── user ─────────────────────────────────────────── */
 

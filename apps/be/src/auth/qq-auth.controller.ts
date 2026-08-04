@@ -19,17 +19,17 @@ export class QqAuthController {
   constructor(private readonly qqAuthService: QqAuthService) {}
 
   /** 验证前端 QQ SDK 登录态；已绑定则登录，未绑定则返回 404 */
-  @Post('login')
+  @Post('sign-in')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBody({ type: QqAccessTokenDto })
   @ApiNoContentResponse({ description: 'QQ 已绑定，本站登录成功' })
-  async login(
+  async signIn(
     @Body() dto: QqAccessTokenDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
     res.cookie(
       'token',
-      await this.qqAuthService.login(dto.accessToken),
+      await this.qqAuthService.signIn(dto.accessToken),
       AUTH_COOKIE_OPTIONS,
     );
   }
