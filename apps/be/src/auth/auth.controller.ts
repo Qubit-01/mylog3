@@ -7,19 +7,11 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiBody, ApiNoContentResponse, ApiTags } from '@nestjs/swagger';
-import type { CookieOptions, Response } from 'express';
+import type { Response } from 'express';
+import { AUTH_COOKIE_OPTIONS } from './auth.constants';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-
-/** 认证 cookie 通用配置：httpOnly + sameSite lax + 60 天，生产走 secure */
-const COOKIE_OPTIONS: CookieOptions = {
-  httpOnly: true,
-  sameSite: 'lax',
-  path: '/',
-  secure: process.env.NODE_ENV === 'production',
-  maxAge: 60 * 24 * 60 * 60 * 1000, // 60 天
-};
 
 @ApiTags('auth')
 @Controller('auth')
@@ -37,7 +29,11 @@ export class AuthController {
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    res.cookie('token', await this.authService.register(dto), COOKIE_OPTIONS);
+    res.cookie(
+      'token',
+      await this.authService.register(dto),
+      AUTH_COOKIE_OPTIONS,
+    );
   }
 
   /** 登录：Set-Cookie(token) + 204 */
@@ -51,7 +47,7 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    res.cookie('token', await this.authService.login(dto), COOKIE_OPTIONS);
+    res.cookie('token', await this.authService.login(dto), AUTH_COOKIE_OPTIONS);
   }
 
   /** 登出：幂等清 cookie，即使未登录调用也无副作用 */
