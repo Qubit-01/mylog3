@@ -10,7 +10,7 @@ import { PrismaClient as RawPrismaClient } from '../../generated/prisma/client.j
 /** Auth 行类型 */
 export interface AuthRow {
   id: number;
-  pswd: string;
+  pswd: string | null;
   email: string | null;
   phone: string | null;
   unionidQq: string | null;

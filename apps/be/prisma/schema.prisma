@@ -13,8 +13,8 @@ datasource db {
 model Auth {
   /// 主键
   id            Int      @id @default(autoincrement()) @db.UnsignedInt
-  /// 密码 hash（bcrypt）
-  pswd          String   @db.VarChar(255)
+  /// 密码 hash（bcrypt）；第三方平台注册的账号可为空
+  pswd          String?  @db.VarChar(255)
   /// 邮箱，登录 / 找回密码用
   email         String?  @unique @db.VarChar(100)
   /// 手机号，登录 / 找回密码用

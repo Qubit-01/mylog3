@@ -59,7 +59,7 @@ export class AuthService {
     const auth = await this.prisma.auth.findUnique({
       where: { id: user.authId },
     });
-    if (!auth || !(await bcrypt.compare(dto.pswd, auth.pswd))) {
+    if (!auth?.pswd || !(await bcrypt.compare(dto.pswd, auth.pswd))) {
       throw new UnauthorizedException('账号或密码错误');
     }
     return this.jwt.signAsync({ sub: user.id });
