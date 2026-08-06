@@ -18,6 +18,7 @@
     "browser-image-compression": "catalog:",
     "dayjs": "catalog:",
     "element-plus": "catalog:",
+    "github-markdown-css": "^5.9.0",
     "lodash-unified": "catalog:",
     "markdown-it": "catalog:",
     "pinia": "catalog:",

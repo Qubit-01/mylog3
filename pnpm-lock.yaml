@@ -351,6 +351,9 @@ importers:
       element-plus:
         specifier: 'catalog:'
         version: 2.14.3(vue@3.5.40(typescript@6.0.3))
+      github-markdown-css:
+        specifier: ^5.9.0
+        version: 5.9.0
       lodash-unified:
         specifier: 'catalog:'
         version: 1.0.3(@types/lodash-es@4.17.12)(lodash-es@4.18.1)(lodash@4.18.1)
@@ -2918,6 +2921,10 @@ packages:
   giget@3.3.1:
     resolution: {integrity: sha512-r+mvuDjrjMpsdw46Kmeydb8bdHm7wOKw8wNBtTndkjbPjgAp5oUJUxRE76wZFknxIPokfWvep2qSXK37aXE6zg==}
     hasBin: true
+
+  github-markdown-css@5.9.0:
+    resolution: {integrity: sha512-tmT5sY+zvg2302XLYEfH2mtkViIM1SWf2nvYoF5N1ZsO0V6B2qZTiw3GOzw4vpjLygK/KG35qRlPFweHqfzz5w==}
+    engines: {node: '>=10'}
 
   glob-parent@6.0.2:
     resolution: {integrity: sha512-XxwI8EOhVQgWp6iDL+3b0r86f4d6AX6zSU55HfB4ydCEuXLXc5FcYeOu+nnGftS4TEju/11rt4KJPTMgbfmv4A==}
@@ -7295,6 +7302,8 @@ snapshots:
       assert-plus: 1.0.0
 
   giget@3.3.1: {}
+
+  github-markdown-css@5.9.0: {}
 
   glob-parent@6.0.2:
     dependencies:

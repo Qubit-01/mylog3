@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus'
 
 import { markdownIt, copyRichText4Markdown } from './utils'
 
-import 'github-markdown-css/github-markdown-light.css' // Markdown 渲染样式
+import 'github-markdown-css/github-markdown.css' // Markdown 渲染样式（auto 版，随系统 prefers-color-scheme 自动明暗）
 
 type Mode = 'HTML' | 'RAW'
 
