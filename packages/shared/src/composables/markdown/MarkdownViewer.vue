@@ -4,7 +4,13 @@ import { ElMessage } from 'element-plus'
 
 import { markdownIt, copyRichText4Markdown } from './utils'
 
-import 'github-markdown-css/github-markdown.css' // Markdown 渲染样式（auto 版，随系统 prefers-color-scheme 自动明暗）
+// 取 light / dark 两套独立主题的 CSS 文本，跟随 useColorMode 切换注入。
+// 不用 auto 版：它的暗色只认 @media(prefers-color-scheme)，跟应用在 <html> 切 class 的主题不通。
+import lightCss from 'github-markdown-css/github-markdown-light.css?inline'
+import darkCss from 'github-markdown-css/github-markdown-dark.css?inline'
+
+const theme = useColorMode()
+useStyleTag(computed(() => (theme.value === 'dark' ? darkCss : lightCss)))
 
 type Mode = 'HTML' | 'RAW'
 
