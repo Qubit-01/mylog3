@@ -1,20 +1,20 @@
 <!--
 AuthSignInUp：
-- 提供账号登录与注册表单，负责验证码和表单校验。
-- 通过 v-model 与异步提交回调将流程控制留给宿主。
+- 提供账号登录与可选的注册表单，负责验证码和表单校验。
+- 通过可选 v-model 与异步提交回调将流程控制留给宿主。
 -->
 <script lang="ts" setup>
 import { createCaptcha } from '../api'
 import type { signIn, signUp } from '../api'
 
-/** 当前登录或注册标签，由宿主控制 */
-const activeTab = defineModel<'signIn' | 'signUp'>({ required: true })
+/** 当前登录或注册标签；宿主未控制时默认显示登录 */
+const activeTab = defineModel<'signIn' | 'signUp'>({ default: 'signIn' })
 
 const { submitSignIn, submitSignUp } = defineProps<{
   /** 执行宿主提供的登录流程；失败时应 reject */
   submitSignIn: (payload: Parameters<typeof signIn>[0]) => Promise<void>
   /** 执行宿主提供的注册流程；失败时应 reject */
-  submitSignUp: (payload: Parameters<typeof signUp>[0]) => Promise<void>
+  submitSignUp?: (payload: Parameters<typeof signUp>[0]) => Promise<void>
 }>()
 
 /** 登录表单；与注册表单隔离，避免切换标签时复用密码 */
@@ -51,6 +51,7 @@ const onSignIn = async () => {
 
 /** 校验并提交注册表单；失败后刷新一次性验证码 */
 const onSignUp = async () => {
+  if (!submitSignUp) return
   if (signUpForm.pswd !== pswdConfirm.value)
     return ElMessage.error('两次密码不一致')
   if (!captcha.value) return ElMessage.warning('验证码加载中，请稍后')
@@ -84,7 +85,7 @@ const onSignUp = async () => {
         </form>
       </ElTabPane>
 
-      <ElTabPane label="注册" name="signUp">
+      <ElTabPane v-if="submitSignUp" label="注册" name="signUp">
         <form class="form" @submit.prevent="onSignUp">
           <ElInput
             v-model="signUpForm.name"

@@ -92,6 +92,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/sign-in-qq': RouteRecordInfo<
+      '/sign-in-qq',
+      '/sign-in-qq',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/test': RouteRecordInfo<
       '/test',
       '/test',
@@ -177,6 +184,14 @@ declare module 'vue-router/auto-routes' {
     'src/pages/sign-in.vue': {
       routes:
         | '/sign-in'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/sign-in-qq.vue': {
+      routes:
+        | '/sign-in-qq'
       views:
         | never
       pathParamNames:

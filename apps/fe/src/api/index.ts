@@ -64,9 +64,24 @@ export const signUp = (payload: Body<'/auth/sign-up'>) =>
 export const signIn = (payload: Body<'/auth/sign-in'>) =>
   unwrap(api.POST('/auth/sign-in', { body: payload }))
 
-/** 使用 QQ Access Token 登录，token 写入 httpOnly cookie */
-export const signInQq = (payload: Body<'/auth/qq/sign-in'>) =>
-  unwrap(api.POST('/auth/qq/sign-in', { body: payload }))
+/** 创建 QQ OAuth 授权请求，返回服务端生成的授权地址 */
+export const startQq = (payload: Body<'/auth/qq/start'>) =>
+  unwrap(api.POST('/auth/qq/start', { body: payload }))
+
+/** 校验 QQ OAuth 回调；未绑定时返回用于选择后续操作的 QQ 资料 */
+export const callbackQq = (payload: Body<'/auth/qq/callback'>) =>
+  unwrap(
+    api.POST('/auth/qq/callback', {
+      body: payload,
+      headers: { 'X-Silent': '1' },
+    }),
+  )
+
+/** 用当前 QQ 的昵称和头像注册本站账号，token 写入 httpOnly cookie */
+export const signUpQq = () => unwrap(api.POST('/auth/qq/sign-up', {}))
+
+/** 将当前 QQ 绑定到已登录的本站账号 */
+export const bindQq = () => unwrap(api.POST('/auth/qq/bind', {}))
 
 /** 登出，清除认证 cookie */
 export const signOut = () => unwrap(api.POST('/auth/sign-out', {}))

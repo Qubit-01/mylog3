@@ -3,7 +3,7 @@ sign-in：
 - 未登录时用标签切换登录与注册；已登录时展示用户信息与操作。
 -->
 <script lang="ts" setup>
-import { signIn, signOut, signUp } from '../api'
+import { signIn, signOut, signUp, startQq } from '../api'
 import { useUserStore } from '../stores/user'
 
 definePage({ meta: { title: '登录' } })
@@ -47,6 +47,14 @@ const onSignOut = async () => {
   await signOut()
   location.reload()
 }
+
+/** 发起 QQ 登录，并保留当前页面指定的回跳地址 */
+const onSignInQq = async () => {
+  const { url } = await startQq({
+    redirect: (route.query.redirect as string) || '/',
+  })
+  location.href = url
+}
 </script>
 
 <template>
@@ -60,12 +68,14 @@ const onSignOut = async () => {
     </div>
 
     <!-- 未登录：登录/注册标签与独立表单 -->
-    <AuthSignInUp
-      v-else
-      v-model="activeTab"
-      :submit-sign-in="onSignIn"
-      :submit-sign-up="onSignUp"
-    />
+    <div v-else class="auth">
+      <AuthSignInUp
+        v-model="activeTab"
+        :submit-sign-in="onSignIn"
+        :submit-sign-up="onSignUp"
+      />
+      <ElButton plain @click="onSignInQq">QQ 登录</ElButton>
+    </div>
   </div>
 </template>
 
@@ -76,6 +86,13 @@ const onSignOut = async () => {
   justify-content: center;
   min-height: 100vh;
   padding: 16px;
+
+  > .auth {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: min(360px, 100%);
+  }
 
   > .account {
     display: flex;

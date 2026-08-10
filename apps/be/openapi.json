@@ -110,23 +110,75 @@
         ]
       }
     },
-    "/auth/qq/sign-in": {
+    "/auth/qq/start": {
       "post": {
-        "operationId": "QqAuthController_signIn",
+        "operationId": "QqAuthController_start",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/QqAccessTokenDto"
+                "$ref": "#/components/schemas/QqStartDto"
               }
             }
           }
         },
         "responses": {
+          "200": {
+            "description": "QQ 授权地址",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QqStartResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/qq/callback": {
+      "post": {
+        "operationId": "QqAuthController_callback",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QqCallbackDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QqCallbackResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/qq/sign-up": {
+      "post": {
+        "operationId": "QqAuthController_signUp",
+        "parameters": [],
+        "responses": {
           "204": {
-            "description": "QQ 已绑定，本站登录成功"
+            "description": "QQ 注册并登录成功"
           }
         },
         "tags": [
@@ -138,16 +190,6 @@
       "post": {
         "operationId": "QqAuthController_bind",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/QqAccessTokenDto"
-              }
-            }
-          }
-        },
         "responses": {
           "204": {
             "description": "QQ 已绑定到当前账号"
@@ -550,16 +592,79 @@
           "pswd"
         ]
       },
-      "QqAccessTokenDto": {
+      "QqStartDto": {
         "type": "object",
         "properties": {
-          "accessToken": {
+          "redirect": {
             "type": "string",
-            "description": "QQ JS SDK 返回的 Access Token"
+            "description": "登录成功后的站内回跳地址"
+          }
+        }
+      },
+      "QqStartResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "QQ OAuth 授权地址"
           }
         },
         "required": [
-          "accessToken"
+          "url"
+        ]
+      },
+      "QqCallbackDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "QQ 返回的一次性授权码"
+          },
+          "state": {
+            "type": "string",
+            "description": "QQ 原样返回的 CSRF 状态"
+          }
+        }
+      },
+      "QqProfileDto": {
+        "type": "object",
+        "properties": {
+          "nickname": {
+            "type": "string",
+            "description": "QQ 昵称"
+          },
+          "avatar": {
+            "type": "string",
+            "nullable": true,
+            "description": "QQ 头像地址"
+          }
+        },
+        "required": [
+          "nickname",
+          "avatar"
+        ]
+      },
+      "QqCallbackResponseDto": {
+        "type": "object",
+        "properties": {
+          "redirect": {
+            "type": "string",
+            "description": "本站登录完成后的回跳地址"
+          },
+          "profile": {
+            "nullable": true,
+            "description": "未绑定时的 QQ 资料；已登录时为 null",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/QqProfileDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "redirect",
+          "profile"
         ]
       },
       "PublicUserDto": {

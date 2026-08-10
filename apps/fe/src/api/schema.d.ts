@@ -84,7 +84,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/qq/sign-in": {
+    "/auth/qq/start": {
         parameters: {
             query?: never;
             header?: never;
@@ -93,7 +93,39 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["QqAuthController_signIn"];
+        post: operations["QqAuthController_start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/qq/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["QqAuthController_callback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/qq/sign-up": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["QqAuthController_signUp"];
         delete?: never;
         options?: never;
         head?: never;
@@ -327,9 +359,31 @@ export interface components {
             /** @description 登录密码，明文传入 */
             pswd: string;
         };
-        QqAccessTokenDto: {
-            /** @description QQ JS SDK 返回的 Access Token */
-            accessToken: string;
+        QqStartDto: {
+            /** @description 登录成功后的站内回跳地址 */
+            redirect?: string;
+        };
+        QqStartResponseDto: {
+            /** @description QQ OAuth 授权地址 */
+            url: string;
+        };
+        QqCallbackDto: {
+            /** @description QQ 返回的一次性授权码 */
+            code?: string;
+            /** @description QQ 原样返回的 CSRF 状态 */
+            state?: string;
+        };
+        QqProfileDto: {
+            /** @description QQ 昵称 */
+            nickname: string;
+            /** @description QQ 头像地址 */
+            avatar: string | null;
+        };
+        QqCallbackResponseDto: {
+            /** @description 本站登录完成后的回跳地址 */
+            redirect: string;
+            /** @description 未绑定时的 QQ 资料；已登录时为 null */
+            profile: components["schemas"]["QqProfileDto"] | null;
         };
         PublicUserDto: {
             /**
@@ -793,7 +847,7 @@ export interface operations {
             };
         };
     };
-    QqAuthController_signIn: {
+    QqAuthController_start: {
         parameters: {
             query?: never;
             header?: never;
@@ -802,11 +856,54 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["QqAccessTokenDto"];
+                "application/json": components["schemas"]["QqStartDto"];
             };
         };
         responses: {
-            /** @description QQ 已绑定，本站登录成功 */
+            /** @description QQ 授权地址 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QqStartResponseDto"];
+                };
+            };
+        };
+    };
+    QqAuthController_callback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QqCallbackDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QqCallbackResponseDto"];
+                };
+            };
+        };
+    };
+    QqAuthController_signUp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description QQ 注册并登录成功 */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -822,11 +919,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["QqAccessTokenDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description QQ 已绑定到当前账号 */
             204: {
