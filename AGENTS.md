@@ -83,7 +83,7 @@
 
 ## 工程
 
-- pnpm monorepo + catalog 管理依赖版本：版本只写在 `pnpm-workspace.yaml` 的 `catalog`，子包用 `"xxx": "catalog:"` 引用。
+- pnpm monorepo + catalog 管理依赖：只有至少两个子包共用的依赖才放进 `pnpm-workspace.yaml` 的 `catalog`；单包依赖直接在子包 `package.json` 写版本号。
 - 跨包复用：放 `packages/shared/src/composables/<Name>/`，每个文件夹一个 `index.ts` 入口。文件夹按"主产物"命名 —— 组件大驼峰（`LiquidGlass/`），逻辑短横线（`use-xxx/`、`markdown/`）。禁建 `components/` 等平行目录。
 - 跨包共享组件用显式 `import`，不挂 `unplugin-vue-components` resolver。
 
