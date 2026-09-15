@@ -102,7 +102,7 @@ mylog3/
 
 ### 环境要求
 
-- Node.js 22 或更高版本
+- Node.js 24
 - pnpm 10 或更高版本
 - MySQL 或 MariaDB
 

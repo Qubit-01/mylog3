@@ -1,10 +1,10 @@
 # be
 
-mylog3 后端：NestJS 11 + Prisma 7（MySQL/MariaDB）。默认端口 **20914**。
+mylog3 后端：NestJS 12 + Prisma 7（MySQL/MariaDB）。默认端口 **20914**。
 
 ## 启动
 
-前置：Node ≥ 22、pnpm ≥ 10、一个可连的 MySQL/MariaDB。
+前置：Node ≥ 24，pnpm ≥ 10
 
 ```bash
 cd apps/be
