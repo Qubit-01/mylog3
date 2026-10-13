@@ -7,7 +7,7 @@ catalog:
   '@types/node': ^26.6.5
   '@vitejs/plugin-vue': ^6.0.10
   '@vue/tsconfig': ^0.9.1
-  '@vueuse/core': ^14.4.0
+  '@vueuse/core': ^15.0.0
   dayjs: ^1.11.23
   element-plus: ^2.14.7
   lodash-unified: ^1.0.3
