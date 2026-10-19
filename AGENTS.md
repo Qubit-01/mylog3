@@ -64,7 +64,7 @@
 - 接口路径全部小写 + `kebab-case`（如 `/log/list-public`），禁止 camelCase / snake_case，避免代理归一化陷阱
 - 数据库表名与列名保持和 Prisma schema 一致（PascalCase model → PascalCase 表；camelCase field → camelCase 列），不用 `@@map` / `@map`
 - JSON 列不加 `@default(dbgenerated(...))`（MySQL 上 Prisma 不生成 SQL 默认值），业务层 `create` 时显式传 `{}`
-- `Auth.unionQq` / `Auth.unionWeixin` 的 JSON 路径唯一索引和必填检查已在数据库中建立，Prisma schema 无法表达；变更这些字段时保留现有约束，解绑写 SQL NULL（`Prisma.DbNull`），不能写 `{}` 或 JSON null。
+- `Auth.unionQq` / `Auth.unionWeixin` 的 JSON 路径唯一索引已在数据库中建立，Prisma schema 无法表达；按用户要求不设 JSON 内容 CHECK，避免 `prisma db pull` 警告。变更这些字段时保留唯一索引，解绑写 SQL NULL（`Prisma.DbNull`），不能写 `{}` 或 JSON null。
 - 第三方平台的绑定授权必须关联发起用户，回调不能切换本站账号；解绑前须保留已实现的其他登录方式（目前只有密码）。
 
 ### 日志与异常

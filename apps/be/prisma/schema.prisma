@@ -18,11 +18,9 @@ model Auth {
   email       String?  @unique @db.VarChar(100)
   /// 手机号，登录 / 找回密码用
   phone       String?  @unique @db.VarChar(20)
-  /// QQ 绑定资料：仅 unionid 必填，其余为 QQ 用户资料接口的可选原始字段；null 表示未绑定
-  /// 数据库另有 unionid 唯一索引与非空字符串检查，Prisma 无法声明 JSON 路径约束
+  /// QQ 绑定资料；仅 unionid 必填且唯一，null 表示未绑定
   unionQq     Json?
-  /// 微信绑定资料：仅 unionid 必填，其余为微信接口的可选原始字段；null 表示未绑定
-  /// 数据库另有 unionid 唯一索引与非空字符串检查，Prisma 无法声明 JSON 路径约束
+  /// 微信绑定资料；仅 unionid 必填且唯一，null 表示未绑定
   unionWeixin Json?
   /// 更新时间
   updatedAt   DateTime @updatedAt
