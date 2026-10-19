@@ -1,6 +1,10 @@
+<!--
+profile：
+- 个人页：集中展示当前用户身份信息与账户操作。
+- 第三方平台默认展开，目前展示 QQ 绑定状态及有数据的昵称、头像，支持绑定与解绑。
+-->
 <script lang="ts" setup>
-/** 个人页：集中展示当前用户身份信息与账户操作 */
-import { signOut } from '@/api'
+import { getMe, signOut, startBindQq, unbindQq } from '@/api'
 import { getCosUsage } from '@/composables/cos'
 import { useUserStore } from '@/stores/user'
 
@@ -13,8 +17,10 @@ const user = computed(() => userStore.user!)
 const { store } = useColorMode()
 /** 退出请求是否正在进行，用于防止重复提交 */
 const pending = ref(false)
-/** 当前展开的资料区，默认展示账户信息与外观设置 */
-const active = ref(['account', 'appearance'])
+/** QQ 绑定或解绑请求是否正在进行，防止重复操作 */
+const qqPending = ref(false)
+/** 当前展开的资料区，默认展示账户信息、第三方平台与外观设置 */
+const active = ref(['account', 'third-party', 'appearance'])
 /** 按需查询的存储信息及请求状态，成功结果在本次页面生命周期内复用 */
 const {
   state: usage,
@@ -51,6 +57,30 @@ const onSignOut = async () => {
     pending.value = false
   }
 }
+
+/** 从个人页发起 QQ 授权，授权完成后绑定当前账号并回到个人页 */
+const onQqBind = async () => {
+  if (qqPending.value) return
+  qqPending.value = true
+  try {
+    const { url } = await startBindQq({ redirect: '/profile' })
+    location.href = url
+  } finally {
+    qqPending.value = false
+  }
+}
+
+/** 解绑 QQ 后重新获取当前用户，立即刷新绑定状态及关联的 QQ 资料 */
+const onQqUnbind = async () => {
+  if (qqPending.value) return
+  qqPending.value = true
+  try {
+    await unbindQq()
+    userStore.user = await getMe()
+  } finally {
+    qqPending.value = false
+  }
+}
 </script>
 
 <template>
@@ -81,6 +111,48 @@ const onSignOut = async () => {
             <time :datetime="String(user.createdAt)">
               {{ dayjs(user.createdAt).format('YYYY 年 M 月') }}
             </time>
+          </div>
+        </div>
+      </ElCollapseItem>
+      <ElCollapseItem title="第三方平台" name="third-party">
+        <div class="details">
+          <div class="item">
+            <span class="label">QQ</span>
+            <div class="binding">
+              <ElAvatar
+                v-if="user.qqAvatar"
+                class="avatar"
+                :src="user.qqAvatar"
+                :size="28"
+              />
+              <span v-if="user.qqNickname" class="name">
+                {{ user.qqNickname }}
+              </span>
+              <ElPopconfirm
+                v-if="user.qqBound"
+                title="确定解绑 QQ 吗？"
+                :width="160"
+                confirm-button-text="解绑"
+                cancel-button-text="取消"
+                confirm-button-type="danger"
+                @confirm="onQqUnbind"
+              >
+                <template #reference>
+                  <ElButton link type="danger" :loading="qqPending">
+                    解绑
+                  </ElButton>
+                </template>
+              </ElPopconfirm>
+              <ElButton
+                v-else
+                link
+                type="primary"
+                :loading="qqPending"
+                @click="onQqBind"
+              >
+                绑定
+              </ElButton>
+            </div>
           </div>
         </div>
       </ElCollapseItem>
@@ -223,6 +295,23 @@ const onSignOut = async () => {
 
         > .label {
           color: var(--el-text-color-secondary);
+        }
+
+        > .binding {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+
+          > .avatar {
+            flex: 0 0 auto;
+          }
+
+          > .name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
         }
       }
     }

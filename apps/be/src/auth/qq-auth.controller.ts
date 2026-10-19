@@ -49,12 +49,32 @@ export class QqAuthController {
     return { url };
   }
 
+  /** 从个人页发起 QQ 授权，可信状态关联当前用户以防回调切换账号 */
+  @Post('start-bind')
+  @Auth()
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: QqStartDto })
+  @ApiOkResponse({ type: QqStartResponseDto, description: 'QQ 绑定授权地址' })
+  async startBind(
+    @UserId() userId: number,
+    @Body() dto: QqStartDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<QqStartResponseDto> {
+    const { url, stateToken } = await this.qqAuthService.start(
+      dto.redirect ?? '/profile',
+      userId,
+    );
+    res.cookie(QQ_OAUTH_COOKIE, stateToken, OAUTH_COOKIE_OPTIONS);
+    return { url };
+  }
+
   /** 校验 QQ 回调；已绑定时登录，未绑定时返回资料并保存短期身份 */
   @Post('callback')
   @HttpCode(HttpStatus.OK)
   @ApiBody({ type: QqCallbackDto })
   @ApiOkResponse({ type: QqCallbackResponseDto })
   async callback(
+    @UserId() userId: number | undefined,
     @Body() dto: QqCallbackDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
@@ -63,6 +83,7 @@ export class QqAuthController {
       dto.code,
       dto.state,
       req.cookies?.[QQ_OAUTH_COOKIE] as string | undefined,
+      userId,
     );
     if (result.token) {
       res.cookie('token', result.token, AUTH_COOKIE_OPTIONS);
@@ -70,7 +91,11 @@ export class QqAuthController {
     } else if (result.pendingToken) {
       res.cookie(QQ_OAUTH_COOKIE, result.pendingToken, OAUTH_COOKIE_OPTIONS);
     }
-    return { redirect: result.redirect, profile: result.profile };
+    return {
+      redirect: result.redirect,
+      profile: result.profile,
+      binding: result.binding ?? false,
+    };
   }
 
   /** 使用 QQ 昵称和头像注册本站账号并登录 */
@@ -105,6 +130,19 @@ export class QqAuthController {
       userId,
       req.cookies?.[QQ_OAUTH_COOKIE] as string | undefined,
     );
+    res.clearCookie(QQ_OAUTH_COOKIE, COOKIE_OPTIONS);
+  }
+
+  /** 解绑当前账号的 QQ，并清理尚未完成的 QQ 授权流程 */
+  @Post('unbind')
+  @Auth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiNoContentResponse({ description: 'QQ 已解绑' })
+  async unbind(
+    @UserId() userId: number,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
+    await this.qqAuthService.unbind(userId);
     res.clearCookie(QQ_OAUTH_COOKIE, COOKIE_OPTIONS);
   }
 }

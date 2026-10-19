@@ -48,6 +48,12 @@ export class QqCallbackResponseDto {
   redirect!: string;
 
   @ApiProperty({
+    type: Boolean,
+    description: '是否为个人页发起的 QQ 绑定流程；为 true 时继续绑定当前账号',
+  })
+  binding!: boolean;
+
+  @ApiProperty({
     type: QqProfileDto,
     nullable: true,
     description: '未绑定时的 QQ 资料；已登录时为 null',

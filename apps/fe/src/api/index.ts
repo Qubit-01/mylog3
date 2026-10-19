@@ -68,6 +68,10 @@ export const signIn = (payload: Body<'/auth/sign-in'>) =>
 export const startQq = (payload: Body<'/auth/qq/start'>) =>
   unwrap(api.POST('/auth/qq/start', { body: payload }))
 
+/** 从个人页发起 QQ 绑定授权，保留当前本站账号 */
+export const startBindQq = (payload: Body<'/auth/qq/start-bind'>) =>
+  unwrap(api.POST('/auth/qq/start-bind', { body: payload }))
+
 /** 校验 QQ OAuth 回调；未绑定时返回用于选择后续操作的 QQ 资料 */
 export const callbackQq = (payload: Body<'/auth/qq/callback'>) =>
   unwrap(
@@ -82,6 +86,9 @@ export const signUpQq = () => unwrap(api.POST('/auth/qq/sign-up', {}))
 
 /** 将当前 QQ 绑定到已登录的本站账号 */
 export const bindQq = () => unwrap(api.POST('/auth/qq/bind', {}))
+
+/** 解绑当前账号的 QQ，保留本站用户资料和登录态 */
+export const unbindQq = () => unwrap(api.POST('/auth/qq/unbind', {}))
 
 /** 登出，清除认证 cookie */
 export const signOut = () => unwrap(api.POST('/auth/sign-out', {}))

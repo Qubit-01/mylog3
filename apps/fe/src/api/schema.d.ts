@@ -100,6 +100,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/qq/start-bind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["QqAuthController_startBind"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/qq/callback": {
         parameters: {
             query?: never;
@@ -142,6 +158,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["QqAuthController_bind"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/qq/unbind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["QqAuthController_unbind"];
         delete?: never;
         options?: never;
         head?: never;
@@ -382,6 +414,8 @@ export interface components {
         QqCallbackResponseDto: {
             /** @description 本站登录完成后的回跳地址 */
             redirect: string;
+            /** @description 是否为个人页发起的 QQ 绑定流程；为 true 时继续绑定当前账号 */
+            binding: boolean;
             /** @description 未绑定时的 QQ 资料；已登录时为 null */
             profile: components["schemas"]["QqProfileDto"] | null;
         };
@@ -406,6 +440,12 @@ export interface components {
              * @example https://cdn.example.com/a.png
              */
             avatar: string | null;
+            /** @description 所属认证账号是否已绑定 QQ */
+            qqBound: boolean;
+            /** @description QQ 昵称，有数据时返回 */
+            qqNickname?: string;
+            /** @description QQ 头像地址，有数据时返回 */
+            qqAvatar?: string;
             /**
              * @description 用户资料（性别、生日、地区、个签等），JSON 对象
              * @example {}
@@ -871,6 +911,30 @@ export interface operations {
             };
         };
     };
+    QqAuthController_startBind: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QqStartDto"];
+            };
+        };
+        responses: {
+            /** @description QQ 绑定授权地址 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QqStartResponseDto"];
+                };
+            };
+        };
+    };
     QqAuthController_callback: {
         parameters: {
             query?: never;
@@ -922,6 +986,24 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description QQ 已绑定到当前账号 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    QqAuthController_unbind: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description QQ 已解绑 */
             204: {
                 headers: {
                     [name: string]: unknown;

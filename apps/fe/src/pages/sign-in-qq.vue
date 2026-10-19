@@ -2,6 +2,7 @@
 sign-in-qq：
 - 验证 QQ OAuth 回调；未绑定时由用户选择登录绑定或一键注册。
 - 待处理的 QQ 身份保存在后端签发的 HttpOnly Cookie 中，刷新页面仍可恢复。
+- 个人页发起的绑定授权自动绑定原账号，完成后回到个人页。
 -->
 <script lang="ts" setup>
 import { bindQq, callbackQq, signIn, signUpQq } from '../api'
@@ -12,6 +13,8 @@ const route = useRoute()
 const error = ref('')
 const showSignIn = ref(false)
 const registering = ref(false)
+/** 个人页发起绑定时的回跳地址，绑定失败后用于返回原页面 */
+const bindingRedirect = ref('')
 const qq = shallowRef<{
   redirect: string
   nickname: string
@@ -41,7 +44,11 @@ onMounted(async () => {
       state:
         typeof route.query.state === 'string' ? route.query.state : undefined,
     })
-    if (!result.profile) {
+    if (result.binding) {
+      bindingRedirect.value = result.redirect
+      await bindQq()
+      completeQqSignIn(result.redirect)
+    } else if (!result.profile) {
       completeQqSignIn(result.redirect)
     } else {
       qq.value = { redirect: result.redirect, ...result.profile }
@@ -56,9 +63,9 @@ onBeforeRouteLeave(() => {
   shouldRedirect = false
 })
 
-/** 放弃当前 QQ 登录并返回本站登录页 */
+/** 放弃当前 QQ 登录并返回本站登录页；个人页发起的绑定返回原页面 */
 const redirectToSignIn = () => {
-  location.replace('/sign-in')
+  location.replace(bindingRedirect.value || '/sign-in')
 }
 
 /** 使用 QQ 昵称和头像创建本站账号并登录 */
@@ -87,7 +94,9 @@ const signInAndBind = async (payload: Parameters<typeof signIn>[0]) => {
     <div v-if="!qq && !error" class="state">正在通过 QQ 登录…</div>
     <div v-else-if="error" class="state">
       <p>{{ error }}</p>
-      <ElButton type="primary" @click="redirectToSignIn">返回登录</ElButton>
+      <ElButton type="primary" @click="redirectToSignIn">
+        {{ bindingRedirect ? '返回个人页' : '返回登录' }}
+      </ElButton>
     </div>
     <div v-else-if="qq" class="content">
       <div class="qq">

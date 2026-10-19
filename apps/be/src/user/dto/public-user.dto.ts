@@ -1,7 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 /**
- * 用户信息 DTO —— `/user/me` 返回，覆盖 User 表全字段
+ * 用户信息 DTO —— `/user/me` 返回，覆盖 User 表全字段及第三方平台绑定状态、展示资料
  * class 而非 interface：swagger 需要运行时反射生成 spec
  */
 export class PublicUserDto {
@@ -25,6 +25,18 @@ export class PublicUserDto {
     example: 'https://cdn.example.com/a.png',
   })
   avatar!: string | null;
+
+  @ApiProperty({ type: Boolean, description: '所属认证账号是否已绑定 QQ' })
+  qqBound!: boolean;
+
+  @ApiPropertyOptional({ type: String, description: 'QQ 昵称，有数据时返回' })
+  qqNickname?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: 'QQ 头像地址，有数据时返回',
+  })
+  qqAvatar?: string;
 
   @ApiProperty({
     type: Object,

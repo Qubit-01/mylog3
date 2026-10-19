@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import {
+  BadRequestException,
   BadGatewayException,
   ConflictException,
   Injectable,
@@ -20,6 +21,8 @@ interface QqState {
   type: 'qq-state';
   state: string;
   redirect: string;
+  /** 个人页绑定时的发起用户；缺省表示普通 QQ 登录 */
+  bindUserId?: number;
 }
 
 /** QQ Access Token 对应的可信身份 */
@@ -43,6 +46,8 @@ interface QqPending extends QqProfile {
   /** 可信 UnionID 与 QQ 返回的可选原始资料 */
   unionQq: QqUnion;
   redirect: string;
+  /** 个人页绑定只允许由发起请求的用户完成 */
+  bindUserId?: number;
 }
 
 /** QQ Code 换取 Access Token 的响应 */
@@ -58,6 +63,8 @@ interface QqCallbackResult {
   profile: QqProfile | null;
   token?: string;
   pendingToken?: string;
+  /** 为 true 时继续绑定当前账号，不切换本站登录身份 */
+  binding?: boolean;
 }
 
 @Injectable()
@@ -68,10 +75,18 @@ export class QqAuthService {
   ) {}
 
   /** 创建短期可信状态并返回 QQ Authorization Code 授权地址 */
-  async start(redirect = '/'): Promise<{ url: string; stateToken: string }> {
+  async start(
+    redirect = '/',
+    bindUserId?: number,
+  ): Promise<{ url: string; stateToken: string }> {
     const state = randomUUID();
     const stateToken = await this.jwt.signAsync<QqState>(
-      { type: 'qq-state', state, redirect: this.normalizeRedirect(redirect) },
+      {
+        type: 'qq-state',
+        state,
+        redirect: this.normalizeRedirect(redirect),
+        bindUserId,
+      },
       { expiresIn: '10m' },
     );
     const url = new URL('https://graph.qq.com/oauth2.0/authorize');
@@ -87,14 +102,21 @@ export class QqAuthService {
     code: string | undefined,
     state: string | undefined,
     oauthToken: string | undefined,
+    currentUserId?: number,
   ): Promise<QqCallbackResult> {
     const oauth = await this.verifyOAuth(oauthToken);
+
+    // 个人页绑定必须保持发起时的本站身份，不能把绑定请求变成其他账号的登录。
+    if (oauth.bindUserId !== undefined && oauth.bindUserId !== currentUserId) {
+      throw new UnauthorizedException('请使用发起 QQ 绑定的账号完成授权');
+    }
 
     // 1. Code 已消费后的刷新直接恢复待处理身份。
     if (oauth.type === 'qq-pending') {
       return {
         redirect: oauth.redirect,
         profile: { nickname: oauth.nickname, avatar: oauth.avatar },
+        binding: oauth.bindUserId !== undefined,
       };
     }
 
@@ -111,12 +133,19 @@ export class QqAuthService {
       openid,
       unionid,
     );
-    const userId = await this.findPrimaryUserId(unionid);
+    const userId =
+      oauth.bindUserId === undefined
+        ? await this.findPrimaryUserId(unionid)
+        : null;
     if (userId) {
       // 3.1 已绑定账号也读取最新 QQ 资料，补齐旧绑定并刷新昵称、头像等原始字段。
       // 只刷新 Auth.unionQq；本站昵称、头像和其他账号数据不随 QQ 登录覆盖。
+      // 同时约束原用户归属，防止授权期间解绑或改绑后继续登录原账号。
       const updated = await this.prisma.auth.updateMany({
-        where: { unionQq: { path: '$.unionid', equals: unionid } },
+        where: {
+          unionQq: { path: '$.unionid', equals: unionid },
+          users: { some: { id: userId } },
+        },
         data: { unionQq },
       });
       if (updated.count !== 1) {
@@ -132,11 +161,13 @@ export class QqAuthService {
     return {
       redirect: oauth.redirect,
       profile,
+      binding: oauth.bindUserId !== undefined,
       pendingToken: await this.jwt.signAsync<QqPending>(
         {
           type: 'qq-pending',
           unionQq,
           redirect: oauth.redirect,
+          bindUserId: oauth.bindUserId,
           ...profile,
         },
         { expiresIn: '10m' },
@@ -147,6 +178,9 @@ export class QqAuthService {
   /** 确认以当前 QQ 注册；并发下已完成注册时直接登录已有账号 */
   async signUp(pendingToken: string | undefined): Promise<string> {
     const pending = await this.verifyPending(pendingToken);
+    if (pending.bindUserId !== undefined) {
+      throw new BadRequestException('QQ 绑定流程不能用于注册账号');
+    }
     const userId = await this.findPrimaryUserId(pending.unionQq.unionid);
     if (userId) return this.jwt.signAsync({ sub: userId });
 
@@ -189,7 +223,10 @@ export class QqAuthService {
 
   /** 将待处理的 QQ 身份绑定到当前登录用户所属的 Auth */
   async bind(userId: number, pendingToken: string | undefined): Promise<void> {
-    const { unionQq } = await this.verifyPending(pendingToken);
+    const { unionQq, bindUserId } = await this.verifyPending(pendingToken);
+    if (bindUserId !== undefined && bindUserId !== userId) {
+      throw new UnauthorizedException('请使用发起 QQ 绑定的账号完成授权');
+    }
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('当前账号不存在');
 
@@ -216,6 +253,32 @@ export class QqAuthService {
     }
   }
 
+  /** 解绑当前认证账号的 QQ；必须保留可用的密码登录方式，避免账号失联 */
+  async unbind(userId: number): Promise<void> {
+    const auth = await this.prisma.auth.findFirst({
+      where: { users: { some: { id: userId } } },
+    });
+    if (!auth) throw new UnauthorizedException('当前账号不存在');
+    if (!auth.unionQq) return;
+    // 当前只实现了密码与 QQ 登录，邮箱、手机号或预留的微信资料不算可用登录方式。
+    if (!auth.pswd) {
+      throw new BadRequestException(
+        '当前账号尚未设置密码，暂不能解绑唯一的 QQ 登录方式',
+      );
+    }
+    const updated = await this.prisma.auth.updateMany({
+      where: {
+        id: auth.id,
+        pswd: auth.pswd,
+        unionQq: { path: '$.unionid', equals: auth.unionQq.unionid },
+      },
+      data: { unionQq: Prisma.DbNull },
+    });
+    if (updated.count !== 1) {
+      throw new ConflictException('账号绑定状态已变化，请刷新后重试');
+    }
+  }
+
   /** 校验 QQ OAuth 临时 Cookie，并读取当前流程阶段 */
   private async verifyOAuth(
     token: string | undefined,
@@ -225,6 +288,12 @@ export class QqAuthService {
     try {
       const oauth = await this.jwt.verifyAsync<QqState | QqPending>(token);
       if (typeof oauth.redirect !== 'string') throw new Error();
+      if (
+        oauth.bindUserId !== undefined &&
+        (!Number.isSafeInteger(oauth.bindUserId) || oauth.bindUserId <= 0)
+      ) {
+        throw new Error();
+      }
       if (oauth.type === 'qq-state' && typeof oauth.state === 'string') {
         return oauth;
       }
@@ -356,12 +425,10 @@ export class QqAuthService {
     const nickname =
       typeof profile.nickname === 'string' ? profile.nickname.trim() : '';
     const avatar =
-      (typeof profile.figureurl_qq_2 === 'string'
-        ? profile.figureurl_qq_2
-        : typeof profile.figureurl_qq_1 === 'string'
-          ? profile.figureurl_qq_1
-          : null
-      )?.replace(/^http:/, 'https:') ?? null;
+      [profile.figureurl_qq_2, profile.figureurl_qq_1]
+        .find((url) => typeof url === 'string' && url.trim())
+        ?.trim()
+        .replace(/^http:/, 'https:') ?? null;
     return {
       /** 展示和本站注册使用的昵称，原始昵称缺失时兜底 */
       nickname: nickname || 'QQ用户',

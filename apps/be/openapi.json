@@ -141,6 +141,37 @@
         ]
       }
     },
+    "/auth/qq/start-bind": {
+      "post": {
+        "operationId": "QqAuthController_startBind",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QqStartDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "QQ 绑定授权地址",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QqStartResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/auth/qq/callback": {
       "post": {
         "operationId": "QqAuthController_callback",
@@ -193,6 +224,20 @@
         "responses": {
           "204": {
             "description": "QQ 已绑定到当前账号"
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/qq/unbind": {
+      "post": {
+        "operationId": "QqAuthController_unbind",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "QQ 已解绑"
           }
         },
         "tags": [
@@ -651,6 +696,10 @@
             "type": "string",
             "description": "本站登录完成后的回跳地址"
           },
+          "binding": {
+            "type": "boolean",
+            "description": "是否为个人页发起的 QQ 绑定流程；为 true 时继续绑定当前账号"
+          },
           "profile": {
             "nullable": true,
             "description": "未绑定时的 QQ 资料；已登录时为 null",
@@ -664,6 +713,7 @@
         },
         "required": [
           "redirect",
+          "binding",
           "profile"
         ]
       },
@@ -691,6 +741,18 @@
             "description": "头像 URL，未设置为 null",
             "example": "https://cdn.example.com/a.png"
           },
+          "qqBound": {
+            "type": "boolean",
+            "description": "所属认证账号是否已绑定 QQ"
+          },
+          "qqNickname": {
+            "type": "string",
+            "description": "QQ 昵称，有数据时返回"
+          },
+          "qqAvatar": {
+            "type": "string",
+            "description": "QQ 头像地址，有数据时返回"
+          },
           "data": {
             "type": "object",
             "description": "用户资料（性别、生日、地区、个签等），JSON 对象",
@@ -717,6 +779,7 @@
           "authId",
           "name",
           "avatar",
+          "qqBound",
           "data",
           "settings",
           "updatedAt",
