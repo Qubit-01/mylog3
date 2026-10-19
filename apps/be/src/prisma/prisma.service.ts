@@ -1,11 +1,44 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
-import { PrismaClient as RawPrismaClient } from '../../generated/prisma/client.js';
+import {
+  PrismaClient as RawPrismaClient,
+  type Prisma,
+} from '../../generated/prisma/client.js';
 
 /**
  * 生成的 PrismaClient 因 @ts-nocheck 退化为 any，这里手动声明业务用到的最小门面
  * - 数据库模型扩展或新增 delegate 时，补到 PrismaFacade 上
  */
+
+/** QQ 绑定资料；只有 unionid 必填，其余字段保留 QQ 用户资料接口的原始值 */
+export interface QqUnion {
+  /** QQ 用户跨已打通应用的唯一标识 */
+  unionid: string;
+  /** 用户资料接口返回码，0 表示成功 */
+  ret?: number;
+  /** 用户资料接口返回信息 */
+  msg?: string;
+  /** QQ 空间昵称 */
+  nickname?: string;
+  /** 30 × 30 的 QQ 空间头像地址 */
+  figureurl?: string;
+  /** 50 × 50 的 QQ 空间头像地址 */
+  figureurl_1?: string;
+  /** 100 × 100 的 QQ 空间头像地址 */
+  figureurl_2?: string;
+  /** 40 × 40 的 QQ 头像地址 */
+  figureurl_qq_1?: string;
+  /** 100 × 100 的 QQ 头像地址 */
+  figureurl_qq_2?: string;
+  /** QQ 返回的性别 */
+  gender?: string;
+}
+
+/** 微信绑定资料；只有 unionid 必填，其余字段允许保存微信接口返回的原始 JSON 数据 */
+export interface WeixinUnion extends Prisma.JsonObject {
+  /** 微信用户在同一开放平台账号下的唯一标识 */
+  unionid: string;
+}
 
 /** Auth 行类型 */
 export interface AuthRow {
@@ -13,8 +46,10 @@ export interface AuthRow {
   pswd: string | null;
   email: string | null;
   phone: string | null;
-  unionidQq: string | null;
-  unionidWeixin: string | null;
+  /** QQ 绑定资料；null 表示未绑定 */
+  unionQq: QqUnion | null;
+  /** 微信绑定资料；null 表示未绑定 */
+  unionWeixin: WeixinUnion | null;
   updatedAt: Date;
   createdAt: Date;
 }

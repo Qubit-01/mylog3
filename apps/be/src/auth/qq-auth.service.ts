@@ -7,7 +7,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '../../generated/prisma/client';
+import { PrismaService, type QqUnion } from '../prisma/prisma.service';
 
 /** QQ 互联公开应用 ID */
 const QQ_CLIENT_ID = '102099147';
@@ -28,13 +29,7 @@ interface QqIdentity {
 }
 
 /** QQ 用户资料接口的原始响应字段 */
-interface QqProfileResponse {
-  ret?: number;
-  msg?: string;
-  nickname?: string;
-  figureurl_qq_1?: string;
-  figureurl_qq_2?: string;
-}
+type QqProfileResponse = Omit<QqUnion, 'unionid'>;
 
 /** 经 QQ 服务端验证后，可安全展示或用于创建账号的用户资料 */
 interface QqProfile {
@@ -45,7 +40,8 @@ interface QqProfile {
 /** QQ 授权完成后等待注册或绑定的可信身份 */
 interface QqPending extends QqProfile {
   type: 'qq-pending';
-  unionid: string;
+  /** 可信 UnionID 与 QQ 返回的可选原始资料 */
+  unionQq: QqUnion;
   redirect: string;
 }
 
@@ -110,8 +106,22 @@ export class QqAuthService {
     // 3. Access Token 仅在后端使用，前端资料不参与账号创建。
     const accessToken = await this.exchangeCode(code);
     const { openid, unionid } = await this.getIdentity(accessToken);
+    const { unionQq, ...profile } = await this.getProfile(
+      accessToken,
+      openid,
+      unionid,
+    );
     const userId = await this.findPrimaryUserId(unionid);
     if (userId) {
+      // 3.1 已绑定账号也读取最新 QQ 资料，补齐旧绑定并刷新昵称、头像等原始字段。
+      // 只刷新 Auth.unionQq；本站昵称、头像和其他账号数据不随 QQ 登录覆盖。
+      const updated = await this.prisma.auth.updateMany({
+        where: { unionQq: { path: '$.unionid', equals: unionid } },
+        data: { unionQq },
+      });
+      if (updated.count !== 1) {
+        throw new UnauthorizedException('QQ 绑定状态已变化，请重新登录');
+      }
       return {
         redirect: oauth.redirect,
         profile: null,
@@ -119,14 +129,13 @@ export class QqAuthService {
       };
     }
 
-    const profile = await this.getProfile(accessToken, openid);
     return {
       redirect: oauth.redirect,
       profile,
       pendingToken: await this.jwt.signAsync<QqPending>(
         {
           type: 'qq-pending',
-          unionid,
+          unionQq,
           redirect: oauth.redirect,
           ...profile,
         },
@@ -138,7 +147,7 @@ export class QqAuthService {
   /** 确认以当前 QQ 注册；并发下已完成注册时直接登录已有账号 */
   async signUp(pendingToken: string | undefined): Promise<string> {
     const pending = await this.verifyPending(pendingToken);
-    const userId = await this.findPrimaryUserId(pending.unionid);
+    const userId = await this.findPrimaryUserId(pending.unionQq.unionid);
     if (userId) return this.jwt.signAsync({ sub: userId });
 
     // 1. 用户明确选择注册后才创建账号；昵称冲突时第二次尝试自动添加短后缀。
@@ -149,8 +158,9 @@ export class QqAuthService {
           : `${pending.nickname}_${randomUUID().slice(0, 6)}`;
       try {
         const user = await this.prisma.$transaction(async (tx) => {
+          // 原始 QQ 资料与本站档案同事务落库，注册成功即完成 QQ 绑定。
           const createdAuth = await tx.auth.create({
-            data: { pswd: null, unionidQq: pending.unionid },
+            data: { pswd: null, unionQq: pending.unionQq },
           });
           return tx.user.create({
             data: {
@@ -167,7 +177,9 @@ export class QqAuthService {
         if ((e as { code?: string }).code !== 'P2002') throw e;
 
         // 1.1 同一 QQ 并发注册时，使用已经创建完成的账号登录。
-        const existingUserId = await this.findPrimaryUserId(pending.unionid);
+        const existingUserId = await this.findPrimaryUserId(
+          pending.unionQq.unionid,
+        );
         if (existingUserId) return this.jwt.signAsync({ sub: existingUserId });
       }
     }
@@ -177,7 +189,7 @@ export class QqAuthService {
 
   /** 将待处理的 QQ 身份绑定到当前登录用户所属的 Auth */
   async bind(userId: number, pendingToken: string | undefined): Promise<void> {
-    const { unionid } = await this.verifyPending(pendingToken);
+    const { unionQq } = await this.verifyPending(pendingToken);
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('当前账号不存在');
 
@@ -186,9 +198,12 @@ export class QqAuthService {
       const updated = await this.prisma.auth.updateMany({
         where: {
           id: user.authId,
-          OR: [{ unionidQq: null }, { unionidQq: unionid }],
+          OR: [
+            { unionQq: { equals: Prisma.DbNull } },
+            { unionQq: { path: '$.unionid', equals: unionQq.unionid } },
+          ],
         },
-        data: { unionidQq: unionid },
+        data: { unionQq },
       });
       if (updated.count !== 1) {
         throw new ConflictException('当前账号已绑定其他 QQ');
@@ -215,7 +230,8 @@ export class QqAuthService {
       }
       if (
         oauth.type === 'qq-pending' &&
-        typeof oauth.unionid === 'string' &&
+        typeof oauth.unionQq?.unionid === 'string' &&
+        oauth.unionQq.unionid.trim().length > 0 &&
         typeof oauth.nickname === 'string' &&
         (oauth.avatar === null || typeof oauth.avatar === 'string')
       ) {
@@ -273,8 +289,9 @@ export class QqAuthService {
 
   /** 查找 QQ 已绑定 Auth 下最早创建的用户档案 */
   private async findPrimaryUserId(unionid: string): Promise<number | null> {
-    const auth = await this.prisma.auth.findUnique({
-      where: { unionidQq: unionid },
+    // JSON 路径不能作为 Prisma findUnique 的条件，唯一性仍由数据库表达式索引兜底。
+    const auth = await this.prisma.auth.findFirst({
+      where: { unionQq: { path: '$.unionid', equals: unionid } },
     });
     if (!auth) return null;
 
@@ -309,7 +326,10 @@ export class QqAuthService {
     if (identity.client_id !== QQ_CLIENT_ID) {
       throw new UnauthorizedException('QQ 用户身份与本站应用不匹配');
     }
-    if (!identity.unionid) {
+    if (
+      typeof identity.unionid !== 'string' ||
+      identity.unionid.trim().length === 0
+    ) {
       throw new BadGatewayException(
         'QQ 未返回 UnionID，请先在 QQ 互联平台开通 UnionID',
       );
@@ -317,17 +337,18 @@ export class QqAuthService {
     return { openid: identity.openid, unionid: identity.unionid };
   }
 
-  /** 使用已验证的 QQ 身份读取用于展示或创建账号的昵称和头像 */
+  /** 使用已验证的 QQ 身份读取用于展示或创建账号的昵称和头像，同时保留原始绑定资料 */
   private async getProfile(
     accessToken: string,
     openid: string,
-  ): Promise<QqProfile> {
+    unionid: string,
+  ): Promise<QqProfile & { unionQq: QqUnion }> {
     const profileUrl = new URL('https://graph.qq.com/user/get_user_info');
     profileUrl.searchParams.set('access_token', accessToken);
     profileUrl.searchParams.set('oauth_consumer_key', QQ_CLIENT_ID);
     profileUrl.searchParams.set('openid', openid);
     const profile = await this.requestQq<QqProfileResponse>(profileUrl);
-    if (profile.ret !== 0) {
+    if (profile.ret !== undefined && profile.ret !== 0) {
       throw new BadGatewayException(
         profile.msg || 'QQ 用户信息获取失败，请重新登录',
       );
@@ -341,7 +362,14 @@ export class QqAuthService {
           ? profile.figureurl_qq_1
           : null
       )?.replace(/^http:/, 'https:') ?? null;
-    return { nickname: nickname || 'QQ用户', avatar };
+    return {
+      /** 展示和本站注册使用的昵称，原始昵称缺失时兜底 */
+      nickname: nickname || 'QQ用户',
+      /** 展示和本站注册使用的 HTTPS 头像，缺失时为 null */
+      avatar,
+      /** 原始资料不写入展示兜底值，UnionID 始终取自身份接口 */
+      unionQq: { ...profile, unionid },
+    };
   }
 
   /** 调用 QQ 身份接口并统一处理网络、HTTP 与 JSON 异常 */
