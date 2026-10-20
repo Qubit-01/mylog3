@@ -1,7 +1,8 @@
 <!--
 profile：
 - 个人页：集中展示当前用户身份信息与账户操作。
-- 第三方平台默认展开，目前展示 QQ 绑定状态及有数据的昵称、头像，支持绑定与解绑。
+- 账号绑定默认展开，目前展示 QQ 绑定状态及有数据的昵称、头像，支持绑定与解绑。
+- 账号绑定展示已验证邮箱，未绑定时可发送邮件验证码完成绑定。
 -->
 <script lang="ts" setup>
 import { getMe, signOut, startBindQq, unbindQq } from '@/api'
@@ -19,8 +20,8 @@ const { store } = useColorMode()
 const pending = ref(false)
 /** QQ 绑定或解绑请求是否正在进行，防止重复操作 */
 const qqPending = ref(false)
-/** 当前展开的资料区，默认展示账户信息、第三方平台与外观设置 */
-const active = ref(['account', 'third-party', 'appearance'])
+/** 当前展开的资料区，默认展示账户信息、账号绑定与外观设置 */
+const active = ref(['account', 'binding', 'appearance'])
 /** 按需查询的存储信息及请求状态，成功结果在本次页面生命周期内复用 */
 const {
   state: usage,
@@ -114,8 +115,12 @@ const onQqUnbind = async () => {
           </div>
         </div>
       </ElCollapseItem>
-      <ElCollapseItem title="第三方平台" name="third-party">
+      <ElCollapseItem title="账号绑定" name="binding">
         <div class="details">
+          <div class="item">
+            <span class="label">邮箱</span>
+            <ProfileEmailBinding />
+          </div>
           <div class="item">
             <span class="label">QQ</span>
             <div class="binding">

@@ -6,6 +6,8 @@ import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { QqAuthController } from './qq-auth.controller';
 import { QqAuthService } from './qq-auth.service';
+import { EmailAuthController } from './email-auth.controller';
+import { EmailAuthService } from './email-auth.service';
 
 /**
  * 认证模块
@@ -20,10 +22,11 @@ import { QqAuthService } from './qq-auth.service';
       signOptions: { expiresIn: '60d' },
     }),
   ],
-  controllers: [AuthController, QqAuthController],
+  controllers: [AuthController, QqAuthController, EmailAuthController],
   providers: [
     AuthService,
     QqAuthService,
+    EmailAuthService,
     { provide: APP_GUARD, useClass: AuthGuard },
   ],
 })

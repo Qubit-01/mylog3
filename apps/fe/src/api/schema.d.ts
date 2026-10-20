@@ -180,6 +180,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/email/send-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["EmailAuthController_sendCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/email/bind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["EmailAuthController_bind"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/user/me": {
         parameters: {
             query?: never;
@@ -419,6 +451,26 @@ export interface components {
             /** @description 未绑定时的 QQ 资料；已登录时为 null */
             profile: components["schemas"]["QqProfileDto"] | null;
         };
+        EmailSendCodeDto: {
+            /**
+             * Format: email
+             * @description 待绑定邮箱
+             */
+            email: string;
+        };
+        EmailSendCodeResultDto: {
+            /** @description 再次发送前需等待的秒数 */
+            retryAfter: number;
+        };
+        EmailBindDto: {
+            /**
+             * Format: email
+             * @description 待绑定邮箱
+             */
+            email: string;
+            /** @description 收到的 6 位数字验证码 */
+            code: string;
+        };
         PublicUserDto: {
             /**
              * @description 用户主键 id
@@ -440,6 +492,8 @@ export interface components {
              * @example https://cdn.example.com/a.png
              */
             avatar: string | null;
+            /** @description 当前认证账号已验证的绑定邮箱；未绑定为 null，仅登录本人可见 */
+            email: string | null;
             /** @description 所属认证账号是否已绑定 QQ */
             qqBound: boolean;
             /** @description QQ 昵称，有数据时返回 */
@@ -1004,6 +1058,51 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description QQ 已解绑 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    EmailAuthController_sendCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailSendCodeDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailSendCodeResultDto"];
+                };
+            };
+        };
+    };
+    EmailAuthController_bind: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailBindDto"];
+            };
+        };
+        responses: {
+            /** @description 邮箱绑定成功 */
             204: {
                 headers: {
                     [name: string]: unknown;

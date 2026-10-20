@@ -38,6 +38,13 @@ CosBucket=
 CosRegion=
 CosDurationSeconds=
 
+# 腾讯云 SES（邮箱绑定；密钥仅保存在后端，不与 COS 共用权限）
+SES_SECRET_ID=
+SES_SECRET_KEY=
+SES_REGION=ap-hongkong
+SES_FROM_EMAIL="多元记 <account@mylog.ink>"
+SES_TEMPLATE_ID=211078
+
 # DeepSeek（不用可留空）
 DeepseekApiKey=
 ```
@@ -79,6 +86,17 @@ pm2 reload ecosystem.config.cjs   # 首次用 start，之后一律 reload 做零
 
 `.env` 只在服务器上，`chmod 600`，不入 git。开机自启：`pm2 save && pm2 startup`。
 
+### 邮箱绑定配置
+
+1. 在腾讯云 [CAM 用户列表](https://console.cloud.tencent.com/cam) 创建或选择用于服务端发信的子用户，并创建 API 密钥。将 SecretId / SecretKey 分别填入后端 `.env` 的 `SES_SECRET_ID` / `SES_SECRET_KEY`，不要写入前端或仓库。
+2. 子用户只需 `name/ses:SendEmail` 操作权限，资源填写 `*`。该接口是操作级授权，不能通过资源字符串限定发信域名；详见 [SES 权限说明](https://cloud.tencent.com/document/product/598/70009)。
+3. SES 地域使用中国香港（`ap-hongkong`），发信地址为 `account@mylog.ink`，模板 `211078` 的变量为 `{{code}}`；修改模板后需等待重新审核通过。
+4. 修改 `.env` 后重启后端；生产环境执行 `pm2 reload ecosystem.config.cjs --update-env`。
+
+验证码使用现有 `SecretKey` 做 HMAC，不需要额外的验证码密钥。验证码有效期 5 分钟、每次最多校验 5 次；同一 Auth 或目标邮箱间隔 60 秒，滚动 24 小时最多各申请 10 次，失败发送也占配额。与图形验证码一致，验证码和发送记录保存在当前进程内存中，重启后清空，多实例之间不共享；过期记录在后续发送时清理。校验成功即消费验证码，邮箱写入失败时需重新申请。SES 的 RequestId / MessageId 会写入日志，验证码与目标邮箱不会写入业务日志。
+
+本功能仅增加已登录账号的邮箱绑定，不代表已实现邮箱登录、找回密码或改绑；QQ 解绑仍保留原有的密码校验规则。
+
 ## 模块 & 接口
 
 所有路由**默认公开**，需要登录的接口打 `@Auth()`（方法或类均可）。响应/错误结构统一由 `AllExceptionsFilter` 兜底：`{ statusCode, name, message, stack? }`。
@@ -96,6 +114,12 @@ pm2 reload ecosystem.config.cjs   # 首次用 start，之后一律 reload 做零
 - `POST /auth/sign-out`
   - resp: `204`
   - 幂等清 cookie，未登录调用也不报错
+- `POST /auth/email/send-code` — `@Auth`
+  - body: `{ email }`，自动去除两端空白并统一小写
+  - resp: `{ retryAfter }`，单位秒
+- `POST /auth/email/bind` — `@Auth`
+  - body: `{ email, code }`，验证码为 6 位数字字符串
+  - resp: `204`，消费正确验证码后条件更新唯一邮箱，禁止覆盖已有绑定
 
 Token payload：`{ sub: user.id }`，`.env.SecretKey` 签发，默认 60d。
 Cookie 配置：`httpOnly + sameSite=lax + path=/`，生产带 `secure`，`maxAge` 60d。

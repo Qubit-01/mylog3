@@ -90,6 +90,14 @@ export const bindQq = () => unwrap(api.POST('/auth/qq/bind', {}))
 /** 解绑当前账号的 QQ，保留本站用户资料和登录态 */
 export const unbindQq = () => unwrap(api.POST('/auth/qq/unbind', {}))
 
+/** 向待绑定邮箱发送当前登录账号专用的验证码，返回重发间隔 */
+export const sendEmailCode = (payload: Body<'/auth/email/send-code'>) =>
+  unwrap(api.POST('/auth/email/send-code', { body: payload }))
+
+/** 校验邮箱验证码并绑定到当前认证账号，不改变登录身份 */
+export const bindEmail = (payload: Body<'/auth/email/bind'>) =>
+  unwrap(api.POST('/auth/email/bind', { body: payload }))
+
 /** 登出，清除认证 cookie */
 export const signOut = () => unwrap(api.POST('/auth/sign-out', {}))
 

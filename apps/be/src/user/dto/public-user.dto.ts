@@ -26,6 +26,13 @@ export class PublicUserDto {
   })
   avatar!: string | null;
 
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    description: '当前认证账号已验证的绑定邮箱；未绑定为 null，仅登录本人可见',
+  })
+  email!: string | null;
+
   @ApiProperty({ type: Boolean, description: '所属认证账号是否已绑定 QQ' })
   qqBound!: boolean;
 

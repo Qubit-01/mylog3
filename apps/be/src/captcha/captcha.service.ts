@@ -2,17 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import svgCaptcha from 'svg-captcha';
 import { CaptchaCreateDto } from './dto/captcha-create.dto';
-
-/** 验证码有效期（毫秒） */
-const TTL_MS = 5 * 60 * 1000;
-
-/** 内存 store 的一条记录 */
-interface CaptchaRecord {
-  /** 答案（小写后存储，比对时也转小写） */
-  code: string;
-  /** 失效时间戳 */
-  expireAt: number;
-}
+import { VerificationCodeService } from './verification-code.service';
 
 /**
  * 图形验证码服务
@@ -22,8 +12,7 @@ interface CaptchaRecord {
  */
 @Injectable()
 export class CaptchaService {
-  /** 内存 store：id → record */
-  private readonly store = new Map<string, CaptchaRecord>();
+  constructor(private readonly codes: VerificationCodeService) {}
 
   /** 生成一张验证码 */
   generate(): CaptchaCreateDto {
@@ -34,11 +23,8 @@ export class CaptchaService {
       ignoreChars: '0o1iIl', // 排除易混字符
     });
     const id = randomUUID();
-    this.store.set(id, {
-      code: text.toLowerCase(),
-      expireAt: Date.now() + TTL_MS,
-    });
-    this.gc(); // 顺手清一下过期项
+    // 答案小写后存储，比对时也转小写；用途前缀隔离图形和邮箱验证码。
+    this.codes.create('captcha:' + id, text.toLowerCase());
     return {
       /** 验证码 id，提交业务接口时回传 */
       id,
@@ -52,18 +38,7 @@ export class CaptchaService {
    * @returns 是否通过
    */
   verify(id: string, input: string): boolean {
-    const record = this.store.get(id);
-    if (!record) return false;
-    this.store.delete(id); // 不论对错都删，防重放和暴力枚举
-    if (record.expireAt < Date.now()) return false;
-    return record.code === input.trim().toLowerCase();
-  }
-
-  /** 清理过期项，避免 Map 无限膨胀 */
-  private gc() {
-    const now = Date.now();
-    for (const [id, record] of this.store) {
-      if (record.expireAt < now) this.store.delete(id);
-    }
+    // 默认仅一次机会，不论对错都删，防重放和暴力枚举。
+    return this.codes.verify('captcha:' + id, input.trim().toLowerCase());
   }
 }

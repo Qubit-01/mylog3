@@ -40,6 +40,8 @@ const isProd = process.env.NODE_ENV === 'production';
             'req.body.accessToken',
             'req.body.pswd',
             'req.body.password',
+            'req.body.code',
+            'req.body.email',
           ],
           censor: '[REDACTED]',
         },

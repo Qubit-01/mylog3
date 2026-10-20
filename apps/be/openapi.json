@@ -245,6 +245,61 @@
         ]
       }
     },
+    "/auth/email/send-code": {
+      "post": {
+        "operationId": "EmailAuthController_sendCode",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailSendCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailSendCodeResultDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/email/bind": {
+      "post": {
+        "operationId": "EmailAuthController_bind",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailBindDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "邮箱绑定成功"
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/user/me": {
       "get": {
         "operationId": "UserController_me",
@@ -717,6 +772,52 @@
           "profile"
         ]
       },
+      "EmailSendCodeDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 100,
+            "description": "待绑定邮箱"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "EmailSendCodeResultDto": {
+        "type": "object",
+        "properties": {
+          "retryAfter": {
+            "type": "number",
+            "description": "再次发送前需等待的秒数"
+          }
+        },
+        "required": [
+          "retryAfter"
+        ]
+      },
+      "EmailBindDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 100,
+            "description": "待绑定邮箱"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "description": "收到的 6 位数字验证码"
+          }
+        },
+        "required": [
+          "email",
+          "code"
+        ]
+      },
       "PublicUserDto": {
         "type": "object",
         "properties": {
@@ -740,6 +841,11 @@
             "nullable": true,
             "description": "头像 URL，未设置为 null",
             "example": "https://cdn.example.com/a.png"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true,
+            "description": "当前认证账号已验证的绑定邮箱；未绑定为 null，仅登录本人可见"
           },
           "qqBound": {
             "type": "boolean",
@@ -779,6 +885,7 @@
           "authId",
           "name",
           "avatar",
+          "email",
           "qqBound",
           "data",
           "settings",
