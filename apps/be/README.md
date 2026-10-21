@@ -95,7 +95,7 @@ pm2 reload ecosystem.config.cjs   # 首次用 start，之后一律 reload 做零
 
 验证码使用现有 `SecretKey` 做 HMAC，不需要额外的验证码密钥。验证码有效期 5 分钟、每次最多校验 5 次；同一 Auth 或目标邮箱间隔 60 秒，滚动 24 小时最多各申请 10 次，失败发送也占配额。与图形验证码一致，验证码和发送记录保存在当前进程内存中，重启后清空，多实例之间不共享；过期记录在后续发送时清理。校验成功即消费验证码，邮箱写入失败时需重新申请。SES 的 RequestId / MessageId 会写入日志，验证码与目标邮箱不会写入业务日志。
 
-本功能仅增加已登录账号的邮箱绑定，不代表已实现邮箱登录、找回密码或改绑；QQ 解绑仍保留原有的密码校验规则。
+本功能支持已登录账号的邮箱绑定和解绑，解绑后可重新验证并绑定邮箱。已绑定邮箱可搭配现有密码登录，未设置密码的账号仍使用 QQ 登录；邮箱验证码登录和找回密码尚未实现。解绑邮箱不会影响用户名密码登录和 QQ 登录；QQ 解绑仍保留原有的密码校验规则。
 
 ## 模块 & 接口
 
@@ -105,12 +105,14 @@ pm2 reload ecosystem.config.cjs   # 首次用 start，之后一律 reload 做零
 
 - `POST /auth/sign-up`
   - body: `SignUpDto { name, pswd, captchaId, captcha }`
+  - 用户名不能包含 `@`；QQ 注册时将昵称中的 `@` 替换为 `_`，原始 QQ 资料仍保留
   - resp: `204`
   - 校验验证码 → 事务创建 `Auth + User` → Set-Cookie(`token`)
 - `POST /auth/sign-in`
-  - body: `SignInDto { name, pswd }`
+  - body: `SignInDto { name, pswd }`，自动识别用户名或已绑定邮箱
   - resp: `204`
-  - bcrypt 比对 → Set-Cookie(`token`)
+  - 输入包含 `@` 时按邮箱查询，否则按用户名查询 → bcrypt 比对 → Set-Cookie(`token`)，错误统一“账号或密码错误”
+  - 邮箱先去除两端空白并转小写；用户名登录使用对应档案，邮箱登录与 QQ 登录一致选择最早创建的档案
 - `POST /auth/sign-out`
   - resp: `204`
   - 幂等清 cookie，未登录调用也不报错
@@ -120,6 +122,9 @@ pm2 reload ecosystem.config.cjs   # 首次用 start，之后一律 reload 做零
 - `POST /auth/email/bind` — `@Auth`
   - body: `{ email, code }`，验证码为 6 位数字字符串
   - resp: `204`，消费正确验证码后条件更新唯一邮箱，禁止覆盖已有绑定
+- `POST /auth/email/unbind` — `@Auth`
+  - 无请求体，解绑当前认证账号的邮箱；未绑定时直接成功
+  - resp: `204`，条件清空邮箱并取消旧的绑定申请，保留现有登录方式
 
 Token payload：`{ sub: user.id }`，`.env.SecretKey` 签发，默认 60d。
 Cookie 配置：`httpOnly + sameSite=lax + path=/`，生产带 `secure`，`maxAge` 60d。
@@ -140,7 +145,7 @@ Cookie 配置：`httpOnly + sameSite=lax + path=/`，生产带 `secure`，`maxAg
 
 - `PublicUserDto` — `{ id: number, name: string, avatar: string | null }`
 - `SignUpDto` — `{ name (2-20), pswd (>=6), captchaId, captcha }`
-- `SignInDto` — `{ name, pswd }`，只 `@IsString()`，错误统一"账号或密码错误"
+- `SignInDto` — `{ name, pswd }`，只 `@IsString()`，登录失败统一"账号或密码错误"
 - `CaptchaCreateDto` — `{ id: string, svg: string }`
 
 ### 健康检查（`AppController`，非模块）

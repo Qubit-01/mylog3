@@ -42,6 +42,8 @@ const isProd = process.env.NODE_ENV === 'production';
             'req.body.password',
             'req.body.code',
             'req.body.email',
+            // 登录标识 name 也可能承载邮箱地址。
+            'req.body.name',
           ],
           censor: '[REDACTED]',
         },

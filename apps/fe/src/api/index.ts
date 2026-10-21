@@ -60,7 +60,7 @@ const unwrap = async <T>(
 export const signUp = (payload: Body<'/auth/sign-up'>) =>
   unwrap(api.POST('/auth/sign-up', { body: payload }))
 
-/** 登录，token 写入 httpOnly cookie */
+/** 使用用户名或已绑定邮箱搭配现有密码登录，token 写入 httpOnly cookie */
 export const signIn = (payload: Body<'/auth/sign-in'>) =>
   unwrap(api.POST('/auth/sign-in', { body: payload }))
 
@@ -97,6 +97,9 @@ export const sendEmailCode = (payload: Body<'/auth/email/send-code'>) =>
 /** 校验邮箱验证码并绑定到当前认证账号，不改变登录身份 */
 export const bindEmail = (payload: Body<'/auth/email/bind'>) =>
   unwrap(api.POST('/auth/email/bind', { body: payload }))
+
+/** 解绑当前认证账号的邮箱，保留现有密码、QQ 登录及当前登录态 */
+export const unbindEmail = () => unwrap(api.POST('/auth/email/unbind', {}))
 
 /** 登出，清除认证 cookie */
 export const signOut = () => unwrap(api.POST('/auth/sign-out', {}))

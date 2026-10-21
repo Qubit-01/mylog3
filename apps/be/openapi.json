@@ -300,6 +300,20 @@
         ]
       }
     },
+    "/auth/email/unbind": {
+      "post": {
+        "operationId": "EmailAuthController_unbind",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "邮箱已解绑"
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/user/me": {
       "get": {
         "operationId": "UserController_me",
@@ -650,7 +664,8 @@
             "type": "string",
             "minLength": 2,
             "maxLength": 20,
-            "description": "用户昵称，全局唯一",
+            "pattern": "^[^@]+$",
+            "description": "用户昵称，全局唯一，不能包含 @",
             "example": "alice"
           },
           "pswd": {
@@ -679,7 +694,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "用户昵称",
+            "description": "用户名或已绑定邮箱，自动识别",
             "example": "alice"
           },
           "pswd": {

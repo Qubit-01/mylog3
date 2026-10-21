@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Length, MinLength } from 'class-validator';
+import { IsString, Length, MinLength, NotContains } from 'class-validator';
 
 /**
  * 注册请求体 —— 运行时校验 + OpenAPI schema 双重职责
@@ -10,11 +10,13 @@ export class SignUpDto {
     type: String,
     minLength: 2,
     maxLength: 20,
-    description: '用户昵称，全局唯一',
+    pattern: '^[^@]+$',
+    description: '用户昵称，全局唯一，不能包含 @',
     example: 'alice',
   })
   @IsString()
   @Length(2, 20, { message: '昵称长度需在 2-20 之间' })
+  @NotContains('@', { message: '用户名不能包含 @' })
   name!: string;
 
   @ApiProperty({

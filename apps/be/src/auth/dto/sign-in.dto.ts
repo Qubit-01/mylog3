@@ -5,7 +5,11 @@ import { IsString } from 'class-validator';
  * 登录请求体 —— 只做基本类型校验，不做长度限制（错误提示统一走"账号或密码错误"）
  */
 export class SignInDto {
-  @ApiProperty({ type: String, description: '用户昵称', example: 'alice' })
+  @ApiProperty({
+    type: String,
+    description: '用户名或已绑定邮箱，自动识别',
+    example: 'alice',
+  })
   @IsString()
   name!: string;
 

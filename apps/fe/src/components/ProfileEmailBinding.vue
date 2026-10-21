@@ -1,11 +1,12 @@
 <!--
 ProfileEmailBinding：
 - 展示当前认证账号的邮箱，未绑定时通过邮件验证码完成绑定。
+- 已绑定时支持确认解绑，成功后立即更新本地状态并清理旧表单。
 - 发送倒计时在关闭弹窗后保留；接口错误由统一 middleware 提示。
 -->
 <script setup lang="ts">
 import type { FormInstance } from 'element-plus'
-import { bindEmail, sendEmailCode } from '@/api'
+import { bindEmail, sendEmailCode, unbindEmail } from '@/api'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
@@ -19,8 +20,12 @@ const formRef = useTemplateRef<FormInstance>('formRef')
 const sending = ref(false)
 /** 邮箱绑定提交期间禁止关闭弹窗与重复提交 */
 const binding = ref(false)
-/** 任一请求进行时锁定表单，避免发送与绑定交叉提交 */
-const pending = computed(() => sending.value || binding.value)
+/** 解绑请求期间禁止重复操作 */
+const unbinding = ref(false)
+/** 任一请求进行时锁定表单，避免发送、绑定与解绑交叉提交 */
+const pending = computed(
+  () => sending.value || binding.value || unbinding.value,
+)
 /** 与后端使用相同的邮箱规范化方式，输入变化时自动重新比较发送目标 */
 const normalizedEmail = computed(() => form.email.trim().toLowerCase())
 /** 最近成功发送的目标邮箱；修改目标后必须重新发送 */
@@ -65,13 +70,44 @@ const onBind = async () => {
     binding.value = false
   }
 }
+
+/** 解绑后立即清除邮箱及旧的绑定表单，保留服务端仍在执行的发送限频 */
+const onUnbind = async () => {
+  if (pending.value) return
+  unbinding.value = true
+  try {
+    await unbindEmail()
+    if (userStore.user) userStore.user.email = null
+    form.email = ''
+    form.code = ''
+    sentEmail.value = ''
+  } catch {
+    /* 失败时保留原绑定状态，接口错误由 api middleware 统一提示。 */
+  } finally {
+    unbinding.value = false
+  }
+}
 </script>
 
 <template>
   <div class="ProfileEmailBinding">
-    <span v-if="userStore.user?.email" class="email">{{
-      userStore.user.email
-    }}</span>
+    <template v-if="userStore.user?.email">
+      <span class="email">{{ userStore.user.email }}</span>
+      <ElPopconfirm
+        title="确定解绑邮箱吗？"
+        :width="160"
+        confirm-button-text="解绑"
+        cancel-button-text="取消"
+        confirm-button-type="danger"
+        @confirm="onUnbind"
+      >
+        <template #reference>
+          <ElButton link type="danger" :loading="unbinding" :disabled="pending"
+            >解绑</ElButton
+          >
+        </template>
+      </ElPopconfirm>
+    </template>
     <ElButton v-else link type="primary" @click="visible = true">绑定</ElButton>
 
     <ElDialog
@@ -163,6 +199,7 @@ const onBind = async () => {
 .ProfileEmailBinding {
   display: flex;
   align-items: center;
+  gap: 8px;
   min-width: 0;
 
   > .email {

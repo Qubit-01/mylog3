@@ -212,6 +212,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/email/unbind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["EmailAuthController_unbind"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/user/me": {
         parameters: {
             query?: never;
@@ -403,7 +419,7 @@ export interface components {
         };
         SignUpDto: {
             /**
-             * @description 用户昵称，全局唯一
+             * @description 用户昵称，全局唯一，不能包含 @
              * @example alice
              */
             name: string;
@@ -416,7 +432,7 @@ export interface components {
         };
         SignInDto: {
             /**
-             * @description 用户昵称
+             * @description 用户名或已绑定邮箱，自动识别
              * @example alice
              */
             name: string;
@@ -1103,6 +1119,24 @@ export interface operations {
         };
         responses: {
             /** @description 邮箱绑定成功 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    EmailAuthController_unbind: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 邮箱已解绑 */
             204: {
                 headers: {
                     [name: string]: unknown;

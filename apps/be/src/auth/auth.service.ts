@@ -48,12 +48,17 @@ export class AuthService {
   }
 
   /**
-   * 登录：按 name 查 user → bcrypt 比对 → 返回签好的 JWT
+   * 登录：按用户名或已绑定邮箱查 user → bcrypt 比对 → 返回签好的 JWT
    * - 账号 / 密码错误统一提示，避免枚举
    */
   async signIn(dto: SignInDto): Promise<string> {
-    const user = await this.prisma.user.findUnique({
-      where: { name: dto.name },
+    // 用户名禁止包含 @，可直接区分两种登录标识，无需通过密码消歧。
+    const user = await this.prisma.user.findFirst({
+      where: dto.name.includes('@')
+        ? { auth: { email: dto.name.trim().toLowerCase() } }
+        : { name: dto.name },
+      // 邮箱命中时与 QQ 登录一致，选择最早创建的用户档案。
+      orderBy: { id: 'asc' },
     });
     if (!user) throw new UnauthorizedException('账号或密码错误');
     const auth = await this.prisma.auth.findUnique({

@@ -13,7 +13,7 @@ import {
   EmailSendCodeResultDto,
 } from './dto/email.dto';
 
-/** 邮箱绑定只面向当前登录账号，不创建账号或切换登录身份 */
+/** 邮箱绑定与解绑只面向当前登录账号，不创建账号或切换登录身份 */
 @ApiTags('auth')
 @Auth()
 @Controller('auth/email')
@@ -38,5 +38,13 @@ export class EmailAuthController {
   @ApiNoContentResponse({ description: '邮箱绑定成功' })
   bind(@UserId() userId: number, @Body() dto: EmailBindDto): Promise<void> {
     return this.emailAuth.bind(userId, dto);
+  }
+
+  /** 解绑当前认证账号的邮箱，不改变登录身份 */
+  @Post('unbind')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiNoContentResponse({ description: '邮箱已解绑' })
+  unbind(@UserId() userId: number): Promise<void> {
+    return this.emailAuth.unbind(userId);
   }
 }

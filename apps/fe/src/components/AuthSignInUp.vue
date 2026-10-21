@@ -1,6 +1,6 @@
 <!--
 AuthSignInUp：
-- 提供账号登录与可选的注册表单，负责验证码和表单校验。
+- 提供用户名或邮箱搭配现有密码登录与可选的注册表单，负责验证码和表单校验。
 - 通过可选 v-model 与异步提交回调将流程控制留给宿主。
 -->
 <script lang="ts" setup>
@@ -52,6 +52,7 @@ const onSignIn = async () => {
 /** 校验并提交注册表单；失败后刷新一次性验证码 */
 const onSignUp = async () => {
   if (!submitSignUp) return
+  if (signUpForm.name.includes('@')) return ElMessage.error('用户名不能包含 @')
   if (signUpForm.pswd !== pswdConfirm.value)
     return ElMessage.error('两次密码不一致')
   if (!captcha.value) return ElMessage.warning('验证码加载中，请稍后')
@@ -71,7 +72,7 @@ const onSignUp = async () => {
         <form class="form" @submit.prevent="onSignIn">
           <ElInput
             v-model="signInForm.name"
-            placeholder="用户名"
+            placeholder="用户名或已绑定邮箱"
             autocomplete="username"
           />
           <ElInput
@@ -89,7 +90,7 @@ const onSignUp = async () => {
         <form class="form" @submit.prevent="onSignUp">
           <ElInput
             v-model="signUpForm.name"
-            placeholder="用户名"
+            placeholder="用户名（不能包含 @）"
             autocomplete="username"
           />
           <ElInput

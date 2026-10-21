@@ -186,10 +186,10 @@ export class QqAuthService {
 
     // 1. 用户明确选择注册后才创建账号；昵称冲突时第二次尝试自动添加短后缀。
     for (let attempt = 0; attempt < 2; attempt += 1) {
+      // 本站用户名不能包含 @；只转换注册名，QQ 原始昵称仍保留在绑定资料中。
       const name =
-        attempt === 0
-          ? pending.nickname
-          : `${pending.nickname}_${randomUUID().slice(0, 6)}`;
+        pending.nickname.replaceAll('@', '_') +
+        (attempt === 0 ? '' : `_${randomUUID().slice(0, 6)}`);
       try {
         const user = await this.prisma.$transaction(async (tx) => {
           // 原始 QQ 资料与本站档案同事务落库，注册成功即完成 QQ 绑定。
@@ -260,7 +260,7 @@ export class QqAuthService {
     });
     if (!auth) throw new UnauthorizedException('当前账号不存在');
     if (!auth.unionQq) return;
-    // 当前只实现了密码与 QQ 登录，邮箱、手机号或预留的微信资料不算可用登录方式。
+    // 邮箱登录同样依赖密码，手机号和预留的微信资料尚未实现登录，不能替代当前的密码校验。
     if (!auth.pswd) {
       throw new BadRequestException(
         '当前账号尚未设置密码，暂不能解绑唯一的 QQ 登录方式',

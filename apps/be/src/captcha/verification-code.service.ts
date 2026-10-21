@@ -80,6 +80,11 @@ export class VerificationCodeService {
     return matches;
   }
 
+  /** 主动取消该用途的验证码，解绑时同时使进行中的申请失效 */
+  remove(key: string): void {
+    this.store.delete(key);
+  }
+
   /** 清理过期项，避免 Map 无限膨胀 */
   private gc() {
     const now = Date.now();

@@ -116,7 +116,7 @@ export class EmailAuthService {
       .SendEmail({
         FromEmailAddress: from,
         Destination: [dto.email],
-        Subject: '多元记邮箱绑定验证码',
+        Subject: '【多元记】邮箱绑定验证码',
         Template: {
           TemplateID: templateId,
           TemplateData: JSON.stringify({ code }),
@@ -186,5 +186,23 @@ export class EmailAuthService {
       }
       throw error;
     }
+  }
+
+  /** 解绑当前认证账号的邮箱；未绑定时直接返回，密码和 QQ 登录保持可用 */
+  async unbind(userId: number): Promise<void> {
+    const auth = await this.prisma.auth.findFirst({
+      where: { users: { some: { id: userId } } },
+    });
+    if (!auth) throw new UnauthorizedException('当前账号不存在');
+    if (!auth.email) return;
+    // 邮箱登录复用现有密码，解绑后仍可用用户名与密码或 QQ 登录；条件更新避免误清除并发新绑定。
+    const updated = await this.prisma.auth.updateMany({
+      where: { id: auth.id, email: auth.email },
+      data: { email: null },
+    });
+    if (updated.count !== 1)
+      throw new ConflictException('邮箱绑定状态已变化，请刷新后重试');
+    this.codes.remove('email-bind:' + auth.id);
+    this.logger.log({ authId: auth.id }, '邮箱已解绑');
   }
 }
